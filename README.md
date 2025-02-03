@@ -304,101 +304,91 @@ Pricing Details by the Commerce Department.
 ## Project Request Submission Form
 
 ```tsx
+//CustomDropdown.tsx
 import * as React from 'react';
-import { Dropdown, IDropdownOption, PrimaryButton, TextField } from 'office-ui-fabric-react';
-import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
-import * as moment from 'moment';
-import styles from './ProjectRequestForm.module.scss';
+import { Dropdown, IDropdownOption } from 'office-ui-fabric-react';
+
+interface ICustomerDropdownProps {
+  customerOptions: IDropdownOption[];
+  selectedCustomer: string | undefined;
+  onChange: (event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption) => void;
+}
+
+const CustomerDropdown: React.FC<ICustomerDropdownProps> = ({ customerOptions, selectedCustomer, onChange }) => {
+  return (
+    <Dropdown
+      label="Customer"
+      options={customerOptions}
+      selectedKey={selectedCustomer}
+      onChange={onChange}
+    />
+  );
+};
+
+export default CustomerDropdown;
+```
+
+```tsx
+//ProjectRequestForm.tsx
+import * as React from 'react';
+import { TextField, PrimaryButton } from 'office-ui-fabric-react';
+import CustomerDropdown from './CustomerDropdown';
 import { IProjectRequestFormProps } from './IProjectRequestFormProps';
 import { IProjectRequestFormState } from './IProjectRequestFormState';
 
-export default class ProjectRequestForm extends React.Component<IProjectRequestFormProps, IProjectRequestFormState> {
+class ProjectRequestForm extends React.Component<IProjectRequestFormProps, IProjectRequestFormState> {
   constructor(props: IProjectRequestFormProps) {
     super(props);
     this.state = {
       customerOptions: [],
       selectedCustomer: undefined,
       requestTitle: '',
-      requestDate: moment().format('YYYY-MM-DD'),
+      requestDate: '',
       estimatedDuration: 0,
       estimatedCost: 0,
       status: 'New'
     };
   }
 
-  public componentDidMount(): void {
+  componentDidMount() {
     this.loadCustomerOptions();
   }
 
-  private loadCustomerOptions(): void {
-    this.props.spHttpClient.get(`${this.props.siteUrl}/_api/web/lists/getbytitle('CustomerList')/items`, SPHttpClient.configurations.v1)
-      .then((response: SPHttpClientResponse) => response.json())
-      .then((data: any) => {
-        const customerOptions: IDropdownOption[] = data.value.map((item: any) => ({
-          key: item.Id,
-          text: item.Title
-        }));
-        this.setState({ customerOptions });
-      });
+  loadCustomerOptions() {
+    // Fetch customer options and set state
   }
 
-  private handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+  handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = event.target;
     this.setState({ [name]: value } as any);
   };
 
-  private handleDropdownChange = (event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption, index?: number): void => {
-    const { name } = event.currentTarget as any;
-    this.setState({ [name]: option?.key } as any);
+  handleDropdownChange = (event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption): void => {
+    this.setState({ selectedCustomer: option?.key });
   };
 
-  private handleSubmit = (): void => {
-    const { requestTitle, selectedCustomer, requestDate, estimatedDuration, estimatedCost, status } = this.state;
-
-    const requestData = {
-      Title: requestTitle,
-      CustomerId: selectedCustomer,
-      RequestDate: requestDate,
-      EstimatedDuration: estimatedDuration,
-      EstimatedCost: estimatedCost,
-      Status: status
-    };
-
-    this.props.spHttpClient.post(`${this.props.siteUrl}/_api/web/lists/getbytitle('ProjectRequests')/items`, SPHttpClient.configurations.v1, {
-      headers: {
-        'Accept': 'application/json;odata=verbose',
-        'Content-type': 'application/json;odata=verbose'
-      },
-      body: JSON.stringify(requestData)
-    })
-    .then((response: SPHttpClientResponse) => {
-      if (response.ok) {
-        alert('Request submitted successfully!');
-        this.resetForm();
-      } else {
-        alert('Error submitting request');
-      }
-    });
+  handleSubmit = (): void => {
+    // Handle form submission
   };
 
-  private resetForm = (): void => {
+  resetForm = (): void => {
     this.setState({
       requestTitle: '',
       selectedCustomer: undefined,
-      requestDate: moment().format('YYYY-MM-DD'),
+      requestDate: '',
       estimatedDuration: 0,
       estimatedCost: 0,
       status: 'New'
     });
   };
 
-  public render(): React.ReactElement<IProjectRequestFormProps> {
-    const { customerOptions, requestTitle, selectedCustomer, requestDate, estimatedDuration, estimatedCost } = this.state;
+  render() {
+    const { customerOptions, selectedCustomer, requestTitle, requestDate, estimatedDuration, estimatedCost } = this.state;
 
     return (
-      <div className={styles.projectRequestForm}>
+      <div>
         <TextField label="Request Title" name="requestTitle" value={requestTitle} onChange={this.handleInputChange} />
-        <Dropdown label="Customer" name="selectedCustomer" options={customerOptions} selectedKey={selectedCustomer} onChange={this.handleDropdownChange} />
+        <CustomerDropdown customerOptions={customerOptions} selectedCustomer={selectedCustomer} onChange={this.handleDropdownChange} />
         <TextField label="Request Date" name="requestDate" value={requestDate} onChange={this.handleInputChange} />
         <TextField label="Estimated Duration (days)" name="estimatedDuration" value={estimatedDuration} onChange={this.handleInputChange} type="number" />
         <TextField label="Estimated Cost" name="estimatedCost" value={estimatedCost} onChange={this.handleInputChange} type="number" />
@@ -408,4 +398,5 @@ export default class ProjectRequestForm extends React.Component<IProjectRequestF
   }
 }
 
+export default ProjectRequestForm;
 ```

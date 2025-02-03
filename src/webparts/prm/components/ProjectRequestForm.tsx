@@ -1,17 +1,23 @@
 import * as React from "react";
 import { TextField, PrimaryButton } from "office-ui-fabric-react";
-import CustomerDropdown from "./CustomDropdown";
+import CustomerDropdown from "./CustomerDropdown";
 import { IProjectRequestFormProps } from "./IProjectRequestFormProps";
 import { IProjectRequestFormState } from "./IProjectRequestFormState";
-import { SPHttpClient } from "@microsoft/sp-http";
+import ProjectRequestService from "../services/ProjectRequestService";
 import { IDropdownOption } from "office-ui-fabric-react";
 
 class ProjectRequestForm extends React.Component<
   IProjectRequestFormProps,
   IProjectRequestFormState
 > {
+  private projectRequestService: ProjectRequestService;
+
   constructor(props: IProjectRequestFormProps) {
     super(props);
+    this.projectRequestService = new ProjectRequestService(
+      props.spHttpClient,
+      props.siteUrl
+    );
     this.state = {
       customerOptions: [],
       selectedCustomer: undefined,
@@ -28,19 +34,13 @@ class ProjectRequestForm extends React.Component<
   }
 
   loadCustomerOptions() {
-    this.props.spHttpClient
-      .get(
-        `${this.props.siteUrl}/_api/web/lists/getbytitle('CustomerList')/items`,
-        SPHttpClient.configurations.v1
-      )
-      .then((response) => response.json())
-      .then((data) => {
-        const customerOptions = data.value.map((item) => ({
-          key: item.Id,
-          text: item.Title,
-        }));
-        this.setState({ customerOptions });
-      });
+    this.projectRequestService.getCustomerOptions().then((customerOptions) => {
+      const dropdownOptions = customerOptions.map((item) => ({
+        key: item.Id,
+        text: item.Title,
+      }));
+      this.setState({ customerOptions: dropdownOptions });
+    });
   }
 
   handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -74,18 +74,8 @@ class ProjectRequestForm extends React.Component<
       Status: status,
     };
 
-    this.props.spHttpClient
-      .post(
-        `${this.props.siteUrl}/_api/web/lists/getbytitle('ProjectRequests')/items`,
-        SPHttpClient.configurations.v1,
-        {
-          headers: {
-            Accept: "application/json;odata=verbose",
-            "Content-type": "application/json;odata=verbose",
-          },
-          body: JSON.stringify(requestData),
-        }
-      )
+    this.projectRequestService
+      .createProjectRequest(requestData)
       .then((response) => {
         if (response.ok) {
           alert("Request submitted successfully!");

@@ -26,46 +26,51 @@ gulp bundle - TODO
 gulp package-solution - TODO
 <!-- START -->
 
-## 1. Step 1: Create Site Columns (Reusable across lists)
+## Step 1: Create Site Columns (Reusable across lists)
   
-  Text Columns
+### Text Columns
 
 Title - as Customer Name (Single line of text default item content type title)
 Email (Single line of text)
 WorkPhone Contact Phone (Single line of text)
 WorkAddress (Multiple lines of text)
 Activity (Single line of text)
-Choice Columns
+
+### Choice Columns
+
 Customer Type (Choices: Individual, Corporate, Government)
 Item Type (Choices: Material, Labor, Machinery)
 Department Name (Choices: Civil, Electrical, Mechanical, etc.)
 Status (Choices: New, In Progress, Completed, Priced)
-Technical Assessment Status (Choices: Not Started, In Progress, Completed)
-Pricing Status (Choices: Pending, Finalized)
-Lookup Columns
-Customer → Lookup to Customer List
-Request ID → Lookup to Project Requests List
-Item ID → Lookup to Inventory Items List
-Number & Currency Columns
-Estimated Duration (Number)
-Estimated Cost (Currency)
-Man Hours (Number)
-Price Per Unit (Currency)
-Worker Cost Per Hour (Currency)
-Machine Cost Per Hour (Currency)
-Quantity (Number)
-Unit Price (Currency)
-Total Cost (Calculated: Quantity * Unit Price)
-Step 2: Create Lists
+TechnicalAssessmentStatus (Choices: Not Started, In Progress, Completed)
+PricingStatus (Choices: Pending, Finalized)
 
-1. CustomerList (Existing)
+### Lookup Columns
+
+Customer → Lookup to Customer List
+RequestID → Lookup to ProjectRequests List
+ItemID → Lookup to InventoryItems List
+### Number & Currency Columns
+EstimatedDuration (Number)
+EstimatedCost (Currency)
+ManHours (Number)
+PricePerUnit (Currency)
+WorkerCostPerHour (Currency)
+MachineCostPerHour (Currency)
+Quantity (Number)
+UnitPrice (Currency)
+TotalCost (Calculated: Quantity * Unit Price)
+
+## Step 2: Create Lists
+
+1. 'CustomerList' (Existing)
 Title (Single line of text) → Customer Name
 Email
 WorkPhone
 WorkAddress
 CustomerType
 
-2. InventoryItems List
+2. 'InventoryItems' List
 Title → Item Name
 ItemCategory
 PricePerUnit
@@ -73,7 +78,7 @@ WorkerCostPerHour
 MachineCostPerHour
 Activity
 
-3. Project Requests List
+3. 'ProjectRequests' List
 Title → Request Title
 Customer (Lookup)
 RequestDate (Date and Time)
@@ -82,9 +87,9 @@ EstimatedCost
 Status
 DocumentSetID (Single line of text)
 
-4. Technical Assessments List
+4. 'TechnicalAssessments' List
 Title → Assessment Title
-Project-Code (Metadata)
+ProjectID (Lookup)
 DepartmentM (Metadata)
 Man Hours
 Materials (Multiple lines of text)
@@ -92,26 +97,27 @@ Materials (Multiple lines of text)
 *Dependencies (Multiple lines of text)*
 *SpecialConsiderations (Multiple lines of text)*
 
-5. Pricing Details List
+5. 'PricingDetails' List
 Title → Item Title
-Request ID (Lookup)
+Project-Code (Metadata)
 Item ID (Lookup)
 Quantity
 Unit Price
 Total Cost (Calculated)
 Activity
 
+## Step 3: Create Document Library for Project Documentation
 
-
-Step 3: Create Document Library for Project Documentation
-Library Name: Project Documentation
+Library Name: 'ProjectDocumentation'
 Enable Document Sets
 Metadata Fields:
-Project ID (Single line of text)
+Project-Code (Metadata)
 Customer (Lookup)
 Technical Assessment Status
 Pricing Status
-Step 4: Permissions Setup
+
+## Step 4: Permissions Setup
+
 Commerce Department: Can create/edit project requests but cannot modify technical assessments.
 Engineering Teams: Can only update their respective assessments.
 Pricing Team: Can only edit pricing details.

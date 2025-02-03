@@ -3,6 +3,8 @@ import { TextField, PrimaryButton } from "office-ui-fabric-react";
 import CustomerDropdown from "./CustomerDropdown";
 import { IProjectRequestFormProps } from "./IProjectRequestFormProps";
 import { IProjectRequestFormState } from "./IProjectRequestFormState";
+import { SPHttpClient } from "@microsoft/sp-http";
+import { IDropdownOption } from "office-ui-fabric-react";
 
 class ProjectRequestForm extends React.Component<
   IProjectRequestFormProps,
@@ -26,7 +28,19 @@ class ProjectRequestForm extends React.Component<
   }
 
   loadCustomerOptions() {
-    // Fetch customer options and set state
+    this.props.spHttpClient
+      .get(
+        `${this.props.siteUrl}/_api/web/lists/getbytitle('CustomerList')/items`,
+        SPHttpClient.configurations.v1
+      )
+      .then((response) => response.json())
+      .then((data) => {
+        const customerOptions = data.value.map((item) => ({
+          key: item.Id,
+          text: item.Title,
+        }));
+        this.setState({ customerOptions });
+      });
   }
 
   handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -42,7 +56,44 @@ class ProjectRequestForm extends React.Component<
   };
 
   handleSubmit = (): void => {
-    // Handle form submission
+    const {
+      requestTitle,
+      selectedCustomer,
+      requestDate,
+      estimatedDuration,
+      estimatedCost,
+      status,
+    } = this.state;
+
+    const requestData = {
+      Title: requestTitle,
+      CustomerId: selectedCustomer,
+      RequestDate: requestDate,
+      EstimatedDuration: estimatedDuration,
+      EstimatedCost: estimatedCost,
+      Status: status,
+    };
+
+    this.props.spHttpClient
+      .post(
+        `${this.props.siteUrl}/_api/web/lists/getbytitle('ProjectRequests')/items`,
+        SPHttpClient.configurations.v1,
+        {
+          headers: {
+            Accept: "application/json;odata=verbose",
+            "Content-type": "application/json;odata=verbose",
+          },
+          body: JSON.stringify(requestData),
+        }
+      )
+      .then((response) => {
+        if (response.ok) {
+          alert("Request submitted successfully!");
+          this.resetForm();
+        } else {
+          alert("Error submitting request");
+        }
+      });
   };
 
   resetForm = (): void => {

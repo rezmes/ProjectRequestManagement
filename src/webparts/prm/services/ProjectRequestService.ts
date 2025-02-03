@@ -36,7 +36,7 @@ import "@pnp/sp/items";
 
 export default class ProjectRequestService {
   public getCustomerOptions(): Promise<any[]> {
-    return sp.web.lists.getByTitle('CustomerList').items.get()
+    return sp.web.lists.getByTitle('Customer').items.get()
       .then(data => data.map(item => ({ key: item.Id, text: item.Title })));
   }
 

@@ -7,5 +7,5 @@ export interface IProjectRequestFormState {
   requestDate: string;
   estimatedDuration: number;
   estimatedCost: number;
-  status: string;
+  RequestStatus: string;
 }

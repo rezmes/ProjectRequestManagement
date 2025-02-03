@@ -4,14 +4,23 @@ import { Version } from '@microsoft/sp-core-library';
 import { IPropertyPaneConfiguration, PropertyPaneTextField, BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 import * as strings from 'PrmWebPartStrings';
 import ProjectRequestForm from './components/ProjectRequestForm';
+import { sp } from "@pnp/sp";
+import { IProjectRequestFormProps } from './components/IProjectRequestFormProps';
 
 export interface IPrmWebPartProps {
   description: string;
 }
 
 export default class PrmWebPart extends BaseClientSideWebPart<IPrmWebPartProps> {
+  protected onInit(): Promise<void> {
+    sp.setup({
+      spfxContext: this.context
+    });
+    return super.onInit();
+  }
+
   public render(): void {
-    const element: React.ReactElement<{}> = React.createElement(ProjectRequestForm, {
+    const element: React.ReactElement<IProjectRequestFormProps> = React.createElement(ProjectRequestForm, {
       spHttpClient: this.context.spHttpClient,
       siteUrl: this.context.pageContext.web.absoluteUrl
     });

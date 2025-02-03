@@ -1,6 +1,6 @@
 import * as React from "react";
 import { TextField, PrimaryButton } from "office-ui-fabric-react";
-import CustomerDropdown from "./CustomerDropdown";
+import CustomerDropdown from "./CustomDropdown";
 import { IProjectRequestFormProps } from "./IProjectRequestFormProps";
 import { IProjectRequestFormState } from "./IProjectRequestFormState";
 import { SPHttpClient } from "@microsoft/sp-http";
@@ -52,7 +52,7 @@ class ProjectRequestForm extends React.Component<
     event: React.FormEvent<HTMLDivElement>,
     option?: IDropdownOption
   ): void => {
-    this.setState({ selectedCustomer: option?.key });
+    this.setState({ selectedCustomer: option?.key.toString() });
   };
 
   handleSubmit = (): void => {
@@ -139,14 +139,14 @@ class ProjectRequestForm extends React.Component<
         <TextField
           label="Estimated Duration (days)"
           name="estimatedDuration"
-          value={estimatedDuration}
+          value={estimatedDuration.toString()}
           onChange={this.handleInputChange}
           type="number"
         />
         <TextField
           label="Estimated Cost"
           name="estimatedCost"
-          value={estimatedCost}
+          value={estimatedCost.toString()}
           onChange={this.handleInputChange}
           type="number"
         />

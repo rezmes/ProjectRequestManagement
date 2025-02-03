@@ -10,19 +10,20 @@ interface ICustomerDropdownProps {
   ) => void;
 }
 
-const CustomerDropdown: React.FC<ICustomerDropdownProps> = ({
-  customerOptions,
-  selectedCustomer,
-  onChange,
-}) => {
-  return (
-    <Dropdown
-      label="Customer"
-      options={customerOptions}
-      selectedKey={selectedCustomer}
-      onChange={onChange}
-    />
-  );
-};
+export class CustomerDropdown extends React.Component<
+  ICustomerDropdownProps,
+  {}
+> {
+  public render(): React.ReactElement<ICustomerDropdownProps> {
+    return (
+      <Dropdown
+        label="Customer"
+        options={this.props.customerOptions}
+        selectedKey={this.props.selectedCustomer}
+        onChange={this.props.onChange}
+      />
+    );
+  }
+}
 
 export default CustomerDropdown;

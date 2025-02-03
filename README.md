@@ -288,7 +288,6 @@ PricingStatus
 <!-- Installing som packages -->
 `npm install office-ui-fabric-react@5.134.0 moment@2.24.0 moment-jalaali@0.8.3`
 
-
 <!-- Start Implementation -->
 
 ### Step 1: SPFx Form Development

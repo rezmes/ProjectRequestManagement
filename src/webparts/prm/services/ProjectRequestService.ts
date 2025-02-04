@@ -26,4 +26,8 @@ export default class ProjectRequestService {
         specialConsiderations: item.SpecialConsiderations
       })));
     }
+      public getDepartmentOptions(): Promise<any[]> {
+        return sp.web.lists.getByTitle('Departments').items.get()
+          .then(data => data.map(item => ({ key: item.Id, text: item.Title })));
+      }
 }

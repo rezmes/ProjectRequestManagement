@@ -29,6 +29,8 @@
 //     });
 //   }
 // }
+
+
 import { sp } from "@pnp/sp";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
@@ -40,20 +42,20 @@ export default class ProjectRequestService {
       .then(data => data.map(item => ({ key: item.Id, text: item.Title })));
   }
 
-  // public createProjectRequest(requestData: any): Promise<any> {
-  //   return sp.web.lists.getByTitle('ProjectRequests').items.add(requestData);
-  // }
   public createProjectRequest(requestData: any): Promise<any> {
-    return sp.web.lists.getByTitle("ProjectRequests").items.add({
-      Title: requestData.Title,
-      RequestDate: requestData.RequestDate, // Ensure format is correct
-      EstimatedDuration: requestData.EstimatedDuration, // Ensure numeric value
-      EstimatedCost: requestData.EstimatedCost, // Ensure numeric value
-      RequestStatus: requestData.RequestStatus, // Ensure correct internal name
-
-      // If "CustomerId" is a lookup field, use ID reference
-      CustomerId: requestData.CustomerId, // SharePoint expects "ColumnNameId" for lookups
-    });
+    return sp.web.lists.getByTitle('ProjectRequests').items.add(requestData);
   }
+  // public createProjectRequest(requestData: any): Promise<any> {
+  //   return sp.web.lists.getByTitle("ProjectRequests").items.add({
+  //     Title: requestData.Title,
+  //     RequestDate: requestData.RequestDate, // Ensure format is correct
+  //     EstimatedDuration: requestData.EstimatedDuration, // Ensure numeric value
+  //     EstimatedCost: requestData.EstimatedCost, // Ensure numeric value
+  //     RequestStatus: requestData.RequestStatus, // Ensure correct internal name
+
+  //     // If "CustomerId" is a lookup field, use ID reference
+  //     CustomerId: requestData.CustomerId, // SharePoint expects "ColumnNameId" for lookups
+    // });
+  // }
 
 }

@@ -22,7 +22,8 @@ export default class PrmWebPart extends BaseClientSideWebPart<IPrmWebPartProps> 
   public render(): void {
     const element: React.ReactElement<IProjectRequestFormProps> = React.createElement(ProjectRequestForm, {
       spHttpClient: this.context.spHttpClient,
-      siteUrl: this.context.pageContext.web.absoluteUrl
+      siteUrl: this.context.pageContext.web.absoluteUrl,
+
     });
 
     ReactDom.render(element, this.domElement);

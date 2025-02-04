@@ -7,6 +7,9 @@ import ProjectRequestService from "../services/ProjectRequestService";
 import { IDropdownOption } from "office-ui-fabric-react";
 import * as moment from "moment";
 import "moment-jalaali";
+import TechnicalAssessmentTable from "./TechnicalAssessmentTable";
+
+
 
 class ProjectRequestForm extends React.Component<
   IProjectRequestFormProps,
@@ -51,11 +54,14 @@ class ProjectRequestForm extends React.Component<
 
 
   handleDropdownChange = (
-    event: React.FormEvent<HTMLDivElement>,
     option?: IDropdownOption
   ): void => {
+
+    console.log("Dropdown Change Event:", option); // Log the dropdown change event
     this.setState({
-      selectedCustomer: option ? parseInt(option.key.toString(), 10) : undefined, // Ensure it's a number
+      selectedCustomer: option ? option.key : undefined,
+    },()=>{
+      console.log("Updated selectedCustomer in state:", this.state.selectedCustomer); // Log the updated state
     });
   };
 
@@ -69,7 +75,7 @@ class ProjectRequestForm extends React.Component<
       estimatedCost,
       RequestStatus,
     } = this.state;
-
+    console.log("Selected Customer:", selectedCustomer); // Log the selectedCustomer value
     // Convert the requestDate to Gregorian format
     const formattedRequestDate = moment(requestDate, "jYYYY-jMM-jDD").format(
       "YYYY-MM-DDTHH:mm:ss[Z]"
@@ -90,7 +96,7 @@ class ProjectRequestForm extends React.Component<
 
     const requestData = {
       Title: requestTitle.trim(), // Ensure text field is not empty
-      CustomerId: selectedCustomer ? parseInt(selectedCustomer, 10) : null, // Ensure lookup is valid
+      CustomerId: selectedCustomer ? selectedCustomer : null, // Ensure lookup is valid
       RequestDate: formattedRequestDate,
       EstimatedDuration: isNaN(estimatedDuration) ? 0 : estimatedDuration, // Ensure numeric
       EstimatedCost: isNaN(estimatedCost) ? 0 : estimatedCost, // Ensure numeric
@@ -170,6 +176,13 @@ class ProjectRequestForm extends React.Component<
   value={this.state.estimatedDuration.toString()} // Ensure it’s a string
   onChanged={(newValue: string) => this.setState({ estimatedDuration: parseInt(newValue) || 0 })}
   type="number"
+/>
+
+
+
+<TechnicalAssessmentTable
+  projectRequestService={this.projectRequestService}
+  requestId={this.state.requestId} // Assuming we have requestId in state
 />
 
 

@@ -1,35 +1,3 @@
-// import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
-
-// export default class ProjectRequestService {
-//   private spHttpClient: SPHttpClient;
-//   private siteUrl: string;
-
-//   constructor(spHttpClient: SPHttpClient, siteUrl: string) {
-//     this.spHttpClient = spHttpClient;
-//     this.siteUrl = siteUrl;
-//   }
-
-//   public getCustomerOptions(): Promise<any[]> {
-//     const url = `${this.siteUrl}/_api/web/lists/getbytitle('CustomerList')/items`;
-
-//     return this.spHttpClient.get(url, SPHttpClient.configurations.v1)
-//       .then((response: SPHttpClientResponse) => response.json())
-//       .then((data: any) => data.value);
-//   }
-
-//   public createProjectRequest(requestData: any): Promise<SPHttpClientResponse> {
-//     const url = `${this.siteUrl}/_api/web/lists/getbytitle('ProjectRequests')/items`;
-
-//     return this.spHttpClient.post(url, SPHttpClient.configurations.v1, {
-//       headers: {
-//         'Accept': 'application/json;odata=verbose',
-//         'Content-type': 'application/json;odata=verbose'
-//       },
-//       body: JSON.stringify(requestData)
-//     });
-//   }
-// }
-
 
 import { sp } from "@pnp/sp";
 import "@pnp/sp/webs";
@@ -45,17 +13,17 @@ export default class ProjectRequestService {
   public createProjectRequest(requestData: any): Promise<any> {
     return sp.web.lists.getByTitle('ProjectRequests').items.add(requestData);
   }
-  // public createProjectRequest(requestData: any): Promise<any> {
-  //   return sp.web.lists.getByTitle("ProjectRequests").items.add({
-  //     Title: requestData.Title,
-  //     RequestDate: requestData.RequestDate, // Ensure format is correct
-  //     EstimatedDuration: requestData.EstimatedDuration, // Ensure numeric value
-  //     EstimatedCost: requestData.EstimatedCost, // Ensure numeric value
-  //     RequestStatus: requestData.RequestStatus, // Ensure correct internal name
 
-  //     // If "CustomerId" is a lookup field, use ID reference
-  //     CustomerId: requestData.CustomerId, // SharePoint expects "ColumnNameId" for lookups
-    // });
-  // }
-
+  public getTechnicalAssessments(requestId: number): Promise<any[]> {
+    return sp.web.lists.getByTitle('TechnicalAssessments').items.filter(`ProjectID eq ${requestId}`).get()
+      .then(data => data.map(item => ({
+        title: item.Title,
+        department: item.DepartmentM,
+        manHours: item.ManHours,
+        materials: item.Materials,
+        machinery: item.Machinery,
+        dependencies: item.Dependencies,
+        specialConsiderations: item.SpecialConsiderations
+      })));
+    }
 }

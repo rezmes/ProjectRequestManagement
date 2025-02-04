@@ -3,24 +3,21 @@ import { Dropdown, IDropdownOption } from "office-ui-fabric-react";
 
 interface ICustomerDropdownProps {
   customerOptions: IDropdownOption[];
-  selectedCustomer: string | undefined;
-  onChange: (
-    event: React.FormEvent<HTMLDivElement>,
-    option?: IDropdownOption
-  ) => void;
+  selectedCustomer: string | number | undefined;
+  onChange: (option?: IDropdownOption) => void; // Corrected to use onChanged
 }
 
-export class CustomerDropdown extends React.Component<
-  ICustomerDropdownProps,
-  {}
-> {
+export class CustomerDropdown extends React.Component<ICustomerDropdownProps, {}> {
   public render(): React.ReactElement<ICustomerDropdownProps> {
+    const { customerOptions, selectedCustomer, onChange } = this.props;
+    const placeHolderText = "انتخاب مشتری";
     return (
       <Dropdown
+        placeHolder={placeHolderText}
         label="Customer"
-        options={this.props.customerOptions}
-        selectedKey={this.props.selectedCustomer}
-        onChange={this.props.onChange}
+        options={customerOptions}
+        selectedKey={selectedCustomer}
+        onChanged={onChange}
       />
     );
   }

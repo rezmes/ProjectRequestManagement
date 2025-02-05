@@ -13,6 +13,13 @@ interface ISaveAssessment {
   // Other fields as needed
 }
 
+// Define an interface for inventory items with category
+export interface IDropdownOptionWithCategory {
+  key: string | number;
+  text: string;
+  itemCategory: string;
+}
+
 
 export default class ProjectRequestService {
   public getCustomerOptions(): Promise<any[]> {
@@ -52,12 +59,17 @@ export default class ProjectRequestService {
           .then(data => data.map(item => ({ key: item.Id, text: item.Title })));
       }
 
-      public getInventoryItems(): Promise<any[]> {
+
+      public getInventoryItems(): Promise<IDropdownOptionWithCategory[]> {
         return sp.web.lists
           .getByTitle('InventoryItems')
-          .items.select('Id', 'Title')
+          .items.select('Id', 'Title', 'ItemCategory')
           .get()
-          .then(data => data.map(item => ({ key: item.Id, text: item.Title })));
+          .then(data => data.map(item => ({
+            key: item.Id,
+            text: item.Title,
+            itemCategory: item.ItemCategory, // Assumes ItemCategory is a text field
+          })));
       }
       public saveAssessments(assessments: IAssessment[], requestId: number): Promise<void> {
         const batch = sp.web.createBatch();
@@ -82,5 +94,7 @@ export default class ProjectRequestService {
           throw error;
         });
       }
+
+
 
 }

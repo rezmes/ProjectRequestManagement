@@ -15,7 +15,7 @@ export default class ProjectRequestService {
   }
 
   public getTechnicalAssessments(requestId: number): Promise<any[]> {
-    return sp.web.lists.getByTitle('TechnicalAssessments').items.filter(`ProjectID eq ${requestId}`).get()
+    return sp.web.lists.getByTitle('TechnicalAssessments').items.filter(`RequestID eq ${requestId}`).get()
       .then(data => data.map(item => ({
         title: item.Title,
         department: item.DepartmentM,

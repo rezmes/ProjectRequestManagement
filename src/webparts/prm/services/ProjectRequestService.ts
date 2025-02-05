@@ -30,4 +30,12 @@ export default class ProjectRequestService {
         return sp.web.lists.getByTitle('Departments').items.get()
           .then(data => data.map(item => ({ key: item.Id, text: item.Title })));
       }
+
+      public getInventoryItems(): Promise<any[]> {
+        return sp.web.lists
+          .getByTitle('InventoryItems')
+          .items.select('Id', 'Title')
+          .get()
+          .then(data => data.map(item => ({ key: item.Id, text: item.Title })));
+      }
 }

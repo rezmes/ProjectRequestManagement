@@ -162,14 +162,14 @@ DocumentSetID (Single line of text)
 Title → Assessment Title
 RequestID (Lookup)
 DepartmentName (Metadata)
-ManHours (Lookup to InventoryItems list -Title filter on Type(HumanResource))
-Materials (Lookup to InventoryItems list -Title filter on Type(Material))
-Machinery (Lookup to InventoryItems list -Title filter on Type(Machine))
+HumanResource (Lookup to InventoryItems list -Title filter on Type(HumanResource))
+Material (Lookup to InventoryItems list -Title filter on Type(Material))
+Machine (Lookup to InventoryItems list -Title filter on Type(Machine))
 Quantity
 *Dependencies (Multiple lines of text)*
 *SpecialConsiderations (Multiple lines of text)*
 
-UnitPrice
+UnitPrice (Currency)
 TotalCost (Calculated)
 
 
@@ -187,8 +187,8 @@ Activity (Single line of text) -->
 
 Library Name: 'ProjectDocumentation'
 Enable Document Sets
-* Metadata Fields:
 
+* Metadata Fields:
 Project-Code (Metadata)
 Customer (Lookup)
 TechnicalAssessmentStatus
@@ -206,7 +206,6 @@ Management: Full control over all lists.
 1. SPFx Form Development
 
 * Develop custom forms for request submission, technical assessments, and pricing details using SPFx.
-
 * Ensure forms are dynamically populated with items from the InventoryItems list.
 
 2. Document Set Management
@@ -216,7 +215,6 @@ Management: Full control over all lists.
 3. Workflow Automation with Nintex
 
 * Implement workflows to automate notifications, approvals, and status updates.
-
 * Ensure workflows correctly link list items and documents using the Current Item ID.
 
 <!-- Installing some packages -->
@@ -383,6 +381,7 @@ export default class PrmWebPart extends BaseClientSideWebPart<IPrmWebPartProps> 
 }
 
 ```
+
 ```ts
 //IProjectRequestFormProps.ts
 import { SPHttpClient } from '@microsoft/sp-http';

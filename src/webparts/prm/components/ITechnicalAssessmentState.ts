@@ -1,15 +1,18 @@
 // ITechnicalAssessmentState.ts
 
+// Import IDropdownOption interface
 import { IDropdownOption } from "office-ui-fabric-react";
 
-interface IAssessment {
+export interface IAssessment {
   activity: string;
-  humanResources: Array<{ id: string | number; name: string }>;
-  machines: Array<{ id: string | number; name: string }>;
-  materials: Array<{ id: string | number; name: string }>;
+  humanResources: IDropdownOption[];
+  machines: IDropdownOption[];
+  materials: IDropdownOption[];
 }
+
 
 export interface ITechnicalAssessmentState {
   assessments: IAssessment[];
   inventoryItems: IDropdownOption[];
 }
+

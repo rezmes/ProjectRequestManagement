@@ -13,9 +13,9 @@ gulp
 
 This package produces the following:
 
-* lib/* - intermediate-stage commonjs build artifacts
-* dist/* - the bundled script, along with other resources
-* deploy/* - all resources which should be uploaded to a CDN.
+- lib/\* - intermediate-stage commonjs build artifacts
+- dist/\* - the bundled script, along with other resources
+- deploy/\* - all resources which should be uploaded to a CDN.
 
 ### Build options
 
@@ -24,7 +24,9 @@ gulp test - TODO
 gulp serve - TODO
 gulp bundle - TODO
 gulp package-solution - TODO
+
 <!-- START -->
+
 # Project Request Management (PRM)
 
 ## Scenario: Project Request and Execution Process
@@ -67,18 +69,18 @@ The Commerce Department individually prices each item listed in the document and
 **Key Considerations:**
 
 1. **Supporting Documentation:**
-This process will undoubtedly involve supporting documents. It is recommended to utilize SharePoint's Document Set feature, along with a form or other suitable mechanism, to manage these documents efficiently.
+   This process will undoubtedly involve supporting documents. It is recommended to utilize SharePoint's Document Set feature, along with a form or other suitable mechanism, to manage these documents efficiently.
 
 2. **Workflow Automation:**
-The Nintex Workflow Designer 2019 tool is available for workflow automation.
+   The Nintex Workflow Designer 2019 tool is available for workflow automation.
 
 3. **Environment:**
-The solution will be implemented in SharePoint 2019 On-Premises. The online version is not available.
+   The solution will be implemented in SharePoint 2019 On-Premises. The online version is not available.
 
 4. **Customization:**
-Customizations will be developed using the SPFx@1.4.1 framework.
+   Customizations will be developed using the SPFx@1.4.1 framework.
 
-***Crucially:***
+**_Crucially:_**
 SharePoint 2019 - On-premises Dev. Env.:
 `SPFx@1.4.1 (node@8.17.0, react@15.6.2, @pnp/sp@2.0.9, typescript@2.4.2; updates and upgrades are not options)`
 
@@ -87,7 +89,7 @@ SharePoint 2019 - On-premises Dev. Env.:
 # Road-Map
 
 ## Step 1: Create Site Columns (Reusable across lists)
-  
+
 ### Text Columns
 
 Title - as Customer Name (Single line of text default item content type title)
@@ -121,26 +123,24 @@ WorkerCostPerHour (Currency)
 MachineCostPerHour (Currency)
 Quantity (Number)
 UnitPrice (Currency)
-TotalCost (Calculated: Quantity * Unit Price)
+TotalCost (Calculated: Quantity \* Unit Price)
 
 ## Step 2: Create Lists
 
-1. 'CustomerList' (Existing)
-
-Title (Single line of text) → Customer Name
-Email
-WorkPhone
-WorkAddress
-CustomerType
+1. 'Customer'
+   Title (Single line of text) → Customer Name
+   Email
+   WorkPhone
+   WorkAddress
+   CustomerType
 
 2. 'InventoryItems' List
-
-Title → Item Name
-ItemCategory
-PricePerUnit
-WorkerCostPerHour
-MachineCostPerHour
-Activity
+   Title → Item Name
+   ItemCategory
+   PricePerUnit
+   WorkerCostPerHour
+   MachineCostPerHour
+   Activity
 
 Type
 Description
@@ -149,29 +149,27 @@ Brand
 ItemCode
 
 3. 'ProjectRequests' List
-
-Title → Request Title
-Customer (Lookup)
-RequestDate (Date and Time)
-EstimatedDuration
-EstimatedCost
-RequestStatus
-DocumentSetID (Single line of text)
+   Title → Request Title
+   Customer (Lookup)
+   RequestDate (Date and Time)
+   EstimatedDuration
+   EstimatedCost
+   RequestStatus
+   DocumentSetID (Single line of text)
 
 4. 'TechnicalAssessments' List
-Title → Assessment Title
-RequestID (Lookup)
-DepartmentName (Metadata)
-HumanResource (Lookup to InventoryItems list -Title filter on Type(HumanResource))
-Material (Lookup to InventoryItems list -Title filter on Type(Material))
-Machine (Lookup to InventoryItems list -Title filter on Type(Machine))
-Quantity
-*Dependencies (Multiple lines of text)*
-*SpecialConsiderations (Multiple lines of text)*
+   Title → Assessment Title
+   RequestID (Lookup)
+   DepartmentName (Metadata)
+   HumanResource (Lookup to InventoryItems list -Title filter on Type(HumanResource))
+   Material (Lookup to InventoryItems list -Title filter on Type(Material))
+   Machine (Lookup to InventoryItems list -Title filter on Type(Machine))
+   Quantity
+   _Dependencies (Multiple lines of text)_
+   _SpecialConsiderations (Multiple lines of text)_
 
 UnitPrice (Currency)
 TotalCost (Calculated)
-
 
 <!-- 5. 'PricingDetails' List
 RequestID (Lookup to ProjectRequests )
@@ -188,11 +186,11 @@ Activity (Single line of text) -->
 Library Name: 'ProjectDocumentation'
 Enable Document Sets
 
-* Metadata Fields:
-Project-Code (Metadata)
-Customer (Lookup)
-TechnicalAssessmentStatus
-PricingStatus
+- Metadata Fields:
+  Project-Code (Metadata)
+  Customer (Lookup)
+  TechnicalAssessmentStatus
+  PricingStatus
 
 ## Step 4: Permissions Setup
 
@@ -205,32 +203,35 @@ Management: Full control over all lists.
 
 1. SPFx Form Development
 
-* Develop custom forms for request submission, technical assessments, and pricing details using SPFx.
-* Ensure forms are dynamically populated with items from the InventoryItems list.
+- Develop custom forms for request submission, technical assessments, and pricing details using SPFx.
+- Ensure forms are dynamically populated with items from the InventoryItems list.
 
 2. Document Set Management
 
-* Configure Document Sets in the Project Documentation Library to group related project documents.
+- Configure Document Sets in the Project Documentation Library to group related project documents.
 
 3. Workflow Automation with Nintex
 
-* Implement workflows to automate notifications, approvals, and status updates.
-* Ensure workflows correctly link list items and documents using the Current Item ID.
+- Implement workflows to automate notifications, approvals, and status updates.
+- Ensure workflows correctly link list items and documents using the Current Item ID.
 
 <!-- Installing some packages -->
+
 `npm install office-ui-fabric-react@5.134.0 moment@2.24.0 moment-jalaali@0.8.3`
 uninstalled
+
 <!-- Start Implementation -->
 
 ### Step 1: SPFx Form Development
 
-* We'll start by creating custom forms using SPFx. The forms will be used for:
+- We'll start by creating custom forms using SPFx. The forms will be used for:
 
 Request Submission by the Commerce Department.
 
 Technical Assessments by the Technical & Engineering Department.
 
 Pricing Details by the Commerce Department.
+
 <!-- Code -->
 
 ```json
@@ -280,7 +281,8 @@ Pricing Details by the Commerce Department.
 ```
 
 <!-- ## tsx -->
-```tsx
+
+````tsx
 // GenericDropdown.tsx
 import * as React from "react";
 import { Dropdown, IDropdownOption } from "office-ui-fabric-react";
@@ -318,18 +320,22 @@ export default GenericDropdown;
 export interface IPrmProps {
   description: string;
 }
-```
+````
 
 ```ts
 //PrmWebPart.ts
-import * as React from 'react';
-import * as ReactDom from 'react-dom';
-import { Version } from '@microsoft/sp-core-library';
-import { IPropertyPaneConfiguration, PropertyPaneTextField, BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
-import * as strings from 'PrmWebPartStrings';
-import ProjectRequestForm from './components/ProjectRequestForm';
+import * as React from "react";
+import * as ReactDom from "react-dom";
+import { Version } from "@microsoft/sp-core-library";
+import {
+  IPropertyPaneConfiguration,
+  PropertyPaneTextField,
+  BaseClientSideWebPart,
+} from "@microsoft/sp-webpart-base";
+import * as strings from "PrmWebPartStrings";
+import ProjectRequestForm from "./components/ProjectRequestForm";
 import { sp } from "@pnp/sp";
-import { IProjectRequestFormProps } from './components/IProjectRequestFormProps';
+import { IProjectRequestFormProps } from "./components/IProjectRequestFormProps";
 
 export interface IPrmWebPartProps {
   description: string;
@@ -338,17 +344,17 @@ export interface IPrmWebPartProps {
 export default class PrmWebPart extends BaseClientSideWebPart<IPrmWebPartProps> {
   protected onInit(): Promise<void> {
     sp.setup({
-      spfxContext: this.context
+      spfxContext: this.context,
     });
     return super.onInit();
   }
 
   public render(): void {
-    const element: React.ReactElement<IProjectRequestFormProps> = React.createElement(ProjectRequestForm, {
-      spHttpClient: this.context.spHttpClient,
-      siteUrl: this.context.pageContext.web.absoluteUrl,
-
-    });
+    const element: React.ReactElement<IProjectRequestFormProps> =
+      React.createElement(ProjectRequestForm, {
+        spHttpClient: this.context.spHttpClient,
+        siteUrl: this.context.pageContext.web.absoluteUrl,
+      });
 
     ReactDom.render(element, this.domElement);
   }
@@ -362,29 +368,28 @@ export default class PrmWebPart extends BaseClientSideWebPart<IPrmWebPartProps> 
       pages: [
         {
           header: {
-            description: strings.PropertyPaneDescription
+            description: strings.PropertyPaneDescription,
           },
           groups: [
             {
               groupName: strings.BasicGroupName,
               groupFields: [
-                PropertyPaneTextField('description', {
-                  label: strings.DescriptionFieldLabel
-                })
-              ]
-            }
-          ]
-        }
-      ]
+                PropertyPaneTextField("description", {
+                  label: strings.DescriptionFieldLabel,
+                }),
+              ],
+            },
+          ],
+        },
+      ],
     };
   }
 }
-
 ```
 
 ```ts
 //IProjectRequestFormProps.ts
-import { SPHttpClient } from '@microsoft/sp-http';
+import { SPHttpClient } from "@microsoft/sp-http";
 
 export interface IProjectRequestFormProps {
   spHttpClient: SPHttpClient;
@@ -394,7 +399,7 @@ export interface IProjectRequestFormProps {
 
 ```ts
 //IProjectRequestFormState.ts
-import { IDropdownOption } from 'office-ui-fabric-react';
+import { IDropdownOption } from "office-ui-fabric-react";
 
 export interface IProjectRequestFormState {
   customerOptions: IDropdownOption[];
@@ -421,7 +426,6 @@ export interface ITechnicalAssessmentState {
     specialConsiderations: string;
   }>;
 }
-
 ```
 
 ```ts
@@ -434,28 +438,34 @@ import "@pnp/sp/items";
 
 export default class ProjectRequestService {
   public getCustomerOptions(): Promise<any[]> {
-    return sp.web.lists.getByTitle('Customer').items.get()
-      .then(data => data.map(item => ({ key: item.Id, text: item.Title })));
+    return sp.web.lists
+      .getByTitle("Customer")
+      .items.get()
+      .then((data) => data.map((item) => ({ key: item.Id, text: item.Title })));
   }
 
   public createProjectRequest(requestData: any): Promise<any> {
-    return sp.web.lists.getByTitle('ProjectRequests').items.add(requestData);
+    return sp.web.lists.getByTitle("ProjectRequests").items.add(requestData);
   }
 
   public getTechnicalAssessments(requestId: number): Promise<any[]> {
-    return sp.web.lists.getByTitle('TechnicalAssessments').items.filter(`RequestID eq ${requestId}`).get()
-      .then(data => data.map(item => ({
-        title: item.Title,
-        department: item.DepartmentM,
-        manHours: item.ManHours,
-        materials: item.Materials,
-        machinery: item.Machinery,
-        dependencies: item.Dependencies,
-        specialConsiderations: item.SpecialConsiderations
-      })));
-    }
+    return sp.web.lists
+      .getByTitle("TechnicalAssessments")
+      .items.filter(`RequestID eq ${requestId}`)
+      .get()
+      .then((data) =>
+        data.map((item) => ({
+          title: item.Title,
+          department: item.DepartmentM,
+          manHours: item.ManHours,
+          materials: item.Materials,
+          machinery: item.Machinery,
+          dependencies: item.Dependencies,
+          specialConsiderations: item.SpecialConsiderations,
+        }))
+      );
+  }
 }
-
 ```
 
 ```tsx
@@ -470,8 +480,6 @@ import { IDropdownOption } from "office-ui-fabric-react";
 import * as moment from "moment";
 import "moment-jalaali";
 import TechnicalAssessmentTable from "./TechnicalAssessmentTable";
-
-
 
 class ProjectRequestForm extends React.Component<
   IProjectRequestFormProps,
@@ -507,26 +515,31 @@ class ProjectRequestForm extends React.Component<
     const { name, value } = event.target;
 
     // Convert to number if the field expects a number
-    const newValue = name === "estimatedDuration" || name === "estimatedCost"
-      ? parseFloat(value) || 0
-      : value;
+    const newValue =
+      name === "estimatedDuration" || name === "estimatedCost"
+        ? parseFloat(value) || 0
+        : value;
 
-    this.setState({ [name]: newValue } as unknown as Pick<IProjectRequestFormState, keyof IProjectRequestFormState>);
+    this.setState({ [name]: newValue } as unknown as Pick<
+      IProjectRequestFormState,
+      keyof IProjectRequestFormState
+    >);
   };
 
-
-  handleDropdownChange = (
-    option?: IDropdownOption
-  ): void => {
-
+  handleDropdownChange = (option?: IDropdownOption): void => {
     console.log("Dropdown Change Event:", option); // Log the dropdown change event
-    this.setState({
-      selectedCustomer: option ? option.key : undefined,
-    },()=>{
-      console.log("Updated selectedCustomer in state:", this.state.selectedCustomer); // Log the updated state
-    });
+    this.setState(
+      {
+        selectedCustomer: option ? option.key : undefined,
+      },
+      () => {
+        console.log(
+          "Updated selectedCustomer in state:",
+          this.state.selectedCustomer
+        ); // Log the updated state
+      }
+    );
   };
-
 
   handleSubmit = (): void => {
     const {
@@ -541,7 +554,7 @@ class ProjectRequestForm extends React.Component<
     // Convert the requestDate to Gregorian format
     const formattedRequestDate = moment(requestDate, "jYYYY-jMM-jDD").format(
       "YYYY-MM-DDTHH:mm:ss[Z]"
-    ); 
+    );
     const requestData = {
       Title: requestTitle.trim(), // Ensure text field is not empty
       CustomerId: selectedCustomer ? selectedCustomer : null, // Ensure lookup is valid
@@ -572,8 +585,6 @@ class ProjectRequestForm extends React.Component<
       });
   };
 
-
-
   resetForm = (): void => {
     this.setState({
       requestTitle: "",
@@ -597,14 +608,13 @@ class ProjectRequestForm extends React.Component<
 
     return (
       <div>
-<TextField
-  label="Request Title"
-  value={this.state.requestTitle}
-  onChanged={(newValue: string) => {
-
-    this.setState({ requestTitle: newValue || "" });
-  }}
-/>
+        <TextField
+          label="Request Title"
+          value={this.state.requestTitle}
+          onChanged={(newValue: string) => {
+            this.setState({ requestTitle: newValue || "" });
+          }}
+        />
         <CustomerDropdown
           customerOptions={customerOptions}
           selectedCustomer={selectedCustomer}
@@ -615,32 +625,32 @@ class ProjectRequestForm extends React.Component<
           name="requestDate"
           value={this.state.requestDate}
           onChanged={(newValue: string) => {
-
             this.setState({ requestDate: newValue || "" });
           }}
         />
-<TextField
-  label="Estimated Duration (days)"
-  value={this.state.estimatedDuration.toString()} // Ensure it’s a string
-  onChanged={(newValue: string) => this.setState({ estimatedDuration: parseInt(newValue) || 0 })}
-  type="number"
-/>
+        <TextField
+          label="Estimated Duration (days)"
+          value={this.state.estimatedDuration.toString()} // Ensure it’s a string
+          onChanged={(newValue: string) =>
+            this.setState({ estimatedDuration: parseInt(newValue) || 0 })
+          }
+          type="number"
+        />
 
+        <TechnicalAssessmentTable
+          projectRequestService={this.projectRequestService}
+          requestId={this.state.requestId} // Assuming we have requestId in state
+        />
 
-
-<TechnicalAssessmentTable
-  projectRequestService={this.projectRequestService}
-  requestId={this.state.requestId} // Assuming we have requestId in state
-/>
-
-
-<TextField
-  label="Estimated Cost"
-  name="estimatedCost"
-  value={this.state.estimatedCost.toString()} // Convert number to string for display
-  onChanged={(newValue: string) => this.setState({ estimatedCost: parseInt(newValue) || 0 })}
-  type="number"
-/>
+        <TextField
+          label="Estimated Cost"
+          name="estimatedCost"
+          value={this.state.estimatedCost.toString()} // Convert number to string for display
+          onChanged={(newValue: string) =>
+            this.setState({ estimatedCost: parseInt(newValue) || 0 })
+          }
+          type="number"
+        />
 
         <PrimaryButton text="Submit" onClick={this.handleSubmit} />
       </div>
@@ -649,7 +659,6 @@ class ProjectRequestForm extends React.Component<
 }
 
 export default ProjectRequestForm;
-
 ```
 
 ```tsx
@@ -894,7 +903,6 @@ class TechnicalAssessmentTable extends React.Component<
 }
 
 export default TechnicalAssessmentTable;
-
 ```
 
 SharePoint 2019 - On-premises
@@ -902,28 +910,32 @@ dev.env. : `SPFx@1.4.1 ( node@8.17.0 , react@15.6.2, @pnp/sp@2.0.9, typescript@2
 
 ```tsx
 //Prm.tsx
-import * as React from 'react';
-import styles from './Prm.module.scss';
-import { IPrmProps } from './IPrmProps';
-import { escape } from '@microsoft/sp-lodash-subset';
+import * as React from "react";
+import styles from "./Prm.module.scss";
+import { IPrmProps } from "./IPrmProps";
+import { escape } from "@microsoft/sp-lodash-subset";
 
-export default class Prm extends React.Component < IPrmProps, {} > {
+export default class Prm extends React.Component<IPrmProps, {}> {
   public render(): React.ReactElement<IPrmProps> {
-    return(
-      <div className = { styles.prm } >
-  <div className={styles.container}>
-    <div className={styles.row}>
-      <div className={styles.column}>
-        <span className={styles.title}>Welcome to SharePoint!</span>
-        <p className={styles.subTitle}>Customize SharePoint experiences using Web Parts.</p>
-        <p className={styles.description}>{escape(this.props.description)}</p>
-        <a href='https://aka.ms/spfx' className={styles.button}>
-          <span className={styles.label}>Learn more</span>
-        </a>
+    return (
+      <div className={styles.prm}>
+        <div className={styles.container}>
+          <div className={styles.row}>
+            <div className={styles.column}>
+              <span className={styles.title}>Welcome to SharePoint!</span>
+              <p className={styles.subTitle}>
+                Customize SharePoint experiences using Web Parts.
+              </p>
+              <p className={styles.description}>
+                {escape(this.props.description)}
+              </p>
+              <a href="https://aka.ms/spfx" className={styles.button}>
+                <span className={styles.label}>Learn more</span>
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-      </div >
     );
   }
 }
@@ -935,44 +947,52 @@ SharePoint 2019 - On-premises
 dev.env. : `SPFx@1.4.1 ( node@8.17.0 , react@15.6.2, @pnp/sp@2.0.9, typescript@2.4.2 ,update and upgrade are not options)
 
 <!-- ------------------Problem placeHolder didn't Update------------------- -->
+
 ```tsx
-import * as React from "react"; 
-import { Dropdown, IDropdownOption } from "office-ui-fabric-react"; 
-interface ICustomerDropdownProps { customerOptions: IDropdownOption[]; 
-selectedCustomer: string | number | undefined; 
-onChange: (option?: IDropdownOption) => void; // Corrected to use onChanged
- } 
- export class CustomerDropdown extends React.Component
- <ICustomerDropdownProps,
-   {}> {
-   public render(): React.ReactElement<ICustomerDropdownProps> {
-     const {
-       customerOptions,
-       selectedCustomer, 
-       onChange 
-       } = this.props;
-       const placeHolderText = "انتخاب مشتری";
-        return (
-           <Dropdown
-            placeHolder={placeHolderText}
-            label="Customer" 
-            options={customerOptions} 
-            selectedKey={selectedCustomer} 
-            onChanged={onChange} 
-          />
-       );
-     }
-  } 
-  export default CustomerDropdown;
+import * as React from "react";
+import { Dropdown, IDropdownOption } from "office-ui-fabric-react";
+interface ICustomerDropdownProps {
+  customerOptions: IDropdownOption[];
+  selectedCustomer: string | number | undefined;
+  onChange: (option?: IDropdownOption) => void; // Corrected to use onChanged
+}
+export class CustomerDropdown extends React.Component<
+  ICustomerDropdownProps,
+  {}
+> {
+  public render(): React.ReactElement<ICustomerDropdownProps> {
+    const { customerOptions, selectedCustomer, onChange } = this.props;
+    const placeHolderText = "انتخاب مشتری";
+    return (
+      <Dropdown
+        placeHolder={placeHolderText}
+        label="Customer"
+        options={customerOptions}
+        selectedKey={selectedCustomer}
+        onChanged={onChange}
+      />
+    );
+  }
+}
+export default CustomerDropdown;
 ```
 
 AND
 
 ```tsx
-    handleDropdownChange = ( option?: IDropdownOption ): void => { console.log("Dropdown Change Event:", option); // Log the dropdown change event 
-    this.setState({ selectedCustomer: option ? option.key.toString() : undefined, },()=>{ console.log("Updated selectedCustomer in state:", this.state.selectedCustomer); // Log the updated
-    state });
-      };
+handleDropdownChange = (option?: IDropdownOption): void => {
+  console.log("Dropdown Change Event:", option); // Log the dropdown change event
+  this.setState(
+    { selectedCustomer: option ? option.key.toString() : undefined },
+    () => {
+      console.log(
+        "Updated selectedCustomer in state:",
+        this.state.selectedCustomer
+      ); // Log the updated
+      state;
+    }
+  );
+};
 ```
 
 **Why the placeHolder do not change after selecting item?**
@@ -1000,11 +1020,12 @@ Your current implementation is trying to set the selectedCustomer in the parent 
 To fix this, you need to:
 
 Ensure that the selectedKey property of the Dropdown is tied to the selectedCustomer state.
-*Update the state when an item is selected using the onChanged callback.*
+_Update the state when an item is selected using the onChanged callback._
 Here's the corrected implementation:
 
 Fixed Code:
 CustomerDropdown Component:
+
 ```tsx
 import * as React from "react";
 import { Dropdown, IDropdownOption } from "office-ui-fabric-react";
@@ -1015,7 +1036,10 @@ interface ICustomerDropdownProps {
   onChange: (option?: IDropdownOption) => void; // Callback to parent
 }
 
-export class CustomerDropdown extends React.Component<ICustomerDropdownProps, {}> {
+export class CustomerDropdown extends React.Component<
+  ICustomerDropdownProps,
+  {}
+> {
   public render(): React.ReactElement<ICustomerDropdownProps> {
     const { customerOptions, selectedCustomer, onChange } = this.props;
 
@@ -1051,11 +1075,14 @@ interface IParentComponentState {
   selectedCustomer: string | number | undefined;
 }
 
-export class ParentComponent extends React.Component<{}, IParentComponentState> {
+export class ParentComponent extends React.Component<
+  {},
+  IParentComponentState
+> {
   constructor(props: {}) {
     super(props);
     this.state = {
-      selectedCustomer: undefined // Initial state
+      selectedCustomer: undefined, // Initial state
     };
   }
 
@@ -1065,10 +1092,13 @@ export class ParentComponent extends React.Component<{}, IParentComponentState> 
     // Update the state with the selected option key
     this.setState(
       {
-        selectedCustomer: option ? option.key : undefined
+        selectedCustomer: option ? option.key : undefined,
       },
       () => {
-        console.log("Updated selectedCustomer in state:", this.state.selectedCustomer);
+        console.log(
+          "Updated selectedCustomer in state:",
+          this.state.selectedCustomer
+        );
       }
     );
   };
@@ -1077,7 +1107,7 @@ export class ParentComponent extends React.Component<{}, IParentComponentState> 
     const customerOptions: IDropdownOption[] = [
       { key: "1", text: "Customer 1" },
       { key: "2", text: "Customer 2" },
-      { key: "3", text: "Customer 3" }
+      { key: "3", text: "Customer 3" },
     ];
 
     return (
@@ -1093,7 +1123,7 @@ export class ParentComponent extends React.Component<{}, IParentComponentState> 
 }
 ```
 
-### Key Changes:
+### Key Changes
 
 **selectedKey Binding:**
 The selectedKey property of the Dropdown is now dynamically bound to the selectedCustomer state in the parent component. This ensures that the displayed value in the dropdown updates when the state changes.
@@ -1106,11 +1136,10 @@ The placeHolder property remains static and is only shown when no item is select
 Key Notes for SharePoint 2019:
 Since you are using an older version of SPFx with React 15.6.2 and TypeScript 2.4.2, ensure the following:
 
-* Avoid using TypeScript features that are not supported in TypeScript 2.4.2 (e.g., newer syntax like ?. and ??).
-The Dropdown component in office-ui-fabric-react for SPFx 1.4.1 uses onChanged instead of onChange. Ensure you’re using the correct prop name.
-Expected Behavior:
-Initially, the placeholder text ("انتخاب مشتری") is shown.
-When a user selects an item, the selected item's text is displayed in the dropdown.
-The selectedCustomer state is updated in the parent component.
-The dropdown reflects the updated state via the selectedKey property.
-
+- Avoid using TypeScript features that are not supported in TypeScript 2.4.2 (e.g., newer syntax like ?. and ??).
+  The Dropdown component in office-ui-fabric-react for SPFx 1.4.1 uses onChanged instead of onChange. Ensure you’re using the correct prop name.
+  Expected Behavior:
+  Initially, the placeholder text ("انتخاب مشتری") is shown.
+  When a user selects an item, the selected item's text is displayed in the dropdown.
+  The selectedCustomer state is updated in the parent component.
+  The dropdown reflects the updated state via the selectedKey property.

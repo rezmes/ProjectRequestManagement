@@ -86,7 +86,7 @@ SharePoint 2019 - On-premises Dev. Env.:
 
 **Pay close attention to the limitations imposed by the framework version and avoid using commands or external tools incompatible with it.**
 
-# Road-Map
+<!-- # Road-Map
 
 ## Step 1: Create Site Columns (Reusable across lists)
 
@@ -123,39 +123,36 @@ WorkerCostPerHour (Currency)
 MachineCostPerHour (Currency)
 Quantity (Number)
 UnitPrice (Currency)
-TotalCost (Calculated: Quantity \* Unit Price)
+TotalCost (Calculated: Quantity \* Unit Price) -->
 
 ## Step 2: Create Lists
 
 1. 'Customer'
    Title (Single line of text) → Customer Name
-   Email
-   WorkPhone
-   WorkAddress
-   CustomerType
+   Email (text)
+   WorkPhone (single line of text)
+   WorkAddress (single line of text)
+   CustomerType (Choices: Individual, Corporate, Government)
 
 2. 'InventoryItems' List
    Title → Item Name
-   ItemCategory
-   PricePerUnit
-   WorkerCostPerHour
-   MachineCostPerHour
-   Activity
-
-Type
-Description
-Image
-Brand
-ItemCode
+   ItemCategory (Choice)
+   PricePerUnit (Currency)
+   Activity (single line of text)
+   Type (Choices)
+   Description (single line of text)
+   Image (hyperlink)
+   Brand (single line of text)
+   ItemCode (single line of text)
 
 3. 'ProjectRequests' List
    Title → Request Title
    Customer (Lookup)
    RequestDate (Date and Time)
-   EstimatedDuration
-   EstimatedCost
-   RequestStatus
-   DocumentSetID (Single line of text)
+   EstimatedDuration(day) (number)
+   EstimatedCost (currency)
+   RequestStatus (Choices: New, In Progress, Completed, Priced)
+   DocumentSetID (lookup to ProjectDocumentation library)
 
 4. 'TechnicalAssessments' List
    Title → Assessment Title
@@ -164,12 +161,11 @@ ItemCode
    HumanResource (Lookup to InventoryItems list -Title filter on Type(HumanResource))
    Material (Lookup to InventoryItems list -Title filter on Type(Material))
    Machine (Lookup to InventoryItems list -Title filter on Type(Machine))
-   Quantity
+   Quantity (number)
    _Dependencies (Multiple lines of text)_
    _SpecialConsiderations (Multiple lines of text)_
-
-UnitPrice (Currency)
-TotalCost (Calculated)
+   UnitPrice (Currency)
+   TotalCost (Calculated)
 
 <!-- 5. 'PricingDetails' List
 RequestID (Lookup to ProjectRequests )
@@ -188,9 +184,9 @@ Enable Document Sets
 
 - Metadata Fields:
   Project-Code (Metadata)
-  Customer (Lookup)
-  TechnicalAssessmentStatus
-  PricingStatus
+  Customer (Lookup to Customer list)
+  TechnicalAssessmentStatus (Choices: Not Started, In Progress, Completed)
+  PricingStatus (Choices: Pending, Finalized)
 
 ## Step 4: Permissions Setup
 
@@ -202,22 +198,20 @@ Management: Full control over all lists.
 # Implementation Plan
 
 1. SPFx Form Development
-
-- Develop custom forms for request submission, technical assessments, and pricing details using SPFx.
-- Ensure forms are dynamically populated with items from the InventoryItems list.
+   Develop custom forms for request submission, technical assessments, and pricing details using SPFx.
+   Ensure forms are dynamically populated with items from the InventoryItems list.
 
 2. Document Set Management
-
-- Configure Document Sets in the Project Documentation Library to group related project documents.
+   Configure Document Sets in the Project Documentation Library to group related project documents.
 
 3. Workflow Automation with Nintex
-
-- Implement workflows to automate notifications, approvals, and status updates.
-- Ensure workflows correctly link list items and documents using the Current Item ID.
+   Implement workflows to automate notifications, approvals, and status updates.
+   Ensure workflows correctly link list items and documents using the Current Item ID.
 
 <!-- Installing some packages -->
 
-`npm install office-ui-fabric-react@5.134.0 moment@2.24.0 moment-jalaali@0.8.3`
+<!-- `npm install office-ui-fabric-react@5.134.0 moment@2.24.0 moment-jalaali@0.8.3` -->
+
 uninstalled
 
 <!-- Start Implementation -->
@@ -414,17 +408,23 @@ export interface IProjectRequestFormState {
 ```
 
 ```ts
-//ITechnicalAssessmentState.ts
+// ITechnicalAssessmentState.ts
+import ProjectRequestService, {
+  IDropdownOptionWithCategory,
+} from "../services/ProjectRequestService";
+// Import IDropdownOption interface
+import { IDropdownOption } from "office-ui-fabric-react";
+
+export interface IAssessment {
+  activity: string;
+  humanResources: IDropdownOption[];
+  machines: IDropdownOption[];
+  materials: IDropdownOption[];
+}
+
 export interface ITechnicalAssessmentState {
-  assessments: Array<{
-    title: string;
-    department: string;
-    manHours: number;
-    materials: string;
-    machinery: string;
-    dependencies: string;
-    specialConsiderations: string;
-  }>;
+  assessments: IAssessment[];
+  inventoryItems: IDropdownOptionWithCategory[];
 }
 ```
 
@@ -435,6 +435,22 @@ import { sp } from "@pnp/sp";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
+import { IAssessment } from "../components/ITechnicalAssessmentState";
+
+interface ISaveAssessment {
+  Activity: string;
+  HumanResourcesId: { results: (string | number)[] };
+  MachinesId: { results: (string | number)[] };
+  MaterialsId: { results: (string | number)[] };
+  // Other fields as needed
+}
+
+// Define an interface for inventory items with category
+export interface IDropdownOptionWithCategory {
+  key: string | number;
+  text: string;
+  itemCategory: string;
+}
 
 export default class ProjectRequestService {
   public getCustomerOptions(): Promise<any[]> {
@@ -448,22 +464,100 @@ export default class ProjectRequestService {
     return sp.web.lists.getByTitle("ProjectRequests").items.add(requestData);
   }
 
-  public getTechnicalAssessments(requestId: number): Promise<any[]> {
+  public getTechnicalAssessments(requestId: number): Promise<IAssessment[]> {
     return sp.web.lists
       .getByTitle("TechnicalAssessments")
       .items.filter(`RequestID eq ${requestId}`)
+      .expand("HumanResources", "Machines", "Materials")
+      .select(
+        "Activity",
+        "HumanResources/Id",
+        "HumanResources/Title",
+        "Machines/Id",
+        "Machines/Title",
+        "Materials/Id",
+        "Materials/Title"
+      )
       .get()
       .then((data) =>
         data.map((item) => ({
-          title: item.Title,
-          department: item.DepartmentM,
-          manHours: item.ManHours,
-          materials: item.Materials,
-          machinery: item.Machinery,
-          dependencies: item.Dependencies,
-          specialConsiderations: item.SpecialConsiderations,
+          activity: item.Activity,
+          humanResources: item.HumanResources
+            ? item.HumanResources.map((hr) => ({ key: hr.Id, text: hr.Title }))
+            : [],
+          machines: item.Machines
+            ? item.Machines.map((machine) => ({
+                key: machine.Id,
+                text: machine.Title,
+              }))
+            : [],
+          materials: item.Materials
+            ? item.Materials.map((material) => ({
+                key: material.Id,
+                text: material.Title,
+              }))
+            : [],
         }))
       );
+  }
+
+  public getDepartmentOptions(): Promise<any[]> {
+    return sp.web.lists
+      .getByTitle("Departments")
+      .items.get()
+      .then((data) => data.map((item) => ({ key: item.Id, text: item.Title })));
+  }
+
+  public getInventoryItems(): Promise<IDropdownOptionWithCategory[]> {
+    return sp.web.lists
+      .getByTitle("InventoryItems")
+      .items.select("Id", "Title", "ItemCategory")
+      .get()
+      .then((data) =>
+        data.map((item) => ({
+          key: item.Id,
+          text: item.Title,
+          itemCategory: item.ItemCategory, // Assumes ItemCategory is a text field
+        }))
+      );
+  }
+  public saveAssessments(
+    assessments: IAssessment[],
+    requestId: number
+  ): Promise<void> {
+    const batch = sp.web.createBatch();
+
+    assessments.forEach((assessment) => {
+      const data = {
+        Title: assessment.activity,
+        RequestID: requestId,
+        HumanResourcesId: {
+          results: assessment.humanResources.map((hr) => hr.key),
+        },
+        MachinesId: {
+          results: assessment.machines.map((machine) => machine.key),
+        },
+        MaterialsId: {
+          results: assessment.materials.map((material) => material.key),
+        },
+        // Include other necessary fields
+      };
+      // Add to batch
+      sp.web.lists
+        .getByTitle("TechnicalAssessments")
+        .items.inBatch(batch)
+        .add(data);
+    });
+
+    return batch
+      .execute()
+      .then(() => {
+        console.log("Assessments saved successfully");
+      })
+      .catch((error) => {
+        console.error("Error saving assessments", error);
+        throw error;
+      });
   }
 }
 ```
@@ -472,7 +566,7 @@ export default class ProjectRequestService {
 //ProjectRequestForm.tsx
 import * as React from "react";
 import { TextField, PrimaryButton } from "office-ui-fabric-react";
-import CustomerDropdown from "./CustomerDropdown";
+import GenericDropdown from "./GenericDropdown";
 import { IProjectRequestFormProps } from "./IProjectRequestFormProps";
 import { IProjectRequestFormState } from "./IProjectRequestFormState";
 import ProjectRequestService from "../services/ProjectRequestService";
@@ -498,6 +592,7 @@ class ProjectRequestForm extends React.Component<
       estimatedDuration: 0,
       estimatedCost: 0,
       RequestStatus: "New",
+      requestId: null, // Assuming requestId is part of the state
     };
   }
 
@@ -550,37 +645,37 @@ class ProjectRequestForm extends React.Component<
       estimatedCost,
       RequestStatus,
     } = this.state;
-    console.log("Selected Customer:", selectedCustomer); // Log the selectedCustomer value
-    // Convert the requestDate to Gregorian format
-    const formattedRequestDate = moment(requestDate, "jYYYY-jMM-jDD").format(
-      "YYYY-MM-DDTHH:mm:ss[Z]"
-    );
+
+    // Prepare the request data
     const requestData = {
-      Title: requestTitle.trim(), // Ensure text field is not empty
-      CustomerId: selectedCustomer ? selectedCustomer : null, // Ensure lookup is valid
-      RequestDate: formattedRequestDate,
-      EstimatedDuration: isNaN(estimatedDuration) ? 0 : estimatedDuration, // Ensure numeric
-      EstimatedCost: isNaN(estimatedCost) ? 0 : estimatedCost, // Ensure numeric
+      Title: requestTitle.trim(),
+      CustomerId: selectedCustomer ? selectedCustomer : null,
+      RequestDate: requestDate,
+      EstimatedDuration: estimatedDuration,
+      EstimatedCost: estimatedCost,
       RequestStatus: RequestStatus.trim(),
     };
 
-    // Log the requestData object for debugging
-    console.log("Request Data:", requestData);
-
+    // Create the project request
     this.projectRequestService
       .createProjectRequest(requestData)
       .then((response) => {
         if (response.data) {
-          alert("Request submitted successfully!");
-          this.resetForm();
+          const requestId = response.data.Id;
+          this.setState({ requestId }, () => {
+            alert(
+              "Project request created successfully! You can now add assessments."
+            );
+            // You might navigate to a different view or enable the assessments section
+          });
         } else {
-          alert("Error submitting request");
+          alert("Error creating project request");
         }
       })
       .catch((error) => {
         console.error("Error details:", error);
         alert(
-          "There was an error submitting your request. Please check the console for details."
+          "There was an error creating your project request. Please check the console for details."
         );
       });
   };
@@ -593,6 +688,7 @@ class ProjectRequestForm extends React.Component<
       estimatedDuration: 0,
       estimatedCost: 0,
       RequestStatus: "New",
+      requestId: null, // Reset requestId if needed
     });
   };
 
@@ -615,10 +711,12 @@ class ProjectRequestForm extends React.Component<
             this.setState({ requestTitle: newValue || "" });
           }}
         />
-        <CustomerDropdown
-          customerOptions={customerOptions}
-          selectedCustomer={selectedCustomer}
+        <GenericDropdown
+          label="Customer"
+          options={customerOptions}
+          selectedKey={selectedCustomer}
           onChange={this.handleDropdownChange}
+          placeHolder="انتخاب مشتری"
         />
         <TextField
           label="Request Date"
@@ -637,11 +735,6 @@ class ProjectRequestForm extends React.Component<
           type="number"
         />
 
-        <TechnicalAssessmentTable
-          projectRequestService={this.projectRequestService}
-          requestId={this.state.requestId} // Assuming we have requestId in state
-        />
-
         <TextField
           label="Estimated Cost"
           name="estimatedCost"
@@ -651,8 +744,17 @@ class ProjectRequestForm extends React.Component<
           }
           type="number"
         />
+        {this.state.requestId && (
+          <TechnicalAssessmentTable
+            projectRequestService={this.projectRequestService}
+            requestId={this.state.requestId}
+          />
+        )}
 
-        <PrimaryButton text="Submit" onClick={this.handleSubmit} />
+        <div>
+          <PrimaryButton text="Submit" onClick={this.handleSubmit} />
+          <PrimaryButton text="Cancel" onClick={this.resetForm} />
+        </div>
       </div>
     );
   }
@@ -665,15 +767,24 @@ export default ProjectRequestForm;
 //TechnicalAssessmentTable.tsx
 import * as React from "react";
 import {
-  DefaultButton,
   PrimaryButton,
   TextField,
   IDropdownOption,
 } from "office-ui-fabric-react";
-import CustomDropdown from "./CustomDropdown";
+import GenericDropdown from "./GenericDropdown";
+import {
+  IAssessment,
+  ITechnicalAssessmentState,
+} from "./ITechnicalAssessmentState";
 import { ITechnicalAssessmentProps } from "./ITechnicalAssessmentProps";
-import { ITechnicalAssessmentState } from "./ITechnicalAssessmentState";
-import ProjectRequestService from "../services/ProjectRequestService";
+import ProjectRequestService, {
+  IDropdownOptionWithCategory,
+} from "../services/ProjectRequestService";
+
+// interface ITechnicalAssessmentState {
+//   assessments: IAssessment[];
+//   inventoryItems: IDropdownOptionWithCategory[];
+// }
 
 class TechnicalAssessmentTable extends React.Component<
   ITechnicalAssessmentProps,
@@ -686,217 +797,213 @@ class TechnicalAssessmentTable extends React.Component<
     this.projectRequestService = new ProjectRequestService();
     this.state = {
       assessments: [],
-      newAssessment: {
-        title: "",
-        department: "",
-        manHours: 0,
-        materials: "",
-        machinery: "",
-        dependencies: "",
-        specialConsiderations: "",
-      },
-      departmentOptions: [],
+      inventoryItems: [],
     };
   }
 
   componentDidMount() {
-    this.loadAssessments();
-    this.loadDepartmentOptions();
+    this.loadInventoryItems();
   }
 
-  loadAssessments() {
-    this.props.projectRequestService
-      .getTechnicalAssessments(this.props.requestId)
-      .then((assessments) => {
-        this.setState({ assessments });
-      });
-  }
+  loadInventoryItems = () => {
+    this.projectRequestService.getInventoryItems().then((items) => {
+      this.setState({ inventoryItems: items });
+    });
+  };
 
-  loadDepartmentOptions() {
-    this.projectRequestService
-      .getDepartmentOptions()
-      .then((departmentOptions) => {
-        this.setState({ departmentOptions });
-      });
-  }
+  filterInventoryItems = (categories: string[]): IDropdownOption[] => {
+    const { inventoryItems } = this.state;
+    return inventoryItems
+      .filter((item) => categories.indexOf(item.itemCategory) > -1)
+      .map((item) => ({ key: item.key, text: item.text }));
+  };
 
   handleInputChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
+    newValue: string,
     field: string,
     index: number
   ): void => {
-    const { value } = event.target;
     this.setState((prevState) => {
       const assessments = [...prevState.assessments];
-      assessments[index] = {
-        ...assessments[index],
-        [field]: field === "manHours" ? parseFloat(value) || 0 : value,
-      };
+      assessments[index][field] = newValue;
       return { assessments };
     });
   };
 
   handleDropdownChange = (
     field: string,
-    option?: IDropdownOption,
-    index?: number
+    option: IDropdownOption,
+    index: number,
+    partIndex: number
   ): void => {
     this.setState((prevState) => {
       const assessments = [...prevState.assessments];
-      assessments[index] = {
-        ...assessments[index],
-        [field]: option ? option.key.toString() : "",
-      };
+      assessments[index][field][partIndex] = option;
       return { assessments };
     });
   };
 
-  addRow = () => {
+  addRow = (field: string, index: number) => {
+    this.setState((prevState) => {
+      const assessments = [...prevState.assessments];
+      assessments[index][field].push({ key: "", text: "" });
+      return { assessments };
+    });
+  };
+
+  removeRow = (field: string, index: number, partIndex: number) => {
+    this.setState((prevState) => {
+      const assessments = [...prevState.assessments];
+      assessments[index][field].splice(partIndex, 1);
+      return { assessments };
+    });
+  };
+
+  addAssessment = () => {
     this.setState((prevState) => ({
       assessments: [
         ...prevState.assessments,
         {
-          title: "",
-          department: "",
-          manHours: 0,
-          materials: "",
-          machinery: "",
-          dependencies: "",
-          specialConsiderations: "",
+          activity: "",
+          humanResources: [],
+          machines: [],
+          materials: [],
         },
       ],
     }));
   };
 
-  removeRow = (index: number) => {
-    this.setState((prevState) => ({
-      assessments: prevState.assessments.filter((_, i) => i !== index),
-    }));
-  };
+  handleSaveAssessments = () => {
+    const { assessments } = this.state;
+    const { requestId } = this.props;
 
-  resetForm = () => {
-    this.setState({
-      assessments: [],
-      newAssessment: {
-        title: "",
-        department: "",
-        manHours: 0,
-        materials: "",
-        machinery: "",
-        dependencies: "",
-        specialConsiderations: "",
-      },
-      departmentOptions: [],
-    });
-  };
-
-  handleSubmit = (): void => {
-    console.log("Submit Technical Assessments:", this.state.assessments);
-    // Handle form submission logic here
+    this.projectRequestService
+      .saveAssessments(assessments, requestId)
+      .then(() => {
+        alert("Assessments saved successfully!");
+      })
+      .catch((error) => {
+        console.error("Error saving assessments", error);
+        alert(
+          "Error saving assessments. Please check the console for details."
+        );
+      });
   };
 
   render() {
-    const { assessments, departmentOptions } = this.state;
+    const { assessments } = this.state;
 
     return (
       <div>
         <h3>Technical Assessments</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Department</th>
-              <th>Man Hours</th>
-              <th>Materials</th>
-              <th>Machinery</th>
-              <th>Dependencies</th>
-              <th>Special Considerations</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {assessments.map((assessment, index) => (
-              <tr key={index}>
-                <td>
-                  <TextField
-                    value={assessment.title}
-                    onChanged={(newValue: string) =>
-                      this.handleInputChange(
-                        {
-                          target: { value: newValue },
-                        } as React.ChangeEvent<HTMLInputElement>,
-                        "title",
-                        index
-                      )
-                    }
-                  />
-                </td>
-                <td>
-                  <CustomDropdown
-                    label="Department"
-                    options={departmentOptions}
-                    selectedKey={assessment.department}
-                    onChange={(option) =>
-                      this.handleDropdownChange("department", option, index)
-                    }
-                  />
-                </td>
-                <td>
-                  <TextField
-                    value={assessment.manHours.toString()}
-                    onChanged={(newValue: string) =>
-                      this.handleInputChange(
-                        {
-                          target: { value: newValue },
-                        } as React.ChangeEvent<HTMLInputElement>,
-                        "manHours",
-                        index
-                      )
-                    }
-                    type="number"
-                  />
-                </td>
-                <td>
-                  <TextField
-                    value={assessment.materials}
-                    onChanged={(newValue: string) =>
-                      this.handleInputChange(
-                        {
-                          target: { value: newValue },
-                        } as React.ChangeEvent<HTMLInputElement>,
-                        "materials",
-                        index
-                      )
-                    }
-                  />
-                </td>
-                <td>
-                  <TextField
-                    value={assessment.specialConsiderations}
-                    onChanged={(newValue: string) =>
-                      this.handleInputChange(
-                        {
-                          target: { value: newValue },
-                        } as React.ChangeEvent<HTMLInputElement>,
-                        "specialConsiderations",
-                        index
-                      )
-                    }
-                  />
-                </td>
-                <td>
-                  <PrimaryButton
-                    text="Remove"
-                    onClick={() => this.removeRow(index)}
-                  />
-                </td>
-              </tr>
+        {assessments.map((assessment, index) => (
+          <div key={index}>
+            <TextField
+              label={`Activity ${index + 1}`}
+              value={assessment.activity}
+              onChanged={(newValue: string) =>
+                this.handleInputChange(newValue, "activity", index)
+              }
+            />
+
+            {/* Human Resources */}
+            <h4>Human Resources</h4>
+            {assessment.humanResources.map((hr, partIndex) => (
+              <div key={partIndex}>
+                <GenericDropdown
+                  label={`Human Resource ${partIndex + 1}`}
+                  options={this.filterInventoryItems(["نیروی انسانی"])}
+                  selectedKey={hr.key}
+                  onChange={(option) =>
+                    this.handleDropdownChange(
+                      "humanResources",
+                      option!,
+                      index,
+                      partIndex
+                    )
+                  }
+                />
+                <PrimaryButton
+                  text="Remove"
+                  onClick={() =>
+                    this.removeRow("humanResources", index, partIndex)
+                  }
+                />
+              </div>
             ))}
-          </tbody>
-        </table>
-        <PrimaryButton text="Add Row" onClick={this.addRow} />
-        <PrimaryButton text="Submit" onClick={this.handleSubmit} />
-        <PrimaryButton text="Cancel" onClick={this.resetForm} />
+            <PrimaryButton
+              text="Add Human Resource"
+              onClick={() => this.addRow("humanResources", index)}
+            />
+
+            {/* Machines */}
+            <h4>Machines</h4>
+            {assessment.machines.map((machine, partIndex) => (
+              <div key={partIndex}>
+                <GenericDropdown
+                  label={`Machine ${partIndex + 1}`}
+                  options={this.filterInventoryItems(["ماشین آلات"])}
+                  selectedKey={machine.key}
+                  onChange={(option) =>
+                    this.handleDropdownChange(
+                      "machines",
+                      option!,
+                      index,
+                      partIndex
+                    )
+                  }
+                />
+                <PrimaryButton
+                  text="Remove"
+                  onClick={() => this.removeRow("machines", index, partIndex)}
+                />
+              </div>
+            ))}
+            <PrimaryButton
+              text="Add Machine"
+              onClick={() => this.addRow("machines", index)}
+            />
+
+            {/* Materials */}
+            <h4>Materials</h4>
+            {assessment.materials.map((material, partIndex) => (
+              <div key={partIndex}>
+                <GenericDropdown
+                  label={`Material ${partIndex + 1}`}
+                  options={this.filterInventoryItems([
+                    "ابزار",
+                    "محصول",
+                    "مواد اولیه",
+                  ])}
+                  selectedKey={material.key}
+                  onChange={(option) =>
+                    this.handleDropdownChange(
+                      "materials",
+                      option!,
+                      index,
+                      partIndex
+                    )
+                  }
+                />
+                <PrimaryButton
+                  text="Remove"
+                  onClick={() => this.removeRow("materials", index, partIndex)}
+                />
+              </div>
+            ))}
+            <PrimaryButton
+              text="Add Material"
+              onClick={() => this.addRow("materials", index)}
+            />
+
+            <hr />
+          </div>
+        ))}
+        <PrimaryButton text="Add Assessment" onClick={this.addAssessment} />
+        <PrimaryButton
+          text="Save Assessments"
+          onClick={this.handleSaveAssessments}
+        />
       </div>
     );
   }

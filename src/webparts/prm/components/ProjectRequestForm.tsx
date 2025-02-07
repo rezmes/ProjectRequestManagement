@@ -126,22 +126,27 @@ class ProjectRequestForm extends React.Component<
       RequestStatus,
     } = this.state;
 
+    // Convert requestDate to ISO string if it's not already a Date object
+    const formattedRequestDate = new Date(requestDate).toISOString();
+
     // Prepare the request data
     const requestData = {
       Title: requestTitle.trim(),
       CustomerId: selectedCustomer ? selectedCustomer : null,
       RequestDate: requestDate,
-      EstimatedDuration: estimatedDuration,
-      EstimatedCost: estimatedCost,
+      EstimatedDuration: estimatedDuration || 0,
+      EstimatedCost: estimatedCost || 0,
       RequestStatus: RequestStatus.trim(),
     };
 
+    console.log("Request Data:", requestData); // Log requestData to check values
     // Create the project request
     this.projectRequestService
       .createProjectRequest(requestData)
       .then((response) => {
-        if (response.data) {
-          const requestId = response.data.Id;
+        // if (response.data) {
+        if (response && response.Id) {
+          const requestId = response.Id;
           this.setState({ requestId }, () => {
             alert(
               "Project request created successfully! You can now add assessments."

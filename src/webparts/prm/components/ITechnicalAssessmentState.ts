@@ -1,21 +1,11 @@
-// ITechnicalAssessmentState.ts
-import ProjectRequestService, { IDropdownOptionWithCategory } from "../services/ProjectRequestService";
-// Import IDropdownOption interface
+// IAssessment.ts
 import { IDropdownOption } from "office-ui-fabric-react";
 
-// IAssessment.ts
-export interface IAssessment {
-  activity: string;
-  humanResource: IDropdownOption | null;
-  machine: IDropdownOption | null;
-  material: IDropdownOption | null;
-  // Other fields as necessary
-}
-
-
+// ITechnicalAssessmentState.ts
+import { IAssessment } from './IAssessment';
+import { IDropdownOptionWithCategory } from "../services/ProjectRequestService";
 
 export interface ITechnicalAssessmentState {
   assessments: IAssessment[];
   inventoryItems: IDropdownOptionWithCategory[];
 }
-

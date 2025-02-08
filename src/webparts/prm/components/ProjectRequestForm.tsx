@@ -1,10 +1,15 @@
+// ProjectRequestForm.tsx
+
 import * as React from "react";
-import { TextField, PrimaryButton } from "office-ui-fabric-react";
+import {
+  TextField,
+  PrimaryButton,
+  IDropdownOption,
+} from "office-ui-fabric-react";
 import GenericDropdown from "./GenericDropdown";
 import { IProjectRequestFormProps } from "./IProjectRequestFormProps";
 import { IProjectRequestFormState } from "./IProjectRequestFormState";
 import ProjectRequestService from "../services/ProjectRequestService";
-import { IDropdownOption } from "office-ui-fabric-react";
 import * as moment from "moment";
 import "moment-jalaali";
 import TechnicalAssessmentTable from "./TechnicalAssessmentTable";
@@ -19,15 +24,21 @@ class ProjectRequestForm extends React.Component<
     super(props);
     this.projectRequestService = new ProjectRequestService();
     this.state = {
-      customerOptions: [],
-      selectedCustomer: undefined,
+      isProjectCreated: false,
+      showProjectForm: true,
+      requestId: null,
+      selectedCustomer: null,
+      selectedCustomerName: "",
       requestTitle: "",
-      requestDate: moment().format("YYYY-MM-DD"), // Set default date to today
+      requestDate: moment().format("YYYY-MM-DD"),
       estimatedDuration: 0,
       estimatedCost: 0,
       RequestStatus: "New",
-      requestId: null, // Assuming requestId is part of the state
+      customerOptions: [],
+      assessments: [], // Add this line
     };
+
+    this.resetForm = this.resetForm.bind(this);
   }
 
   componentDidMount() {
@@ -40,37 +51,31 @@ class ProjectRequestForm extends React.Component<
     });
   }
 
-  handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const { name, value } = event.target;
+  handleInputChange = (
+    newValue: string,
+    field: keyof IProjectRequestFormState
+  ): void => {
+    let parsedValue: any = newValue;
 
-    // Convert to number if the field expects a number
-    const newValue =
-      name === "estimatedDuration" || name === "estimatedCost"
-        ? parseFloat(value) || 0
-        : value;
+    // Check if the field expects a number
+    if (field === "estimatedDuration" || field === "estimatedCost") {
+      parsedValue = parseFloat(newValue) || 0;
+    }
 
-    this.setState({ [name]: newValue } as unknown as Pick<
+    this.setState({ [field]: parsedValue } as Pick<
       IProjectRequestFormState,
       keyof IProjectRequestFormState
     >);
   };
 
   handleDropdownChange = (option?: IDropdownOption): void => {
-    console.log("Dropdown Change Event:", option); // Log the dropdown change event
-    this.setState(
-      {
-        selectedCustomer: option ? option.key : null,
-      },
-      () => {
-        console.log(
-          "Updated selectedCustomer in state:",
-          this.state.selectedCustomer
-        ); // Log the updated state
-      }
-    );
+    this.setState({
+      selectedCustomer: option ? option.key : null,
+      selectedCustomerName: option ? option.text : "",
+    });
   };
 
-  handleSubmit = (): void => {
+  handleCreateProjectRequest = (): void => {
     const {
       requestTitle,
       selectedCustomer,
@@ -80,26 +85,15 @@ class ProjectRequestForm extends React.Component<
       RequestStatus,
     } = this.state;
 
-    // Log the selectedCustomer value for debugging
-    console.log("Selected Customer:", selectedCustomer);
-
-    // Convert the requestDate to Gregorian format using Moment.js
-    const formattedRequestDate = moment(requestDate, "jYYYY-jMM-jDD").format(
-      "YYYY-MM-DDTHH:mm:ss[Z]"
-    );
-
     // Prepare the request data
     const requestData = {
       Title: requestTitle.trim(),
-      CustomerId: selectedCustomer ? selectedCustomer : null, // Ensure lookup is valid
-      RequestDate: formattedRequestDate,
-      EstimatedDuration: isNaN(estimatedDuration) ? 0 : estimatedDuration, // Ensure numeric
-      EstimatedCost: isNaN(estimatedCost) ? 0 : estimatedCost, // Ensure numeric
+      CustomerId: selectedCustomer || null,
+      RequestDate: requestDate,
+      EstimatedDuration: estimatedDuration,
+      EstimatedCost: estimatedCost,
       RequestStatus: RequestStatus.trim(),
     };
-
-    // Log the requestData object for debugging
-    console.log("Request Data:", requestData);
 
     // Create the project request
     this.projectRequestService
@@ -107,21 +101,24 @@ class ProjectRequestForm extends React.Component<
       .then((response) => {
         if (response && response.Id) {
           const requestId = response.Id;
-          this.setState({ requestId }, () => {
-            console.log("Set requestId in state: ", this.state.requestId);
-            alert(
-              "Project request created successfully! You can now add assessments."
-            );
-            console.log("responseId:", response.Id); // Log the response ID
-            // this.resetForm();
-          });
+          this.setState(
+            {
+              isProjectCreated: true,
+              requestId,
+            },
+            () => {
+              console.log("New project created with ID:", requestId);
+              alert(
+                "Project request created successfully! You can now add assessments."
+              );
+            }
+          );
         } else {
           alert("Error creating project request");
-          console.log("responseId:", response.Id);
         }
       })
       .catch((error) => {
-        console.error("Error details:", error);
+        console.error("Error creating project request:", error);
         alert(
           "There was an error creating your project request. Please check the console for details."
         );
@@ -130,78 +127,120 @@ class ProjectRequestForm extends React.Component<
 
   resetForm = (): void => {
     this.setState({
-      requestTitle: "",
+      isProjectCreated: false,
+      requestId: null,
       selectedCustomer: null,
-      requestDate: moment().format("YYYY-MM-DD"), // Reset to default date
+      selectedCustomerName: "",
+      requestTitle: "",
+      requestDate: moment().format("YYYY-MM-DD"),
       estimatedDuration: 0,
       estimatedCost: 0,
       RequestStatus: "New",
-      // Do not reset requestId here if you still need it
-      // requestId: null, // Reset requestId if needed
+      // Reset any other state variables as needed
     });
   };
 
   render() {
     const {
-      customerOptions,
+      isProjectCreated,
+      requestId,
       selectedCustomer,
+      selectedCustomerName,
       requestTitle,
       requestDate,
       estimatedDuration,
       estimatedCost,
+      customerOptions,
     } = this.state;
 
     return (
       <div>
+        <h2>
+          {isProjectCreated ? "Add Assessments" : "Create Project Request"}
+        </h2>
+
+        {isProjectCreated && (
+          <div>
+            <h3>Project Information</h3>
+            <p>
+              <strong>Project ID:</strong> {requestId}
+            </p>
+            <p>
+              <strong>Title:</strong> {requestTitle}
+            </p>
+            <p>
+              <strong>Customer Name:</strong> {selectedCustomerName}
+            </p>
+            <p>
+              <strong>Request Date:</strong> {requestDate}
+            </p>
+            {/* Include other information as needed */}
+          </div>
+        )}
+
+        {/* Project Request Form */}
         <TextField
           label="Request Title"
-          value={this.state.requestTitle}
-          onChanged={(newValue: string) => {
-            this.setState({ requestTitle: newValue || "" });
-          }}
+          value={requestTitle}
+          onChanged={(newValue) =>
+            this.handleInputChange(newValue || "", "requestTitle")
+          }
+          readOnly={isProjectCreated}
         />
         <GenericDropdown
           label="Customer"
           options={customerOptions}
           selectedKey={selectedCustomer}
           onChanged={this.handleDropdownChange}
-          placeHolder="انتخاب مشتری"
+          placeHolder="Select Customer"
+          disabled={isProjectCreated}
         />
         <TextField
           label="Request Date"
-          name="requestDate"
-          value={this.state.requestDate}
-          onChanged={(newValue: string) => {
-            this.setState({ requestDate: newValue || "" });
-          }}
+          value={requestDate}
+          onChanged={(newValue) =>
+            this.handleInputChange(newValue || "", "requestDate")
+          }
+          readOnly={isProjectCreated}
         />
         <TextField
           label="Estimated Duration (days)"
-          value={this.state.estimatedDuration.toString()} // Ensure it’s a string
-          onChanged={(newValue: string) =>
+          value={estimatedDuration.toString()}
+          onChanged={(newValue) =>
             this.setState({ estimatedDuration: parseInt(newValue) || 0 })
           }
           type="number"
+          readOnly={isProjectCreated}
         />
-
         <TextField
           label="Estimated Cost"
-          name="estimatedCost"
-          value={this.state.estimatedCost.toString()} // Convert number to string for display
-          onChanged={(newValue: string) =>
+          value={estimatedCost.toString()}
+          onChanged={(newValue) =>
             this.setState({ estimatedCost: parseInt(newValue) || 0 })
           }
           type="number"
+          readOnly={isProjectCreated}
         />
-        {this.state.requestId && (
-          <TechnicalAssessmentTable
-            projectRequestService={this.projectRequestService}
-            requestId={this.state.requestId}
+
+        {/* Create Button */}
+        {!isProjectCreated && (
+          <PrimaryButton
+            text="Create"
+            onClick={this.handleCreateProjectRequest}
           />
         )}
 
+        {/* Technical Assessment Table */}
+        {isProjectCreated && requestId && (
+          <TechnicalAssessmentTable
+            projectRequestService={this.projectRequestService}
+            requestId={requestId}
+            resetForm={this.resetForm}
+          />
+        )}
+
+        {/* Cancel Button */}
         <div>
-          <PrimaryButton text="Submit" onClick={this.handleSubmit} />
           <PrimaryButton text="Cancel" onClick={this.resetForm} />
         </div>
       </div>

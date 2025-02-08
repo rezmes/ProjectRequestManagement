@@ -5,10 +5,7 @@ import {
   IDropdownOption,
 } from "office-ui-fabric-react";
 import GenericDropdown from "./GenericDropdown";
-import {
-  IAssessment,
-  ITechnicalAssessmentState,
-} from "./ITechnicalAssessmentState";
+import { ITechnicalAssessmentState } from "./ITechnicalAssessmentState";
 import { ITechnicalAssessmentProps } from "./ITechnicalAssessmentProps";
 
 import ProjectRequestService, {
@@ -38,6 +35,29 @@ class TechnicalAssessmentTable extends React.Component<
     this.loadInventoryItems();
   }
 
+  handleFinalSubmit = (): void => {
+    const { assessments } = this.state;
+    const { requestId, resetForm } = this.props;
+
+    if (!assessments || assessments.length === 0) {
+      alert("Please add at least one assessment before submitting.");
+      return;
+    }
+
+    this.projectRequestService
+      .saveAssessments(assessments, requestId)
+      .then(() => {
+        alert("Assessments saved successfully!");
+        resetForm(); // Reset the form after saving
+      })
+      .catch((error) => {
+        console.error("Error saving assessments:", error);
+        alert(
+          "Error saving assessments. Please check the console for details."
+        );
+      });
+  };
+
   loadInventoryItems = () => {
     this.projectRequestService.getInventoryItems().then((items) => {
       this.setState({ inventoryItems: items });
@@ -63,19 +83,6 @@ class TechnicalAssessmentTable extends React.Component<
     });
   };
 
-  // handleDropdownChange = (
-  //   field: string,
-  //   option: IDropdownOption,
-  //   index: number,
-  //   partIndex: number
-  // ): void => {
-  //   this.setState((prevState) => {
-  //     const assessments = [...prevState.assessments];
-  //     assessments[index][field][partIndex] = option;
-  //     return { assessments };
-  //   });
-  // };
-
   handleDropdownChange = (
     field: string,
     option: IDropdownOption,
@@ -84,22 +91,6 @@ class TechnicalAssessmentTable extends React.Component<
     this.setState((prevState) => {
       const assessments = [...prevState.assessments];
       assessments[index][field] = option;
-      return { assessments };
-    });
-  };
-
-  addRow = (field: string, index: number) => {
-    this.setState((prevState) => {
-      const assessments = [...prevState.assessments];
-      assessments[index][field].push({ key: "", text: "" });
-      return { assessments };
-    });
-  };
-
-  removeRow = (field: string, index: number, partIndex: number) => {
-    this.setState((prevState) => {
-      const assessments = [...prevState.assessments];
-      assessments[index][field].splice(partIndex, 1);
       return { assessments };
     });
   };
@@ -116,26 +107,6 @@ class TechnicalAssessmentTable extends React.Component<
         },
       ],
     }));
-  };
-
-  handleSaveAssessments = () => {
-    const { assessments } = this.state;
-    const { requestId } = this.props;
-    if (!requestId) {
-      alert("Request ID is missing. Please create a project request first.");
-      return;
-    }
-    this.projectRequestService
-      .saveAssessments(assessments, requestId)
-      .then(() => {
-        alert("Assessments saved successfully!");
-      })
-      .catch((error) => {
-        console.error("Error saving assessments", error);
-        alert(
-          "Error saving assessments. Please check the console for details."
-        );
-      });
   };
 
   render() {
@@ -200,10 +171,12 @@ class TechnicalAssessmentTable extends React.Component<
           </div>
         ))}
         <PrimaryButton text="Add Assessment" onClick={this.addAssessment} />
-        <PrimaryButton
+        {/* Remove the Save Assessments button */}
+        {/* <PrimaryButton
           text="Save Assessments"
           onClick={this.handleSaveAssessments}
-        />
+        /> */}
+        <PrimaryButton text="Final Submit" onClick={this.handleFinalSubmit} />
       </div>
     );
   }

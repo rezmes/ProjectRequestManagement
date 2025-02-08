@@ -1,6 +1,8 @@
-import  ProjectRequestService  from "../services/ProjectRequestService";
+// ITechnicalAssessmentProps.ts
+import ProjectRequestService from "../services/ProjectRequestService";
 
 export interface ITechnicalAssessmentProps {
-  projectRequestService: ProjectRequestService; // Using ProjectRequestService
-  requestId: number; // Assuming we have a request ID
+  projectRequestService: ProjectRequestService;
+  requestId: number;
+  resetForm: () => void; // Make this required
 }

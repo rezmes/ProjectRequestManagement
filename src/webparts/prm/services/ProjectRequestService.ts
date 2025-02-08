@@ -6,9 +6,9 @@ import { IAssessment } from "../components/ITechnicalAssessmentState";
 
 interface ISaveAssessment {
   Activity: string;
-  HumanResourcesId: { results: (string | number)[] };
-  MachinesId: { results: (string | number)[] };
-  MaterialsId: { results: (string | number)[] };
+  HumanResourceId: { results: (string | number)[] };
+  MachineId: { results: (string | number)[] };
+  MaterialId: { results: (string | number)[] };
   // Other fields as needed
 }
 
@@ -45,31 +45,31 @@ export default class ProjectRequestService {
     return sp.web.lists
       .getByTitle("TechnicalAssessments")
       .items.filter(`RequestID eq ${requestId}`)
-      .expand("HumanResources", "Machines", "Materials")
+      .expand("HumanResource", "Machine", "Material")
       .select(
         "Activity",
-        "HumanResources/Id",
-        "HumanResources/Title",
-        "Machines/Id",
-        "Machines/Title",
-        "Materials/Id",
-        "Materials/Title"
+        "HumanResource/Id",
+        "HumanResource/Title",
+        "Machine/Id",
+        "Machine/Title",
+        "Material/Id",
+        "Material/Title"
       )
       .get()
       .then((data) =>
         data.map((item) => ({
           activity: item.Activity,
-          humanResources: item.HumanResources
-            ? item.HumanResources.map((hr) => ({ key: hr.Id, text: hr.Title }))
+          humanResource: item.HumanResource
+            ? item.HumanResource.map((hr) => ({ key: hr.Id, text: hr.Title }))
             : [],
-          machines: item.Machines
-            ? item.Machines.map((machine) => ({
+          machine: item.Machine
+            ? item.Machine.map((machine) => ({
                 key: machine.Id,
                 text: machine.Title,
               }))
             : [],
-          materials: item.Materials
-            ? item.Materials.map((material) => ({
+          material: item.Material
+            ? item.Material.map((material) => ({
                 key: material.Id,
                 text: material.Title,
               }))
@@ -98,6 +98,52 @@ export default class ProjectRequestService {
         }))
       );
   }
+  // public saveAssessments(
+  //   assessments: IAssessment[],
+  //   requestId: number
+  // ): Promise<void> {
+  //   const batch = sp.web.createBatch();
+
+  //   assessments.forEach((assessment) => {
+  //     // const data = {
+  //     //   Title: assessment.activity,
+  //     //   RequestID: requestId,
+  //     //   HumanResourceId: {
+  //     //     results: assessment.humanResource.map((hr) => hr.key),
+  //     //   },
+  //     //   MachineId: {
+  //     //     results: assessment.machine.map((machine) => machine.key),
+  //     //   },
+  //     //   MaterialId: {
+  //     //     results: assessment.material.map((material) => material.key),
+  //     //   },
+  //     const data = {
+  //       Title: assessment.activity,
+  //       RequestIDId: requestId,
+  //       HumanResourceId: assessment.humanResource.key, // Single number
+  //       MachineId: assessment.machine.key,             // Single number
+  //       MaterialId: assessment.material.key,           // Single number
+  //       // Include other necessary fields
+  //     };
+
+
+  //     // Add to batch
+  //     sp.web.lists
+  //       .getByTitle("TechnicalAssessments")
+  //       .items.inBatch(batch)
+  //       .add(data);
+  //   });
+
+  //   return batch
+  //     .execute()
+  //     .then(() => {
+  //       console.log("Assessments saved successfully");
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error saving assessments", error);
+  //       throw error;
+  //     });
+  // }
   public saveAssessments(
     assessments: IAssessment[],
     requestId: number
@@ -107,19 +153,13 @@ export default class ProjectRequestService {
     assessments.forEach((assessment) => {
       const data = {
         Title: assessment.activity,
-        RequestID: requestId,
-        HumanResourcesId: {
-          results: assessment.humanResources.map((hr) => hr.key),
-        },
-        MachinesId: {
-          results: assessment.machines.map((machine) => machine.key),
-        },
-        MaterialsId: {
-          results: assessment.materials.map((material) => material.key),
-        },
+        RequestIDId: requestId,
+        HumanResourceId: assessment.humanResource ? assessment.humanResource.key : null,
+        MachineId: assessment.machine ? assessment.machine.key : null,
+        MaterialId: assessment.material ? assessment.material.key : null,
         // Include other necessary fields
       };
-      // Add to batch
+      console.log("Data to add:", data);
       sp.web.lists
         .getByTitle("TechnicalAssessments")
         .items.inBatch(batch)
@@ -136,4 +176,5 @@ export default class ProjectRequestService {
         throw error;
       });
   }
+
 }

@@ -108,11 +108,12 @@ class ProjectRequestForm extends React.Component<
         if (response && response.Id) {
           const requestId = response.Id;
           this.setState({ requestId }, () => {
+            console.log("Set requestId in state: ", this.state.requestId);
             alert(
               "Project request created successfully! You can now add assessments."
             );
             console.log("responseId:", response.Id); // Log the response ID
-            this.resetForm();
+            // this.resetForm();
           });
         } else {
           alert("Error creating project request");
@@ -135,7 +136,8 @@ class ProjectRequestForm extends React.Component<
       estimatedDuration: 0,
       estimatedCost: 0,
       RequestStatus: "New",
-      requestId: null, // Reset requestId if needed
+      // Do not reset requestId here if you still need it
+      // requestId: null, // Reset requestId if needed
     });
   };
 
@@ -162,7 +164,7 @@ class ProjectRequestForm extends React.Component<
           label="Customer"
           options={customerOptions}
           selectedKey={selectedCustomer}
-          onChange={this.handleDropdownChange}
+          onChanged={this.handleDropdownChange}
           placeHolder="انتخاب مشتری"
         />
         <TextField
@@ -191,7 +193,7 @@ class ProjectRequestForm extends React.Component<
           }
           type="number"
         />
-        {selectedCustomer && (
+        {this.state.requestId && (
           <TechnicalAssessmentTable
             projectRequestService={this.projectRequestService}
             requestId={this.state.requestId}

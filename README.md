@@ -439,9 +439,9 @@ import { IAssessment } from "../components/ITechnicalAssessmentState";
 
 interface ISaveAssessment {
   Activity: string;
-  HumanResourcesId: { results: (string | number)[] };
-  MachinesId: { results: (string | number)[] };
-  MaterialsId: { results: (string | number)[] };
+  HumanResourceId: { results: (string | number)[] };
+  MachineId: { results: (string | number)[] };
+  MaterialId: { results: (string | number)[] };
   // Other fields as needed
 }
 
@@ -531,13 +531,13 @@ export default class ProjectRequestService {
       const data = {
         Title: assessment.activity,
         RequestID: requestId,
-        HumanResourcesId: {
+        HumanResourceId: {
           results: assessment.humanResources.map((hr) => hr.key),
         },
-        MachinesId: {
+        MachineId: {
           results: assessment.machines.map((machine) => machine.key),
         },
-        MaterialsId: {
+        MaterialId: {
           results: assessment.materials.map((material) => material.key),
         },
         // Include other necessary fields

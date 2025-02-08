@@ -1,431 +1,3 @@
-// import * as React from "react";
-// import {
-//   PrimaryButton,
-//   TextField,
-//   IDropdownOption,
-// } from "office-ui-fabric-react";
-// import GenericDropdown from "./GenericDropdown";
-// import { ITechnicalAssessmentProps } from "./ITechnicalAssessmentProps";
-// import { ITechnicalAssessmentState } from "./ITechnicalAssessmentState";
-// import ProjectRequestService, {
-//   IDropdownOptionWithCategory,
-// } from "../services/ProjectRequestService";
-
-// class TechnicalAssessmentTable extends React.Component<
-//   ITechnicalAssessmentProps,
-//   ITechnicalAssessmentState
-// > {
-//   private projectRequestService: ProjectRequestService;
-
-//   constructor(props: ITechnicalAssessmentProps) {
-//     super(props);
-//     this.projectRequestService = new ProjectRequestService();
-//     this.state = {
-//       assessments: [],
-//       inventoryItems: [],
-//     };
-//   }
-
-//   componentDidMount() {
-//     this.loadAssessments();
-//     this.loadInventoryItems();
-//   }
-
-//   loadAssessments = () => {
-//     this.props.projectRequestService
-//       .getTechnicalAssessments(this.props.requestId)
-//       .then((assessments) => {
-//         this.setState({ assessments });
-//       });
-//   };
-
-//   loadInventoryItems = () => {
-//     this.projectRequestService.getInventoryItems().then((inventoryItems) => {
-//       this.setState({ inventoryItems });
-//     });
-//   };
-
-//   handleInputChange = (
-//     newValue: string,
-//     field: string,
-//     index: number,
-//     partIndex?: number,
-//     subField?: string
-//   ): void => {
-//     this.setState((prevState) => {
-//       const assessments = [...prevState.assessments];
-//       if (partIndex !== undefined && subField) {
-//         assessments[index][field][partIndex][subField] = newValue;
-//       } else {
-//         assessments[index][field] = newValue;
-//       }
-//       return { assessments };
-//     });
-//   };
-
-//   // handleDropdownChange = (
-//   //   field: string,
-//   //   option: IDropdownOption,
-//   //   index: number,
-//   //   partIndex: number
-//   // ): void => {
-//   //   this.setState((prevState) => {
-//   //     const assessments = [...prevState.assessments];
-//   //     assessments[index][field][partIndex] = {
-//   //       id: option.key,
-//   //       name: option.text,
-//   //     };
-//   //     return { assessments };
-//   //   });
-//   // };
-
-//   // addRow = (field: string, index: number) => {
-//   //   this.setState((prevState) => {
-//   //     const assessments = [...prevState.assessments];
-//   //     assessments[index][field].push({ id: "", name: "" });
-//   //     return { assessments };
-//   //   });
-//   // };
-
-//   // removeRow = (field: string, index: number, partIndex: number) => {
-//   //   this.setState((prevState) => {
-//   //     const assessments = [...prevState.assessments];
-//   //     assessments[index][field].splice(partIndex, 1);
-//   //     return { assessments };
-//   //   });
-//   // };
-
-//   // addAssessment = () => {
-//   //   this.setState((prevState) => ({
-//   //     assessments: [
-//   //       ...prevState.assessments,
-//   //       {
-//   //         activity: "",
-//   //         humanResources: [],
-//   //         machines: [],
-//   //         materials: [],
-//   //       } as IAssessment,
-//   //     ],
-//   //   }));
-//   // };
-//   // Add a new item to the array
-//   addRow = (field: string, index: number) => {
-//     this.setState((prevState) => {
-//       const assessments = [...prevState.assessments];
-//       assessments[index][field].push({ key: "", text: "" });
-//       return { assessments };
-//     });
-//   };
-
-//   // Remove an item from the array
-//   removeRow = (field: string, index: number, partIndex: number) => {
-//     this.setState((prevState) => {
-//       const assessments = [...prevState.assessments];
-//       assessments[index][field].splice(partIndex, 1);
-//       return { assessments };
-//     });
-//   };
-
-//   // Add a new assessment block
-//   addAssessment = () => {
-//     this.setState((prevState) => ({
-//       assessments: [
-//         ...prevState.assessments,
-//         {
-//           activity: "",
-//           humanResources: [],
-//           machines: [],
-//           materials: [],
-//         },
-//       ],
-//     }));
-//   };
-
-//   // Handle activity text change
-//   handleActivityChange = (newValue: string, index: number): void => {
-//     this.setState((prevState) => {
-//       const assessments = [...prevState.assessments];
-//       assessments[index].activity = newValue;
-//       return { assessments };
-//     });
-//   };
-
-//   // Handle dropdown change
-//   handleDropdownChange = (
-//     field: string,
-//     option: IDropdownOption,
-//     index: number,
-//     partIndex: number
-//   ): void => {
-//     this.setState((prevState) => {
-//       const assessments = [...prevState.assessments];
-//       assessments[index][field][partIndex] = option;
-//       return { assessments };
-//     });
-//   };
-//   // TechnicalAssessmentTable.tsx
-
-//   // TechnicalAssessmentTable.tsx
-
-//   filterInventoryItems = (categories: string[]): IDropdownOption[] => {
-//     const { inventoryItems } = this.state;
-//     return inventoryItems
-//       .filter((item) => categories.indexOf(item.itemCategory) > -1)
-//       .map((item) => ({ key: item.key, text: item.text }));
-//   };
-
-//   handleSaveAssessments = () => {
-//     const { assessments } = this.state;
-//     const { requestId } = this.props; // Ensure requestId is passed as a prop
-
-//     this.projectRequestService
-//       .saveAssessments(assessments, requestId)
-//       .then(() => {
-//         alert("Assessments saved successfully!");
-//       })
-//       .catch((error) => {
-//         alert(
-//           "Error saving assessments. Please check the console for details."
-//         );
-//       });
-//   };
-
-//   // render() {
-//   //   const { assessments, inventoryItems } = this.state;
-
-//   //   return (
-//   //     <div>
-//   //       <h3>Technical Assessments</h3>
-//   //       {assessments.map((assessment, index) => (
-//   //         <div key={index}>
-//   //           <TextField
-//   //             label={`Activity ${index + 1}`}
-//   //             value={assessment.activity}
-//   //             onChanged={(newValue: string) =>
-//   //               this.handleActivityChange(newValue, index)
-//   //             }
-//   //           />
-//   //           {/* Human Resources */}
-//   //           <h4>Human Resources</h4>
-//   //           {assessment.humanResources.map((hr, partIndex) => (
-//   //             <div key={partIndex}>
-//   //               <GenericDropdown
-//   //                 label={`Human Resource ${partIndex + 1}`}
-//   //                 options={inventoryItems}
-//   //                 selectedKey={hr.key}
-//   //                 onChange={(option) =>
-//   //                   this.handleDropdownChange(
-//   //                     "humanResources",
-//   //                     option!,
-//   //                     index,
-//   //                     partIndex
-//   //                   )
-//   //                 }
-//   //               />
-
-//   //               <PrimaryButton
-//   //                 text="Remove"
-//   //                 onClick={() =>
-//   //                   this.removeRow("humanResources", index, partIndex)
-//   //                 }
-//   //               />
-//   //             </div>
-//   //           ))}
-//   //           <PrimaryButton
-//   //             text="Add Human Resource"
-//   //             onClick={() => this.addRow("humanResources", index)}
-//   //           />
-
-//   //           {/* Machines */}
-//   //           <h4>Machines</h4>
-//   //           {assessment.machines.map((machine, partIndex) => (
-//   //             <div key={partIndex}>
-//   //               <GenericDropdown
-//   //                 label={`Machine ${partIndex + 1}`}
-//   //                 options={inventoryItems}
-//   //                 selectedKey={machine.key}
-//   //                 onChange={(option) =>
-//   //                   this.handleDropdownChange(
-//   //                     "machines",
-//   //                     option,
-//   //                     index,
-//   //                     partIndex
-//   //                   )
-//   //                 }
-//   //               />
-//   //               <PrimaryButton
-//   //                 text="Remove"
-//   //                 onClick={() => this.removeRow("machines", index, partIndex)}
-//   //               />
-//   //             </div>
-//   //           ))}
-//   //           <PrimaryButton
-//   //             text="Add Machine"
-//   //             onClick={() => this.addRow("machines", index)}
-//   //           />
-
-//   //           {/* Materials */}
-//   //           <h4>Materials</h4>
-//   //           {assessment.materials.map((material, partIndex) => (
-//   //             <div key={partIndex}>
-//   //               <GenericDropdown
-//   //                 label={`Material ${partIndex + 1}`}
-//   //                 options={inventoryItems}
-//   //                 selectedKey={material.key}
-//   //                 onChange={(option) =>
-//   //                   this.handleDropdownChange(
-//   //                     "materials",
-//   //                     option,
-//   //                     index,
-//   //                     partIndex
-//   //                   )
-//   //                 }
-//   //               />
-//   //               <PrimaryButton
-//   //                 text="Remove"
-//   //                 onClick={() => this.removeRow("materials", index, partIndex)}
-//   //               />
-//   //             </div>
-//   //           ))}
-//   //           <PrimaryButton
-//   //             text="Add Material"
-//   //             onClick={() => this.addRow("materials", index)}
-//   //           />
-
-//   //           <hr />
-//   //         </div>
-//   //       ))}
-//   //       <PrimaryButton text="Add Assessment" onClick={this.addAssessment} />
-//   //       <PrimaryButton
-//   //         text="Save Assessments"
-//   //         onClick={this.handleSaveAssessments}
-//   //       />
-//   //     </div>
-//   //   );
-//   // }
-//   // TechnicalAssessmentTable.tsx
-
-//   render() {
-//     const { assessments } = this.state;
-
-//     return (
-//       <div>
-//         <h3>Technical Assessments</h3>
-//         {assessments.map((assessment, index) => (
-//           <div key={index}>
-//             {/* Activity Field */}
-//             <TextField
-//               label={`Activity ${index + 1}`}
-//               value={assessment.activity}
-//               onChanged={(newValue: string) =>
-//                 this.handleInputChange(newValue, "activity", index)
-//               }
-//             />
-
-//             {/* Human Resources */}
-//             <h4>Human Resources</h4>
-//             {assessment.humanResources.map((hr, partIndex) => (
-//               <div key={partIndex}>
-//                 <GenericDropdown
-//                   label={`Human Resource ${partIndex + 1}`}
-//                   options={this.filterInventoryItems(["نیروی انسانی"])}
-//                   selectedKey={hr.key}
-//                   onChange={(option) =>
-//                     this.handleDropdownChange(
-//                       "humanResources",
-//                       option!,
-//                       index,
-//                       partIndex
-//                     )
-//                   }
-//                 />
-//                 <PrimaryButton
-//                   text="Remove"
-//                   onClick={() =>
-//                     this.removeRow("humanResources", index, partIndex)
-//                   }
-//                 />
-//               </div>
-//             ))}
-//             <PrimaryButton
-//               text="Add Human Resource"
-//               onClick={() => this.addRow("humanResources", index)}
-//             />
-
-//             {/* Machines */}
-//             <h4>Machines</h4>
-//             {assessment.machines.map((machine, partIndex) => (
-//               <div key={partIndex}>
-//                 <GenericDropdown
-//                   label={`Machine ${partIndex + 1}`}
-//                   options={this.filterInventoryItems(["ماشین آلات"])}
-//                   selectedKey={machine.key}
-//                   onChange={(option) =>
-//                     this.handleDropdownChange(
-//                       "machines",
-//                       option!,
-//                       index,
-//                       partIndex
-//                     )
-//                   }
-//                 />
-//                 <PrimaryButton
-//                   text="Remove"
-//                   onClick={() => this.removeRow("machines", index, partIndex)}
-//                 />
-//               </div>
-//             ))}
-//             <PrimaryButton
-//               text="Add Machine"
-//               onClick={() => this.addRow("machines", index)}
-//             />
-
-//             {/* Materials */}
-//             <h4>Materials</h4>
-//             {assessment.materials.map((material, partIndex) => (
-//               <div key={partIndex}>
-//                 <GenericDropdown
-//                   label={`Material ${partIndex + 1}`}
-//                   options={this.filterInventoryItems([
-//                     "ابزار",
-//                     "محصول",
-//                     "مواد اولیه",
-//                   ])}
-//                   selectedKey={material.key}
-//                   onChange={(option) =>
-//                     this.handleDropdownChange(
-//                       "materials",
-//                       option!,
-//                       index,
-//                       partIndex
-//                     )
-//                   }
-//                 />
-//                 <PrimaryButton
-//                   text="Remove"
-//                   onClick={() => this.removeRow("materials", index, partIndex)}
-//                 />
-//               </div>
-//             ))}
-//             <PrimaryButton
-//               text="Add Material"
-//               onClick={() => this.addRow("materials", index)}
-//             />
-
-//             <hr />
-//           </div>
-//         ))}
-//         <PrimaryButton text="Add Assessment" onClick={this.addAssessment} />
-//         <PrimaryButton
-//           text="Save Assessments"
-//           onClick={this.handleSaveAssessments}
-//         />
-//       </div>
-//     );
-//   }
-// }
-
-// export default TechnicalAssessmentTable;
 import * as React from "react";
 import {
   PrimaryButton,
@@ -443,11 +15,6 @@ import ProjectRequestService, {
   IDropdownOptionWithCategory,
 } from "../services/ProjectRequestService";
 
-// interface ITechnicalAssessmentState {
-//   assessments: IAssessment[];
-//   inventoryItems: IDropdownOptionWithCategory[];
-// }
-
 class TechnicalAssessmentTable extends React.Component<
   ITechnicalAssessmentProps,
   ITechnicalAssessmentState
@@ -464,6 +31,10 @@ class TechnicalAssessmentTable extends React.Component<
   }
 
   componentDidMount() {
+    console.log(
+      "Received requestId in TechnicalAssessmentTable:",
+      this.props.requestId
+    );
     this.loadInventoryItems();
   }
 
@@ -492,15 +63,27 @@ class TechnicalAssessmentTable extends React.Component<
     });
   };
 
+  // handleDropdownChange = (
+  //   field: string,
+  //   option: IDropdownOption,
+  //   index: number,
+  //   partIndex: number
+  // ): void => {
+  //   this.setState((prevState) => {
+  //     const assessments = [...prevState.assessments];
+  //     assessments[index][field][partIndex] = option;
+  //     return { assessments };
+  //   });
+  // };
+
   handleDropdownChange = (
     field: string,
     option: IDropdownOption,
-    index: number,
-    partIndex: number
+    index: number
   ): void => {
     this.setState((prevState) => {
       const assessments = [...prevState.assessments];
-      assessments[index][field][partIndex] = option;
+      assessments[index][field] = option;
       return { assessments };
     });
   };
@@ -527,9 +110,9 @@ class TechnicalAssessmentTable extends React.Component<
         ...prevState.assessments,
         {
           activity: "",
-          humanResources: [],
-          machines: [],
-          materials: [],
+          humanResource: null,
+          machine: null,
+          material: null,
         },
       ],
     }));
@@ -538,7 +121,10 @@ class TechnicalAssessmentTable extends React.Component<
   handleSaveAssessments = () => {
     const { assessments } = this.state;
     const { requestId } = this.props;
-
+    if (!requestId) {
+      alert("Request ID is missing. Please create a project request first.");
+      return;
+    }
     this.projectRequestService
       .saveAssessments(assessments, requestId)
       .then(() => {
@@ -568,94 +154,46 @@ class TechnicalAssessmentTable extends React.Component<
               }
             />
 
-            {/* Human Resources */}
-            <h4>Human Resources</h4>
-            {assessment.humanResources.map((hr, partIndex) => (
-              <div key={partIndex}>
-                <GenericDropdown
-                  label={`Human Resource ${partIndex + 1}`}
-                  options={this.filterInventoryItems(["نیروی انسانی"])}
-                  selectedKey={hr.key}
-                  onChange={(option) =>
-                    this.handleDropdownChange(
-                      "humanResources",
-                      option!,
-                      index,
-                      partIndex
-                    )
-                  }
-                />
-                <PrimaryButton
-                  text="Remove"
-                  onClick={() =>
-                    this.removeRow("humanResources", index, partIndex)
-                  }
-                />
-              </div>
-            ))}
-            <PrimaryButton
-              text="Add Human Resource"
-              onClick={() => this.addRow("humanResources", index)}
+            {/* Human Resource */}
+            <h4>Human Resource</h4>
+            <GenericDropdown
+              label="Human Resource"
+              options={this.filterInventoryItems(["نیروی انسانی"])}
+              selectedKey={
+                assessment.humanResource ? assessment.humanResource.key : null
+              }
+              onChanged={(option) =>
+                this.handleDropdownChange("humanResource", option, index)
+              }
+              placeHolder="Select a human resource"
             />
 
-            {/* Machines */}
-            <h4>Machines</h4>
-            {assessment.machines.map((machine, partIndex) => (
-              <div key={partIndex}>
-                <GenericDropdown
-                  label={`Machine ${partIndex + 1}`}
-                  options={this.filterInventoryItems(["ماشین آلات"])}
-                  selectedKey={machine.key}
-                  onChange={(option) =>
-                    this.handleDropdownChange(
-                      "machines",
-                      option!,
-                      index,
-                      partIndex
-                    )
-                  }
-                />
-                <PrimaryButton
-                  text="Remove"
-                  onClick={() => this.removeRow("machines", index, partIndex)}
-                />
-              </div>
-            ))}
-            <PrimaryButton
-              text="Add Machine"
-              onClick={() => this.addRow("machines", index)}
+            {/* Machine */}
+            <h4>Machine</h4>
+            <GenericDropdown
+              label="Machine"
+              options={this.filterInventoryItems(["ماشین آلات"])}
+              selectedKey={assessment.machine ? assessment.machine.key : null}
+              onChanged={(option) =>
+                this.handleDropdownChange("machine", option, index)
+              }
+              placeHolder="Select a machine"
             />
 
-            {/* Materials */}
-            <h4>Materials</h4>
-            {assessment.materials.map((material, partIndex) => (
-              <div key={partIndex}>
-                <GenericDropdown
-                  label={`Material ${partIndex + 1}`}
-                  options={this.filterInventoryItems([
-                    "ابزار",
-                    "محصول",
-                    "مواد اولیه",
-                  ])}
-                  selectedKey={material.key}
-                  onChange={(option) =>
-                    this.handleDropdownChange(
-                      "materials",
-                      option!,
-                      index,
-                      partIndex
-                    )
-                  }
-                />
-                <PrimaryButton
-                  text="Remove"
-                  onClick={() => this.removeRow("materials", index, partIndex)}
-                />
-              </div>
-            ))}
-            <PrimaryButton
-              text="Add Material"
-              onClick={() => this.addRow("materials", index)}
+            {/* Material */}
+            <h4>Material</h4>
+            <GenericDropdown
+              label="Material"
+              options={this.filterInventoryItems([
+                "ابزار",
+                "محصول",
+                "مواد اولیه",
+              ])}
+              selectedKey={assessment.material ? assessment.material.key : null}
+              onChanged={(option) =>
+                this.handleDropdownChange("material", option, index)
+              }
+              placeHolder="Select a material"
             />
 
             <hr />

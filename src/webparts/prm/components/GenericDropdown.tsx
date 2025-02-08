@@ -19,6 +19,7 @@ export class GenericDropdown extends React.Component<
     const { label, options, selectedKey, onChange, placeHolder } = this.props;
     return (
       <Dropdown
+        key={selectedKey || "default"} // Force re-render when selectedKey changes
         label={label}
         options={options}
         selectedKey={selectedKey}

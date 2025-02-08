@@ -59,7 +59,7 @@ class ProjectRequestForm extends React.Component<
     console.log("Dropdown Change Event:", option); // Log the dropdown change event
     this.setState(
       {
-        selectedCustomer: option ? option.key : undefined,
+        selectedCustomer: option ? option.key : null,
       },
       () => {
         console.log(
@@ -130,7 +130,7 @@ class ProjectRequestForm extends React.Component<
   resetForm = (): void => {
     this.setState({
       requestTitle: "",
-      selectedCustomer: undefined,
+      selectedCustomer: null,
       requestDate: moment().format("YYYY-MM-DD"), // Reset to default date
       estimatedDuration: 0,
       estimatedCost: 0,

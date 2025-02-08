@@ -115,7 +115,6 @@ class ProjectRequestForm extends React.Component<
   // };
 
   // ProjectRequestForm.tsx
-
   handleSubmit = (): void => {
     const {
       requestTitle,
@@ -126,35 +125,42 @@ class ProjectRequestForm extends React.Component<
       RequestStatus,
     } = this.state;
 
-    // Convert requestDate to ISO string if it's not already a Date object
-    const formattedRequestDate = new Date(requestDate).toISOString();
+    // Log the selectedCustomer value for debugging
+    console.log("Selected Customer:", selectedCustomer);
+
+    // Convert the requestDate to Gregorian format using Moment.js
+    const formattedRequestDate = moment(requestDate, "jYYYY-jMM-jDD").format(
+      "YYYY-MM-DDTHH:mm:ss[Z]"
+    );
 
     // Prepare the request data
     const requestData = {
       Title: requestTitle.trim(),
-      CustomerId: selectedCustomer ? selectedCustomer : null,
-      RequestDate: requestDate,
-      EstimatedDuration: estimatedDuration || 0,
-      EstimatedCost: estimatedCost || 0,
+      CustomerId: selectedCustomer ? selectedCustomer : null, // Ensure lookup is valid
+      RequestDate: formattedRequestDate,
+      EstimatedDuration: isNaN(estimatedDuration) ? 0 : estimatedDuration, // Ensure numeric
+      EstimatedCost: isNaN(estimatedCost) ? 0 : estimatedCost, // Ensure numeric
       RequestStatus: RequestStatus.trim(),
     };
 
-    console.log("Request Data:", requestData); // Log requestData to check values
+    // Log the requestData object for debugging
+    console.log("Request Data:", requestData);
+
     // Create the project request
     this.projectRequestService
       .createProjectRequest(requestData)
       .then((response) => {
-        // if (response.data) {
         if (response && response.Id) {
           const requestId = response.Id;
           this.setState({ requestId }, () => {
             alert(
               "Project request created successfully! You can now add assessments."
             );
-            // You might navigate to a different view or enable the assessments section
+            console.log("responseId:", response.Id); // Log the response ID
           });
         } else {
           alert("Error creating project request");
+          console.log("responseId:", response.Id);
         }
       })
       .catch((error) => {
@@ -164,6 +170,59 @@ class ProjectRequestForm extends React.Component<
         );
       });
   };
+  // handleSubmit = (): void => {
+  //   const {
+  //     requestTitle,
+  //     selectedCustomer,
+  //     requestDate,
+  //     estimatedDuration,
+  //     estimatedCost,
+  //     RequestStatus,
+  //   } = this.state;
+
+  //   // Convert requestDate to ISO string if it's not already a Date object
+  //   const formattedRequestDate = new Date(requestDate).toISOString();
+
+  //   // Prepare the request data
+  //   const requestData = {
+  //     Title: requestTitle.trim(),
+  //     CustomerId: selectedCustomer ? selectedCustomer : null,
+  //     RequestDate: requestDate,
+  //     EstimatedDuration: estimatedDuration || 0,
+  //     EstimatedCost: estimatedCost || 0,
+  //     RequestStatus: RequestStatus.trim(),
+  //   };
+
+  //   console.log("Request Data:", requestData); // Log requestData to check values
+  //   // Create the project request
+  //   this.projectRequestService
+  //     .createProjectRequest(requestData)
+  //     .then((response) => {
+  //       //  if (response.data) {
+  //       if (response && response.Id) {
+  //         const requestId = response.Id;
+  //         this.setState({ requestId }, () => {
+  //           alert(
+  //             "Project request created successfully! You can now add assessments."
+  //           );
+  //           console.log("responseId:", response.Id);
+  //           // You might navigate to a different view or enable the assessments section
+  //         });
+  //       } else {
+  //         // alert("Error creating project request");
+  //         console.log(
+  //           "Error creating project request.responseId:",
+  //           response.Id, " and "
+  //         );
+  //       }
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error details:", error);
+  //       alert(
+  //         "There was an error creating your project request. Please check the console for details."
+  //       );
+  //     });
+  // };
 
   resetForm = (): void => {
     this.setState({
@@ -229,7 +288,7 @@ class ProjectRequestForm extends React.Component<
           }
           type="number"
         />
-        {this.state.requestId && (
+        {selectedCustomer && (
           <TechnicalAssessmentTable
             projectRequestService={this.projectRequestService}
             requestId={this.state.requestId}

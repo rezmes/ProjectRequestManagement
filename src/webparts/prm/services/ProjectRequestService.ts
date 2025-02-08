@@ -27,9 +27,19 @@ export default class ProjectRequestService {
       .then((data) => data.map((item) => ({ key: item.Id, text: item.Title })));
   }
 
+
   public createProjectRequest(requestData: any): Promise<any> {
-    return sp.web.lists.getByTitle("ProjectRequests").items.add(requestData);
+    return sp.web.lists.getByTitle("ProjectRequests").items.add(requestData)
+      .then((result) => {
+        console.log("Create Response:", result); // Log the entire result
+        return result.data; // Ensure you're accessing the correct property
+      })
+      .catch((error) => {
+        console.error("Create Error:", error);
+        throw error;
+      });
   }
+
 
   public getTechnicalAssessments(requestId: number): Promise<IAssessment[]> {
     return sp.web.lists

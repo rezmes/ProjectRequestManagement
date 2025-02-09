@@ -1212,3 +1212,422 @@ Since you are using an older version of SPFx with React 15.6.2 and TypeScript 2.
   </th>
   ...
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+````
+import * as React from "react";
+import {
+  PrimaryButton,
+  TextField,
+  IDropdownOption,
+} from "office-ui-fabric-react";
+import GenericDropdown from "./GenericDropdown";
+import { ITechnicalAssessmentState } from "./ITechnicalAssessmentState";
+import { ITechnicalAssessmentProps } from "./ITechnicalAssessmentProps";
+import { set } from "lodash";
+
+import ProjectRequestService from "../services/ProjectRequestService";
+
+class TechnicalAssessmentTable extends React.Component<
+  ITechnicalAssessmentProps,
+  ITechnicalAssessmentState
+> {
+  private projectRequestService: ProjectRequestService;
+
+  constructor(props: ITechnicalAssessmentProps) {
+    super(props);
+    this.projectRequestService = new ProjectRequestService();
+    this.state = {
+      assessments: [],
+      inventoryItems: [],
+    };
+  }
+
+  componentDidMount() {
+    this.loadInventoryItems();
+  }
+
+  handleFinalSubmit = (): void => {
+    const { assessments } = this.state;
+    const { requestId, resetForm } = this.props;
+
+    if (!assessments || assessments.length === 0) {
+      alert("Please add at least one assessment before submitting.");
+      return;
+    }
+
+    this.projectRequestService
+      .saveAssessments(assessments, requestId)
+      .then(() => {
+        alert("Assessments saved successfully!");
+        resetForm(); // Reset the form after saving
+      })
+      .catch((error) => {
+        console.error("Error saving assessments:", error);
+        alert(
+          "Error saving assessments. Please check the console for details."
+        );
+      });
+  };
+
+  loadInventoryItems = () => {
+    this.projectRequestService.getInventoryItems().then((items) => {
+      this.setState({ inventoryItems: items });
+    });
+  };
+
+  filterInventoryItems = (categories: string[]): IDropdownOption[] => {
+    const { inventoryItems } = this.state;
+    return inventoryItems
+      .filter((item) => categories.indexOf(item.itemCategory) > -1)
+      .map((item) => ({ key: item.key, text: item.text }));
+  };
+handleInputChange = (
+    newValue: string,
+    field: string,
+    index: number,
+    partIndex?: number
+  ): void => {
+    this.setState((prevState) => {
+      const assessments = [...prevState.assessments]; // Shallow copy of assessments
+
+      if (partIndex !== undefined) {
+        // Update a nested property (quantity or pricePerUnit)
+        const items = [...assessments[index][field]]; // Shallow copy of nested array
+        const updatedItem = { ...items[partIndex] }; // Shallow copy of specific item
+
+        // Update the corresponding property dynamically
+        updatedItem[field === "quantity" ? "quantity" : "pricePerUnit"] =
+          newValue;
+
+        // Replace the updated item in the array
+        items[partIndex] = updatedItem;
+        assessments[index][field] = items; // Update the nested array
+      } else {
+        // Update top-level properties (e.g., activity)
+        assessments[index] = { ...assessments[index], [field]: newValue };
+      }
+
+      return { assessments }; // Update state
+    });
+  };
+
+  handleDropdownChange = (
+    field: string,
+    option: IDropdownOption,
+    index: number,
+    partIndex: number
+  ): void => {
+    this.setState((prevState) => {
+      const assessments = [...prevState.assessments];
+      assessments[index][field][partIndex].item = option;
+      return { assessments };
+    });
+  };
+addRow = (field: string, index: number) => {
+    this.setState((prevState) => {
+      const assessments = [...prevState.assessments]; // Shallow copy of assessments
+
+      // Ensure the field exists and is an array
+      if (!Array.isArray(assessments[index][field])) {
+        assessments[index][field] = [];
+      }
+
+      // Add a new row with default values
+      assessments[index][field].push({
+        item: { key: "", text: "" }, // Default dropdown item
+        quantity: 0, // Default quantity
+        pricePerUnit: 0, // Default price per unit
+      });
+
+      return { assessments }; // Update state
+    });
+  };
+
+  removeRow = (field: string, index: number, partIndex: number) => {
+    this.setState((prevState) => {
+      const assessments = [...prevState.assessments];
+      assessments[index][field].splice(partIndex, 1);
+      return { assessments };
+    });
+  };
+  addAssessment = () => {
+    this.setState((prevState) => ({
+      assessments: [
+        ...prevState.assessments,
+        {
+          activity: "", // Default activity
+          humanResources: [], // Initialize as an empty array
+          machines: [], // Initialize as an empty array
+          materials: [], // Initialize as an empty array
+        },
+      ],
+    }));
+  };
+renderTable = (
+    label: string,
+    field: string,
+    options: IDropdownOption[],
+    assessment: any,
+    index: number
+  ) => (
+    <table>
+      <tbody>
+        <tr>
+          <th>{label}</th>
+          <th>Quantity</th>
+          <th>Price Per Unit</th>
+        </tr>
+        {Array.isArray(assessment[field]) && assessment[field].length > 0 ? (
+          assessment[field].map((item: any, partIndex: number) => (
+            <tr key={partIndex}>
+              <td>
+                <GenericDropdown
+                  label={`${label} ${partIndex + 1}`}
+                  options={options}
+                  selectedKey={item.item ? item.item.key : undefined}
+                  onChanged={(option) =>
+                    this.handleDropdownChange(field, option!, index, partIndex)
+                  }
+                />
+              </td>
+              <td>
+                <TextField
+                  value={item.quantity.toString()}
+                  onChanged={(newValue: string) =>
+                    this.handleInputChange(
+                      newValue,
+                      "quantity",
+                      index,
+                      partIndex
+                    )
+                  }
+                />
+              </td>
+              <td>
+                <TextField
+                  value={item.pricePerUnit.toString()}
+                  onChanged={(newValue: string) =>
+                    this.handleInputChange(
+                      newValue,
+                      "pricePerUnit",
+                      index,
+                      partIndex
+                    )
+                  }
+                />
+              </td>
+              <td>
+                <PrimaryButton
+                  text="Remove"
+                  onClick={() => this.removeRow(field, index, partIndex)}
+                />
+              </td>
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan={4}>No {label.toLowerCase()} added yet.</td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  );
+render() {
+    const { assessments } = this.state;
+    console.log("Assessments state:", assessments); // Debug log
+
+    return (
+      <div>
+        <h3>Technical Assessments</h3>
+        {assessments.map((assessment, index) => (
+          <div key={index}>
+            <TextField
+              label={`Activity ${index + 1}`}
+              value={assessment.activity}
+              onChanged={(newValue: string) =>
+                this.handleInputChange(newValue, "activity", index)
+              }
+            />
+
+            {/* Human Resources */}
+            {this.renderTable(
+              "Human Resource",
+              "humanResources",
+              this.filterInventoryItems(["نیروی انسانی"]),
+              assessment,
+              index
+            )}
+            <PrimaryButton
+              text="Add Human Resource"
+              onClick={() => this.addRow("humanResources", index)}
+            />
+
+            {/* Machines */}
+            {this.renderTable(
+              "Machine",
+              "machines",
+              this.filterInventoryItems(["ماشین آلات"]),
+              assessment,
+              index
+            )}
+            <PrimaryButton
+              text="Add Machine"
+              onClick={() => this.addRow("machines", index)}
+            />
+
+            {/* Materials */}
+            {this.renderTable(
+              "Material",
+              "materials",
+              this.filterInventoryItems(["ابزار", "محصول", "مواد اولیه"]),
+              assessment,
+              index
+            )}
+            <PrimaryButton
+              text="Add Material"
+              onClick={() => this.addRow("materials", index)}
+            />
+
+            <hr />
+          </div>
+        ))}
+        <PrimaryButton text="Add Assessment" onClick={this.addAssessment} />
+        <PrimaryButton text="Final Submit" onClick={this.handleFinalSubmit} />
+      </div>
+    );
+  }
+}
+
+export default TechnicalAssessmentTable;
+```
+```PerojectRequestService.ts
+import { sp } from "@pnp/sp";
+import "@pnp/sp/webs";
+import "@pnp/sp/lists";
+import "@pnp/sp/items";
+import { IAssessment, IResource } from "../components/IAssessment";
+import { IDropdownOption } from "office-ui-fabric-react";
+
+// Define an interface for inventory items with category
+export interface IDropdownOptionWithCategory {
+  key: string | number;
+  text: string;
+  itemCategory: string;
+}
+
+export default class ProjectRequestService {
+  public getCustomerOptions(): Promise<IDropdownOption[]> {
+    return sp.web.lists
+      .getByTitle("Customer")
+      .items.get()
+      .then((data) => data.map((item) => ({ key: item.Id, text: item.Title })));
+  }
+
+  public createProjectRequest(requestData: any): Promise<any> {
+    return sp.web.lists
+      .getByTitle("ProjectRequests")
+      .items.add(requestData)
+      .then((result) => {
+        console.log("Create Response:", result);
+        return result.data;
+      })
+      .catch((error) => {
+        console.error("Create Error:", error);
+        throw error;
+      });
+  }
+
+  public getInventoryItems(): Promise<IDropdownOptionWithCategory[]> {
+    return sp.web.lists
+      .getByTitle("InventoryItems")
+      .items.select("Id", "Title", "ItemCategory")
+      .get()
+      .then((data) =>
+        data.map((item) => ({
+          key: item.Id,
+          text: item.Title,
+          itemCategory: item.ItemCategory,
+        }))
+      );
+  }
+
+
+public saveAssessments(
+  assessments: IAssessment[],
+  requestId: number
+): Promise<void> {
+  const batch = sp.web.createBatch();
+
+  assessments.forEach((assessment) => {
+    const createData = (resource: IResource, type: string) => ({
+      Title: assessment.activity || "No Activity",
+      RequestIDId: requestId,
+      [`${type}Id`]: resource.item ? resource.item.key : null,
+      [`${type}Quantity`]: resource.quantity,
+      [`${type}PricePerUnit`]: resource.pricePerUnit, // Add PricePerUnit field
+    });
+
+    assessment.humanResources.forEach((resource) =>
+      sp.web.lists
+        .getByTitle("TechnicalAssessments")
+        .items.inBatch(batch)
+        .add(createData(resource, "HumanResource"))
+    );
+
+    assessment.machines.forEach((resource) =>
+      sp.web.lists
+        .getByTitle("TechnicalAssessments")
+        .items.inBatch(batch)
+        .add(createData(resource, "Machine"))
+    );
+
+    assessment.materials.forEach((resource) =>
+      sp.web.lists
+        .getByTitle("TechnicalAssessments")
+        .items.inBatch(batch)
+        .add(createData(resource, "Material"))
+    );
+  });
+
+  return batch
+    .execute()
+    .then(() => {
+      console.log("Assessments saved successfully");
+    })
+    .catch((error) => {
+      console.error("Error saving assessments", error);
+      throw error;
+    });
+}
+}
+```
+
+````
+SharePoint 2019 - On-premises
+dev.env. : SPFx@1.4.1 ( node@8.17.0 , react@15.6.2, @pnp/sp@2.0.9, typescript@2.4.2 ,update and upgrade are not options)
+As soon as typing any value in 'Quantity' or 'PricePerValue it returns this error in the console,
+TechnicalAssessmentTable.tsx:9  Uncaught TypeError: Cannot read properties of undefined (reading 'length')
+    at __spreadArrays (TechnicalAssessmentTable.tsx:9:76)
+    at TechnicalAssessmentTable.<anonymous> (TechnicalAssessmentTable.tsx:338:20)
+    at Object._processPendingState (sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228:56683)
+    at Object.updateComponent (sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228:56015)
+    at Object.performUpdateIfNecessary (sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228:55591)
+    at Object.performUpdateIfNecessary (sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214:33704)
+    at s (sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214:30140)
+    at r.perform (sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214:35384)
+    at o.perform (sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214:35384)
+    at o.perform (sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214:31291)
+It might help if you know before modifying the code, the error was appeared "as soon as" I type a value (data) in the quantity or pricePerUnit boxes. When I clicked on addRow or Remove or changing the dropdown, there wasn't any error. I think it could point us to the `handleInputChange` method. Besides, I feel it might be something specific to the SharePoint  Architecture; although, we don't deal with backend in this method but in last version of the code, when I was assuming the SharePoint data as an object, it was working well. But the problem was that the dropdown fields (HumantResource, Machine, Material) were lookup columns that couldn't accept multi values (the option are not tick) so, it was throwing error on submit.
+If you need any more information, let me know.

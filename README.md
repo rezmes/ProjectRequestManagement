@@ -216,9 +216,9 @@ uninstalled
 
 <!-- Start Implementation -->
 
-### Step 1: SPFx Form Development
+## Step 1: SPFx Form Development
 
-- We'll start by creating custom forms using SPFx. The forms will be used for:
+We'll start by creating custom forms using SPFx. The forms will be used for:
 
 Request Submission by the Commerce Department.
 
@@ -226,6 +226,7 @@ Technical Assessments by the Technical & Engineering Department.
 
 Pricing Details by the Commerce Department.
 
+# Code
 <!-- Code -->
 
 ```json
@@ -276,7 +277,7 @@ Pricing Details by the Commerce Department.
 
 <!-- ## tsx -->
 
-````tsx
+```tsx
 // GenericDropdown.tsx
 import * as React from "react";
 import { Dropdown, IDropdownOption } from "office-ui-fabric-react";
@@ -308,13 +309,7 @@ export class GenericDropdown extends React.Component<
 }
 
 export default GenericDropdown;
-
-```ts
-// IPrmProps.ts
-export interface IPrmProps {
-  description: string;
-}
-````
+```
 
 ```ts
 //PrmWebPart.ts
@@ -382,6 +377,25 @@ export default class PrmWebPart extends BaseClientSideWebPart<IPrmWebPartProps> 
 ```
 
 ```ts
+// IAssessment.ts
+import { IDropdownOption } from "office-ui-fabric-react";
+
+export interface IResource {
+  item: IDropdownOption;
+  quantity: number;
+  pricePerUnit: number;
+}
+
+export interface IAssessment {
+  activity: string;
+  humanResources: IResource[];
+  machines: IResource[];
+  materials: IResource[];
+}
+
+```
+
+```ts
 //IProjectRequestFormProps.ts
 import { SPHttpClient } from "@microsoft/sp-http";
 
@@ -392,19 +406,32 @@ export interface IProjectRequestFormProps {
 ```
 
 ```ts
-//IProjectRequestFormState.ts
-import { IDropdownOption } from "office-ui-fabric-react";
+// IProjectRequestFormState.ts
+import { IDropdownOption } from 'office-ui-fabric-react';
+import { IAssessment } from './IAssessment';
 
 export interface IProjectRequestFormState {
-  customerOptions: IDropdownOption[];
-  selectedCustomer: string | number | undefined;
+  // Flags
+  isProjectCreated: boolean;
+  showProjectForm: boolean;
+
+  // Project Request Information
+  requestId: number | null;
   requestTitle: string;
   requestDate: string;
   estimatedDuration: number;
   estimatedCost: number;
   RequestStatus: string;
-  requestId?: number;
+
+  // Customer Information
+  selectedCustomer: string | number | null;
+  selectedCustomerName: string;
+  customerOptions: IDropdownOption[];
+
+  // Assessments
+  assessments: IAssessment[];
 }
+
 ```
 
 ```ts
@@ -435,15 +462,8 @@ import { sp } from "@pnp/sp";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
-import { IAssessment } from "../components/ITechnicalAssessmentState";
-
-interface ISaveAssessment {
-  Activity: string;
-  HumanResourceId: { results: (string | number)[] };
-  MachineId: { results: (string | number)[] };
-  MaterialId: { results: (string | number)[] };
-  // Other fields as needed
-}
+import { IAssessment, IResource } from "../components/IAssessment";
+import { IDropdownOption } from "office-ui-fabric-react";
 
 // Define an interface for inventory items with category
 export interface IDropdownOptionWithCategory {
@@ -452,8 +472,16 @@ export interface IDropdownOptionWithCategory {
   itemCategory: string;
 }
 
+export interface IPricingDetails {
+  RequestID: number;
+  UnitPrice: number;
+  Quantity: number;
+  AssessmentItemID: number;
+  TotalCost: number;
+}
+
 export default class ProjectRequestService {
-  public getCustomerOptions(): Promise<any[]> {
+  public getCustomerOptions(): Promise<IDropdownOption[]> {
     return sp.web.lists
       .getByTitle("Customer")
       .items.get()
@@ -461,51 +489,17 @@ export default class ProjectRequestService {
   }
 
   public createProjectRequest(requestData: any): Promise<any> {
-    return sp.web.lists.getByTitle("ProjectRequests").items.add(requestData);
-  }
-
-  public getTechnicalAssessments(requestId: number): Promise<IAssessment[]> {
     return sp.web.lists
-      .getByTitle("TechnicalAssessments")
-      .items.filter(`RequestID eq ${requestId}`)
-      .expand("HumanResources", "Machines", "Materials")
-      .select(
-        "Activity",
-        "HumanResources/Id",
-        "HumanResources/Title",
-        "Machines/Id",
-        "Machines/Title",
-        "Materials/Id",
-        "Materials/Title"
-      )
-      .get()
-      .then((data) =>
-        data.map((item) => ({
-          activity: item.Activity,
-          humanResources: item.HumanResources
-            ? item.HumanResources.map((hr) => ({ key: hr.Id, text: hr.Title }))
-            : [],
-          machines: item.Machines
-            ? item.Machines.map((machine) => ({
-                key: machine.Id,
-                text: machine.Title,
-              }))
-            : [],
-          materials: item.Materials
-            ? item.Materials.map((material) => ({
-                key: material.Id,
-                text: material.Title,
-              }))
-            : [],
-        }))
-      );
-  }
-
-  public getDepartmentOptions(): Promise<any[]> {
-    return sp.web.lists
-      .getByTitle("Departments")
-      .items.get()
-      .then((data) => data.map((item) => ({ key: item.Id, text: item.Title })));
+      .getByTitle("ProjectRequests")
+      .items.add(requestData)
+      .then((result) => {
+        console.log("Create Response:", result);
+        return result.data;
+      })
+      .catch((error) => {
+        console.error("Create Error:", error);
+        throw error;
+      });
   }
 
   public getInventoryItems(): Promise<IDropdownOptionWithCategory[]> {
@@ -517,292 +511,109 @@ export default class ProjectRequestService {
         data.map((item) => ({
           key: item.Id,
           text: item.Title,
-          itemCategory: item.ItemCategory, // Assumes ItemCategory is a text field
+          itemCategory: item.ItemCategory,
         }))
       );
   }
-  public saveAssessments(
-    assessments: IAssessment[],
-    requestId: number
-  ): Promise<void> {
-    const batch = sp.web.createBatch();
 
-    assessments.forEach((assessment) => {
-      const data = {
-        Title: assessment.activity,
-        RequestID: requestId,
-        HumanResourceId: {
-          results: assessment.humanResources.map((hr) => hr.key),
-        },
-        MachineId: {
-          results: assessment.machines.map((machine) => machine.key),
-        },
-        MaterialId: {
-          results: assessment.materials.map((material) => material.key),
-        },
-        // Include other necessary fields
-      };
-      // Add to batch
+  public createTechnicalAssessment(assessmentData: any): Promise<any> {
+    return sp.web.lists
+      .getByTitle("TechnicalAssessments")
+      .items.add(assessmentData);
+  }
+public saveAssessments(
+  assessments: IAssessment[],
+  requestId: number
+): Promise<void> {
+  const batch = sp.web.createBatch();
+
+  assessments.forEach((assessment) => {
+    const createData = (resource: IResource, type: string) => ({
+      Title: assessment.activity || "No Activity",
+      RequestIDId: requestId,
+      [`${type}Id`]: resource.item ? resource.item.key : null,
+      [`${type}Quantity`]: resource.quantity,
+      [`${type}PricePerUnit`]: resource.pricePerUnit, // Add PricePerUnit field
+    });
+
+    assessment.humanResources.forEach((resource) =>
       sp.web.lists
         .getByTitle("TechnicalAssessments")
         .items.inBatch(batch)
-        .add(data);
-    });
+        .add(createData(resource, "HumanResource"))
+    );
 
-    return batch
-      .execute()
-      .then(() => {
-        console.log("Assessments saved successfully");
-      })
-      .catch((error) => {
-        console.error("Error saving assessments", error);
-        throw error;
-      });
-  }
+    assessment.machines.forEach((resource) =>
+      sp.web.lists
+        .getByTitle("TechnicalAssessments")
+        .items.inBatch(batch)
+        .add(createData(resource, "Machine"))
+    );
+
+    assessment.materials.forEach((resource) =>
+      sp.web.lists
+        .getByTitle("TechnicalAssessments")
+        .items.inBatch(batch)
+        .add(createData(resource, "Material"))
+    );
+  });
+
+  return batch
+    .execute()
+    .then(() => {
+      console.log("Assessments saved successfully");
+    })
+    .catch((error) => {
+      console.error("Error saving assessments", error);
+      throw error;
+    });
 }
+
+
+// ProjectRequestService.ts
+
+public savePricingDetails(pricingDetails: IPricingDetails[]): Promise<void> {
+  const batch = sp.web.createBatch();
+
+  pricingDetails.forEach((detail) => {
+    const data = {
+      RequestIDId: detail.RequestID, // Lookup field: Use RequestIDId and pass the ID of the referenced item
+      UnitPrice: parseFloat(detail.UnitPrice as any), // Ensure it's a number
+      Quantity: parseInt(detail.Quantity as any), // Ensure it's a number
+      AssessmentItemIDId: detail.AssessmentItemID, // Lookup field: Use AssessmentItemIDId and pass the ID of the referenced item
+      // Do not include TotalCost as it is a calculated column
+    };
+
+    console.log("Pricing Detail Data to Add:", data);
+
+    sp.web.lists
+      .getByTitle("PricingDetails")
+      .items.inBatch(batch)
+      .add(data);
+  });
+
+  return batch
+    .execute()
+    .then(() => {
+      console.log("Pricing details saved successfully");
+    })
+    .catch((error) => {
+      console.error("Error saving pricing details", error);
+      throw error;
+    });
+}
+
+
+
+
+
+}
+
 ```
 
 ```tsx
-//ProjectRequestForm.tsx
-import * as React from "react";
-import { TextField, PrimaryButton } from "office-ui-fabric-react";
-import GenericDropdown from "./GenericDropdown";
-import { IProjectRequestFormProps } from "./IProjectRequestFormProps";
-import { IProjectRequestFormState } from "./IProjectRequestFormState";
-import ProjectRequestService from "../services/ProjectRequestService";
-import { IDropdownOption } from "office-ui-fabric-react";
-import * as moment from "moment";
-import "moment-jalaali";
-import TechnicalAssessmentTable from "./TechnicalAssessmentTable";
-
-class ProjectRequestForm extends React.Component<
-  IProjectRequestFormProps,
-  IProjectRequestFormState
-> {
-  private projectRequestService: ProjectRequestService;
-
-  constructor(props: IProjectRequestFormProps) {
-    super(props);
-    this.projectRequestService = new ProjectRequestService();
-    this.state = {
-      customerOptions: [],
-      selectedCustomer: undefined,
-      requestTitle: "",
-      requestDate: moment().format("YYYY-MM-DD"), // Set default date to today
-      estimatedDuration: 0,
-      estimatedCost: 0,
-      RequestStatus: "New",
-      requestId: null, // Assuming requestId is part of the state
-    };
-  }
-
-  componentDidMount() {
-    this.loadCustomerOptions();
-  }
-
-  loadCustomerOptions() {
-    this.projectRequestService.getCustomerOptions().then((customerOptions) => {
-      this.setState({ customerOptions });
-    });
-  }
-
-  handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const { name, value } = event.target;
-
-    // Convert to number if the field expects a number
-    const newValue =
-      name === "estimatedDuration" || name === "estimatedCost"
-        ? parseFloat(value) || 0
-        : value;
-
-    this.setState({ [name]: newValue } as unknown as Pick<
-      IProjectRequestFormState,
-      keyof IProjectRequestFormState
-    >);
-  };
-
-  handleDropdownChange = (option?: IDropdownOption): void => {
-    console.log("Dropdown Change Event:", option); // Log the dropdown change event
-    this.setState(
-      {
-        selectedCustomer: option ? option.key : undefined,
-      },
-      () => {
-        console.log(
-          "Updated selectedCustomer in state:",
-          this.state.selectedCustomer
-        ); // Log the updated state
-      }
-    );
-  };
-
-  handleSubmit = (): void => {
-    const {
-      requestTitle,
-      selectedCustomer,
-      requestDate,
-      estimatedDuration,
-      estimatedCost,
-      RequestStatus,
-    } = this.state;
-
-    // Prepare the request data
-    const requestData = {
-      Title: requestTitle.trim(),
-      CustomerId: selectedCustomer ? selectedCustomer : null,
-      RequestDate: requestDate,
-      EstimatedDuration: estimatedDuration,
-      EstimatedCost: estimatedCost,
-      RequestStatus: RequestStatus.trim(),
-    };
-
-    // Create the project request
-    this.projectRequestService
-      .createProjectRequest(requestData)
-      .then((response) => {
-        if (response.data) {
-          const requestId = response.data.Id;
-          this.setState({ requestId }, () => {
-            alert(
-              "Project request created successfully! You can now add assessments."
-            );
-            // You might navigate to a different view or enable the assessments section
-          });
-        } else {
-          alert("Error creating project request");
-        }
-      })
-      .catch((error) => {
-        console.error("Error details:", error);
-        alert(
-          "There was an error creating your project request. Please check the console for details."
-        );
-      });
-  };
-
-  resetForm = (): void => {
-    this.setState({
-      requestTitle: "",
-      selectedCustomer: undefined,
-      requestDate: moment().format("YYYY-MM-DD"), // Reset to default date
-      estimatedDuration: 0,
-      estimatedCost: 0,
-      RequestStatus: "New",
-      requestId: null, // Reset requestId if needed
-    });
-  };
-
-  render() {
-    const {
-      customerOptions,
-      selectedCustomer,
-      requestTitle,
-      requestDate,
-      estimatedDuration,
-      estimatedCost,
-    } = this.state;
-
-    return (
-      <div>
-        <TextField
-          label="Request Title"
-          value={this.state.requestTitle}
-          onChanged={(newValue: string) => {
-            this.setState({ requestTitle: newValue || "" });
-          }}
-        />
-        <GenericDropdown
-          label="Customer"
-          options={customerOptions}
-          selectedKey={selectedCustomer}
-          onChange={this.handleDropdownChange}
-          placeHolder="انتخاب مشتری"
-        />
-        <TextField
-          label="Request Date"
-          name="requestDate"
-          value={this.state.requestDate}
-          onChanged={(newValue: string) => {
-            this.setState({ requestDate: newValue || "" });
-          }}
-        />
-        <TextField
-          label="Estimated Duration (days)"
-          value={this.state.estimatedDuration.toString()} // Ensure it’s a string
-          onChanged={(newValue: string) =>
-            this.setState({ estimatedDuration: parseInt(newValue) || 0 })
-          }
-          type="number"
-        />
-
-        <TextField
-          label="Estimated Cost"
-          name="estimatedCost"
-          value={this.state.estimatedCost.toString()} // Convert number to string for display
-          onChanged={(newValue: string) =>
-            this.setState({ estimatedCost: parseInt(newValue) || 0 })
-          }
-          type="number"
-        />
-        {this.state.requestId && (
-          <TechnicalAssessmentTable
-            projectRequestService={this.projectRequestService}
-            requestId={this.state.requestId}
-          />
-        )}
-
-        <div>
-          <PrimaryButton text="Submit" onClick={this.handleSubmit} />
-          <PrimaryButton text="Cancel" onClick={this.resetForm} />
-        </div>
-      </div>
-    );
-  }
-}
-
-export default ProjectRequestForm;
-```
-
-```tsx
-//TechnicalAssessmentTable.tsx
-import * as React from "react";
-import {
-  PrimaryButton,
-  TextField,
-  IDropdownOption,
-} from "office-ui-fabric-react";
-import GenericDropdown from "./GenericDropdown";
-import { ITechnicalAssessmentState } from "./ITechnicalAssessmentState";
-import { ITechnicalAssessmentProps } from "./ITechnicalAssessmentProps";
-
-import ProjectRequestService, {
-  IDropdownOptionWithCategory,
-} from "../services/ProjectRequestService";
-
-class TechnicalAssessmentTable extends React.Component<
-  ITechnicalAssessmentProps,
-  ITechnicalAssessmentState
-> {
-  private projectRequestService: ProjectRequestService;
-
-  constructor(props: ITechnicalAssessmentProps) {
-    super(props);
-    this.projectRequestService = new ProjectRequestService();
-    this.state = {
-      assessments: [],
-      inventoryItems: [],
-    };
-  }
-
-  componentDidMount() {
-    console.log(
-      "Received requestId in TechnicalAssessmentTable:",
-      this.props.requestId
-    );
-    this.loadInventoryItems();
-  }
-
-  handleFinalSubmit = (): void => {
+//PricingDetails.tsx
+handleFinalSubmit = (): void => {
     const { assessments } = this.state;
     const { requestId, resetForm } = this.props;
 
@@ -811,16 +622,40 @@ class TechnicalAssessmentTable extends React.Component<
       return;
     }
 
+    const pricingDetails: IPricingDetails[] = [];
+
+    assessments.forEach((assessment, index) => {
+      ["humanResources", "machines", "materials"].forEach((field) => {
+        if (Array.isArray(assessment[field])) {
+          assessment[field].forEach((item: any) => {
+            pricingDetails.push({
+              RequestID: requestId,
+              UnitPrice: parseFloat(item.pricePerUnit), // Ensure it's a number
+              Quantity: parseInt(item.quantity), // Ensure it's a number
+              AssessmentItemID: index, // Adjust as needed
+              TotalCost:
+                parseFloat(item.quantity) * parseFloat(item.pricePerUnit), // Ensure it's a number
+            });
+          });
+        }
+      });
+    });
+
+    console.log("Pricing Details to Save:", pricingDetails);
+
     this.projectRequestService
       .saveAssessments(assessments, requestId)
       .then(() => {
-        alert("Assessments saved successfully!");
+        return this.projectRequestService.savePricingDetails(pricingDetails);
+      })
+      .then(() => {
+        alert("Assessments and pricing details saved successfully!");
         resetForm(); // Reset the form after saving
       })
       .catch((error) => {
-        console.error("Error saving assessments:", error);
+        console.error("Error saving assessments and pricing details:", error);
         alert(
-          "Error saving assessments. Please check the console for details."
+          "Error saving assessments and pricing details. Please check the console for details."
         );
       });
   };
@@ -840,12 +675,26 @@ class TechnicalAssessmentTable extends React.Component<
 
   handleInputChange = (
     newValue: string,
-    field: string,
-    index: number
+    nestedField: string,
+    index: number,
+    partIndex?: number,
+    field?: string
   ): void => {
     this.setState((prevState) => {
       const assessments = [...prevState.assessments];
-      assessments[index][field] = newValue;
+
+      if (partIndex !== undefined && field) {
+        const items = [...(assessments[index][field] || [])];
+        const updatedItem = { ...items[partIndex] };
+
+        updatedItem[nestedField] = newValue;
+
+        items[partIndex] = updatedItem;
+        assessments[index][field] = items;
+      } else {
+        assessments[index] = { ...assessments[index], [nestedField]: newValue };
+      }
+
       return { assessments };
     });
   };
@@ -853,11 +702,38 @@ class TechnicalAssessmentTable extends React.Component<
   handleDropdownChange = (
     field: string,
     option: IDropdownOption,
-    index: number
+    index: number,
+    partIndex: number
   ): void => {
     this.setState((prevState) => {
       const assessments = [...prevState.assessments];
-      assessments[index][field] = option;
+      assessments[index][field][partIndex].item = option;
+      return { assessments };
+    });
+  };
+
+  addRow = (field: string, index: number) => {
+    this.setState((prevState) => {
+      const assessments = [...prevState.assessments];
+
+      if (!Array.isArray(assessments[index][field])) {
+        assessments[index][field] = [];
+      }
+
+      assessments[index][field].push({
+        item: { key: "", text: "" },
+        quantity: 0,
+        pricePerUnit: 0,
+      });
+
+      return { assessments };
+    });
+  };
+
+  removeRow = (field: string, index: number, partIndex: number) => {
+    this.setState((prevState) => {
+      const assessments = [...prevState.assessments];
+      assessments[index][field].splice(partIndex, 1);
       return { assessments };
     });
   };
@@ -868,14 +744,33 @@ class TechnicalAssessmentTable extends React.Component<
         ...prevState.assessments,
         {
           activity: "",
-          humanResource: null,
-          machine: null,
-          material: null,
-          quantity: 0,
+          humanResources: [],
+          machines: [],
+          materials: [],
         },
       ],
     }));
   };
+
+  renderTable = (
+    label: string,
+    field: string,
+    options: IDropdownOption[],
+    assessment: any,
+    index: number
+  ) => (
+    <PricingDetails
+      label={label}
+      field={field}
+      options={options}
+      assessment={assessment}
+      index={index}
+      handleDropdownChange={this.handleDropdownChange}
+      handleInputChange={this.handleInputChange}
+      addRow={this.addRow}
+      removeRow={this.removeRow}
+    />
+  );
 
   render() {
     const { assessments } = this.state;
@@ -893,57 +788,545 @@ class TechnicalAssessmentTable extends React.Component<
               }
             />
 
-            {/* Human Resource */}
-            <h4>Human Resource</h4>
-            <GenericDropdown
-              label="Human Resource"
-              options={this.filterInventoryItems(["نیروی انسانی"])}
-              selectedKey={
-                assessment.humanResource ? assessment.humanResource.key : null
-              }
-              onChanged={(option) =>
-                this.handleDropdownChange("humanResource", option, index)
-              }
-              placeHolder="Select a human resource"
-            />
-
-            {/* Machine */}
-            <h4>Machine</h4>
-            <GenericDropdown
-              label="Machine"
-              options={this.filterInventoryItems(["ماشین آلات"])}
-              selectedKey={assessment.machine ? assessment.machine.key : null}
-              onChanged={(option) =>
-                this.handleDropdownChange("machine", option, index)
-              }
-              placeHolder="Select a machine"
-            />
-
-            {/* Material */}
-            <h4>Material</h4>
-            <GenericDropdown
-              label="Material"
-              options={this.filterInventoryItems([
-                "ابزار",
-                "محصول",
-                "مواد اولیه",
-              ])}
-              selectedKey={assessment.material ? assessment.material.key : null}
-              onChanged={(option) =>
-                this.handleDropdownChange("material", option, index)
-              }
-              placeHolder="Select a material"
-            />
+            {this.renderTable(
+              "Human Resource",
+              "humanResources",
+              this.filterInventoryItems(["نیروی انسانی"]),
+              assessment,
+              index
+            )}
+            {this.renderTable(
+              "Machine",
+              "machines",
+              this.filterInventoryItems(["ماشین آلات"]),
+              assessment,
+              index
+            )}
+            {this.renderTable(
+              "Material",
+              "materials",
+              this.filterInventoryItems(["ابزار", "محصول", "مواد اولیه"]),
+              assessment,
+              index
+            )}
 
             <hr />
           </div>
         ))}
         <PrimaryButton text="Add Assessment" onClick={this.addAssessment} />
-        {/* Remove the Save Assessments button */}
-        {/* <PrimaryButton
-          text="Save Assessments"
-          onClick={this.handleSaveAssessments}
-        /> */}
+        <PrimaryButton text="Final Submit" onClick={this.handleFinalSubmit} />
+      </div>
+    );
+  }
+}
+
+export default TechnicalAssessmentTable;
+```
+
+```tsx
+// ProjectRequestForm.tsx
+
+import * as React from "react";
+import {
+  TextField,
+  PrimaryButton,
+  IDropdownOption,
+} from "office-ui-fabric-react";
+import GenericDropdown from "./GenericDropdown";
+import { IProjectRequestFormProps } from "./IProjectRequestFormProps";
+import { IProjectRequestFormState } from "./IProjectRequestFormState";
+import ProjectRequestService from "../services/ProjectRequestService";
+import * as moment from "moment";
+import "moment-jalaali";
+import TechnicalAssessmentTable from "./TechnicalAssessmentTable";
+
+class ProjectRequestForm extends React.Component<
+  IProjectRequestFormProps,
+  IProjectRequestFormState
+> {
+  private projectRequestService: ProjectRequestService;
+
+  constructor(props: IProjectRequestFormProps) {
+    super(props);
+    this.projectRequestService = new ProjectRequestService();
+    this.state = {
+      isProjectCreated: false,
+      showProjectForm: true,
+      requestId: null,
+      selectedCustomer: null,
+      selectedCustomerName: "",
+      requestTitle: "",
+      requestDate: moment().format("YYYY-MM-DD"),
+      estimatedDuration: 0,
+      estimatedCost: 0,
+      RequestStatus: "New",
+      customerOptions: [],
+      assessments: [], // Add this line
+    };
+
+    this.resetForm = this.resetForm.bind(this);
+  }
+
+  componentDidMount() {
+    this.loadCustomerOptions();
+  }
+
+  loadCustomerOptions() {
+    this.projectRequestService.getCustomerOptions().then((customerOptions) => {
+      this.setState({ customerOptions });
+    });
+  }
+
+  handleInputChange = (
+    newValue: string,
+    field: keyof IProjectRequestFormState
+  ): void => {
+    let parsedValue: any = newValue;
+
+    // Check if the field expects a number
+    if (field === "estimatedDuration" || field === "estimatedCost") {
+      parsedValue = parseFloat(newValue) || 0;
+    }
+
+    this.setState({ [field]: parsedValue } as Pick<
+      IProjectRequestFormState,
+      keyof IProjectRequestFormState
+    >);
+  };
+
+  handleDropdownChange = (option?: IDropdownOption): void => {
+    this.setState({
+      selectedCustomer: option ? option.key : null,
+      selectedCustomerName: option ? option.text : "",
+    });
+  };
+
+  handleCreateProjectRequest = (): void => {
+    const {
+      requestTitle,
+      selectedCustomer,
+      requestDate,
+      estimatedDuration,
+      estimatedCost,
+      RequestStatus,
+    } = this.state;
+
+    // Prepare the request data
+    const requestData = {
+      Title: requestTitle.trim(),
+      CustomerId: selectedCustomer || null,
+      RequestDate: requestDate,
+      EstimatedDuration: estimatedDuration,
+      EstimatedCost: estimatedCost,
+      RequestStatus: RequestStatus.trim(),
+    };
+
+    // Create the project request
+    this.projectRequestService
+      .createProjectRequest(requestData)
+      .then((response) => {
+        if (response && response.Id) {
+          const requestId = response.Id;
+          this.setState(
+            {
+              isProjectCreated: true,
+              requestId,
+            },
+            () => {
+              console.log("New project created with ID:", requestId);
+              alert(
+                "Project request created successfully! You can now add assessments."
+              );
+            }
+          );
+        } else {
+          alert("Error creating project request");
+        }
+      })
+      .catch((error) => {
+        console.error("Error creating project request:", error);
+        alert(
+          "There was an error creating your project request. Please check the console for details."
+        );
+      });
+  };
+
+  resetForm = (): void => {
+    this.setState({
+      isProjectCreated: false,
+      requestId: null,
+      selectedCustomer: null,
+      selectedCustomerName: "",
+      requestTitle: "",
+      requestDate: moment().format("YYYY-MM-DD"),
+      estimatedDuration: 0,
+      estimatedCost: 0,
+      RequestStatus: "New",
+      // Reset any other state variables as needed
+    });
+  };
+
+  render() {
+    const {
+      isProjectCreated,
+      requestId,
+      selectedCustomer,
+      selectedCustomerName,
+      requestTitle,
+      requestDate,
+      estimatedDuration,
+      estimatedCost,
+      customerOptions,
+    } = this.state;
+
+    return (
+      <div>
+        <h2>
+          {isProjectCreated ? "Add Assessments" : "Create Project Request"}
+        </h2>
+
+        {isProjectCreated && (
+          <div>
+            <h3>Project Information</h3>
+            <p>
+              <strong>Project ID:</strong> {requestId}
+            </p>
+            <p>
+              <strong>Title:</strong> {requestTitle}
+            </p>
+            <p>
+              <strong>Customer Name:</strong> {selectedCustomerName}
+            </p>
+            <p>
+              <strong>Request Date:</strong> {requestDate}
+            </p>
+            {/* Include other information as needed */}
+          </div>
+        )}
+
+        {/* Project Request Form */}
+        <TextField
+          label="Request Title"
+          value={requestTitle}
+          onChanged={(newValue) =>
+            this.handleInputChange(newValue || "", "requestTitle")
+          }
+          readOnly={isProjectCreated}
+        />
+        <GenericDropdown
+          label="Customer"
+          options={customerOptions}
+          selectedKey={selectedCustomer}
+          onChanged={this.handleDropdownChange}
+          placeHolder="Select Customer"
+          disabled={isProjectCreated}
+        />
+        <TextField
+          label="Request Date"
+          value={requestDate}
+          onChanged={(newValue) =>
+            this.handleInputChange(newValue || "", "requestDate")
+          }
+          readOnly={isProjectCreated}
+        />
+        <TextField
+          label="Estimated Duration (days)"
+          value={estimatedDuration.toString()}
+          onChanged={(newValue) =>
+            this.setState({ estimatedDuration: parseInt(newValue) || 0 })
+          }
+          type="number"
+          readOnly={isProjectCreated}
+        />
+        <TextField
+          label="Estimated Cost"
+          value={estimatedCost.toString()}
+          onChanged={(newValue) =>
+            this.setState({ estimatedCost: parseInt(newValue) || 0 })
+          }
+          type="number"
+          readOnly={isProjectCreated}
+        />
+
+        {/* Create Button */}
+        {!isProjectCreated && (
+          <PrimaryButton
+            text="Create"
+            onClick={this.handleCreateProjectRequest}
+          />
+        )}
+
+        {/* Technical Assessment Table */}
+        {isProjectCreated && requestId && (
+          <TechnicalAssessmentTable
+            projectRequestService={this.projectRequestService}
+            requestId={requestId}
+            resetForm={this.resetForm}
+          />
+        )}
+
+        {/* Cancel Button */}
+        <div>
+          <PrimaryButton text="Cancel" onClick={this.resetForm} />
+        </div>
+      </div>
+    );
+  }
+}
+
+export default ProjectRequestForm;
+
+
+```
+
+```ts
+// ITechnicalAssessmentProps.ts
+import ProjectRequestService from "../services/ProjectRequestService";
+
+export interface ITechnicalAssessmentProps {
+  projectRequestService: ProjectRequestService;
+  requestId: number;
+  resetForm: () => void; // Make this required
+}
+```
+
+```tsx
+//TechnicalAssessmentTable.tsx
+import * as React from "react";
+import {
+  PrimaryButton,
+  TextField,
+  IDropdownOption,
+} from "office-ui-fabric-react";
+import GenericDropdown from "./GenericDropdown";
+import { ITechnicalAssessmentState } from "./ITechnicalAssessmentState";
+import { ITechnicalAssessmentProps } from "./ITechnicalAssessmentProps";
+import PricingDetails from "./PricingDetails";
+
+import ProjectRequestService, {
+  IPricingDetails,
+} from "../services/ProjectRequestService";
+
+class TechnicalAssessmentTable extends React.Component<
+  ITechnicalAssessmentProps,
+  ITechnicalAssessmentState
+> {
+  private projectRequestService: ProjectRequestService;
+
+  constructor(props: ITechnicalAssessmentProps) {
+    super(props);
+    this.projectRequestService = new ProjectRequestService();
+    this.state = {
+      assessments: [],
+      inventoryItems: [],
+    };
+  }
+
+  componentDidMount() {
+    this.loadInventoryItems();
+  }
+
+  handleFinalSubmit = (): void => {
+    const { assessments } = this.state;
+    const { requestId, resetForm } = this.props;
+
+    if (!assessments || assessments.length === 0) {
+      alert("Please add at least one assessment before submitting.");
+      return;
+    }
+
+    const pricingDetails: IPricingDetails[] = [];
+
+    assessments.forEach((assessment, index) => {
+      ["humanResources", "machines", "materials"].forEach((field) => {
+        if (Array.isArray(assessment[field])) {
+          assessment[field].forEach((item: any) => {
+            pricingDetails.push({
+              RequestID: requestId,
+              UnitPrice: parseFloat(item.pricePerUnit), // Ensure it's a number
+              Quantity: parseInt(item.quantity), // Ensure it's a number
+              AssessmentItemID: index, // Adjust as needed
+              TotalCost:
+                parseFloat(item.quantity) * parseFloat(item.pricePerUnit), // Ensure it's a number
+            });
+          });
+        }
+      });
+    });
+
+    console.log("Pricing Details to Save:", pricingDetails);
+
+    this.projectRequestService
+      .saveAssessments(assessments, requestId)
+      .then(() => {
+        return this.projectRequestService.savePricingDetails(pricingDetails);
+      })
+      .then(() => {
+        alert("Assessments and pricing details saved successfully!");
+        resetForm(); // Reset the form after saving
+      })
+      .catch((error) => {
+        console.error("Error saving assessments and pricing details:", error);
+        alert(
+          "Error saving assessments and pricing details. Please check the console for details."
+        );
+      });
+  };
+
+  loadInventoryItems = () => {
+    this.projectRequestService.getInventoryItems().then((items) => {
+      this.setState({ inventoryItems: items });
+    });
+  };
+
+  filterInventoryItems = (categories: string[]): IDropdownOption[] => {
+    const { inventoryItems } = this.state;
+    return inventoryItems
+      .filter((item) => categories.indexOf(item.itemCategory) > -1)
+      .map((item) => ({ key: item.key, text: item.text }));
+  };
+
+  handleInputChange = (
+    newValue: string,
+    nestedField: string,
+    index: number,
+    partIndex?: number,
+    field?: string
+  ): void => {
+    this.setState((prevState) => {
+      const assessments = [...prevState.assessments];
+
+      if (partIndex !== undefined && field) {
+        const items = [...(assessments[index][field] || [])];
+        const updatedItem = { ...items[partIndex] };
+
+        updatedItem[nestedField] = newValue;
+
+        items[partIndex] = updatedItem;
+        assessments[index][field] = items;
+      } else {
+        assessments[index] = { ...assessments[index], [nestedField]: newValue };
+      }
+
+      return { assessments };
+    });
+  };
+
+  handleDropdownChange = (
+    field: string,
+    option: IDropdownOption,
+    index: number,
+    partIndex: number
+  ): void => {
+    this.setState((prevState) => {
+      const assessments = [...prevState.assessments];
+      assessments[index][field][partIndex].item = option;
+      return { assessments };
+    });
+  };
+
+  addRow = (field: string, index: number) => {
+    this.setState((prevState) => {
+      const assessments = [...prevState.assessments];
+
+      if (!Array.isArray(assessments[index][field])) {
+        assessments[index][field] = [];
+      }
+
+      assessments[index][field].push({
+        item: { key: "", text: "" },
+        quantity: 0,
+        pricePerUnit: 0,
+      });
+
+      return { assessments };
+    });
+  };
+
+  removeRow = (field: string, index: number, partIndex: number) => {
+    this.setState((prevState) => {
+      const assessments = [...prevState.assessments];
+      assessments[index][field].splice(partIndex, 1);
+      return { assessments };
+    });
+  };
+
+  addAssessment = () => {
+    this.setState((prevState) => ({
+      assessments: [
+        ...prevState.assessments,
+        {
+          activity: "",
+          humanResources: [],
+          machines: [],
+          materials: [],
+        },
+      ],
+    }));
+  };
+
+  renderTable = (
+    label: string,
+    field: string,
+    options: IDropdownOption[],
+    assessment: any,
+    index: number
+  ) => (
+    <PricingDetails
+      label={label}
+      field={field}
+      options={options}
+      assessment={assessment}
+      index={index}
+      handleDropdownChange={this.handleDropdownChange}
+      handleInputChange={this.handleInputChange}
+      addRow={this.addRow}
+      removeRow={this.removeRow}
+    />
+  );
+
+  render() {
+    const { assessments } = this.state;
+
+    return (
+      <div>
+        <h3>Technical Assessments</h3>
+        {assessments.map((assessment, index) => (
+          <div key={index}>
+            <TextField
+              label={`Activity ${index + 1}`}
+              value={assessment.activity}
+              onChanged={(newValue: string) =>
+                this.handleInputChange(newValue, "activity", index)
+              }
+            />
+
+            {this.renderTable(
+              "Human Resource",
+              "humanResources",
+              this.filterInventoryItems(["نیروی انسانی"]),
+              assessment,
+              index
+            )}
+            {this.renderTable(
+              "Machine",
+              "machines",
+              this.filterInventoryItems(["ماشین آلات"]),
+              assessment,
+              index
+            )}
+            {this.renderTable(
+              "Material",
+              "materials",
+              this.filterInventoryItems(["ابزار", "محصول", "مواد اولیه"]),
+              assessment,
+              index
+            )}
+
+            <hr />
+          </div>
+        ))}
+        <PrimaryButton text="Add Assessment" onClick={this.addAssessment} />
         <PrimaryButton text="Final Submit" onClick={this.handleFinalSubmit} />
       </div>
     );
@@ -953,7 +1336,8 @@ class TechnicalAssessmentTable extends React.Component<
 export default TechnicalAssessmentTable;
 
 ```
-
+<!-- ///////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\ -->
+<!-- //////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\ -->
 SharePoint 2019 - On-premises
 dev.env. : `SPFx@1.4.1 ( node@8.17.0 , react@15.6.2, @pnp/sp@2.0.9, typescript@2.4.2 ,update and upgrade are not options)
 
@@ -1043,6 +1427,392 @@ handleDropdownChange = (option?: IDropdownOption): void => {
   );
 };
 ```
+
+SharePoint 2019 - On-premises
+dev.env. : SPFx@1.4.1 ( node@8.17.0 , react@15.6.2, @pnp/sp@2.0.9, typescript@2.4.2 ,update and upgrade are not options)
+# *As soon as typing any value in 'Quantity' or 'PricePerValue it returns this error in the console,*
+
+```ts
+handleInputChange = (
+newValue: string,
+field: string,
+index: number,
+partIndex?: number
+): void => {
+this.setState((prevState) => {
+const assessments = [...prevState.assessments]; // Shallow copy of assessments
+
+
+  if (partIndex !== undefined) {
+    // Update a nested property (quantity or pricePerUnit)
+    const items = [...assessments[index][field]]; // Shallow copy of nested array
+    const updatedItem = { ...items[partIndex] }; // Shallow copy of specific item
+
+    // Update the corresponding property dynamically
+    updatedItem[field === "quantity" ? "quantity" : "pricePerUnit"] =
+      newValue;
+
+    // Replace the updated item in the array
+    items[partIndex] = updatedItem;
+    assessments[index][field] = items; // Update the nested array
+  } else {
+    // Update top-level properties (e.g., activity)
+    assessments[index] = { ...assessments[index], [field]: newValue };
+  }
+
+  return { assessments }; // Update state
+});
+};
+```
+
+
+The issue arises due to the way you are handling `setState` and updating nested properties in the `handleInputChange` function. Specifically, in your `handleInputChange` function, the `field` parameter is being used as an array key, and there's a mismatch in how the nested object structure is being updated, leading to issues with undefined values.
+
+Let's debug and fix this step by step.
+
+---
+
+### **Problem in `handleInputChange`**
+Here is the problematic part of the function:
+
+```typescript
+if (partIndex !== undefined) {
+  const items = [...assessments[index][field]]; // Shallow copy of nested array
+  const updatedItem = { ...items[partIndex] }; // Shallow copy of specific item
+
+  updatedItem[field === "quantity" ? "quantity" : "pricePerUnit"] = newValue;
+
+  items[partIndex] = updatedItem; // Replace the updated item in the array
+  assessments[index][field] = items; // Update the nested array
+}
+```
+
+#### **What's wrong?**
+- The `field` parameter refers to the name of the property (`humanResources`, `machines`, or `materials`) in the `assessments` array.
+- However, inside the nested array (`humanResources`, `machines`, or `materials`), you're trying to dynamically update `quantity` or `pricePerUnit` using the same `field` variable, which doesn't work because `field` is referring to the parent property, not the nested property.
+
+This results in undefined values being accessed or updated, leading to the error.
+
+---
+
+### **Solution: Correct `handleInputChange`**
+Update the `handleInputChange` function to distinguish between the parent property (`field`) and the nested property (`quantity` or `pricePerUnit`) being updated. Here's the fixed code:
+
+```typescript
+handleInputChange = (
+  newValue: string,
+  nestedField: string, // field being updated (e.g., "quantity" or "pricePerUnit")
+  index: number,
+  partIndex?: number
+): void => {
+  this.setState((prevState) => {
+    const assessments = [...prevState.assessments]; // Shallow copy of assessments
+
+    if (partIndex !== undefined) {
+      // Update a nested property (e.g., quantity or pricePerUnit)
+      const items = [...assessments[index].humanResources || []]; // Ensure the nested array exists
+      const updatedItem = { ...items[partIndex] }; // Shallow copy of specific item
+
+      // Update the corresponding property dynamically
+      updatedItem[nestedField] = newValue;
+
+      // Replace the updated item in the array
+      items[partIndex] = updatedItem;
+      assessments[index].humanResources = items; // Update the nested array
+    } else {
+      // Update top-level properties (e.g., activity)
+      assessments[index] = { ...assessments[index], [nestedField]: newValue };
+    }
+
+    return { assessments }; // Update state
+  });
+};
+```
+
+---
+
+### **Changes in `renderTable`**
+Update the `onChanged` callbacks in the `renderTable` method to pass the correct `nestedField` value (`quantity` or `pricePerUnit`) to `handleInputChange`:
+
+```tsx
+<TextField
+  value={item.quantity.toString()}
+  onChanged={(newValue: string) =>
+    this.handleInputChange(newValue, "quantity", index, partIndex)
+  }
+/>
+<TextField
+  value={item.pricePerUnit.toString()}
+  onChanged={(newValue: string) =>
+    this.handleInputChange(newValue, "pricePerUnit", index, partIndex)
+  }
+/>
+```
+
+---
+
+### **Additional Fix: Guard for Empty Arrays**
+In your `renderTable` method, you're assuming that `assessment[field]` is always an array. However, during initialization or unexpected scenarios, it may be `undefined`. Add a guard to ensure it’s treated as an empty array if undefined:
+
+```tsx
+{Array.isArray(assessment[field]) && assessment[field].length > 0 ? (
+  assessment[field].map((item: any, partIndex: number) => (
+    // Render table rows
+  ))
+) : (
+  <tr>
+    <td colSpan={4}>No {label.toLowerCase()} added yet.</td>
+  </tr>
+)}
+```
+
+---
+
+### **Testing the Fix**
+1. **Test Typing in TextFields**:
+   - When you type in the `Quantity` or `Price Per Unit` fields, the `handleInputChange` function should correctly update the corresponding nested property in the state without throwing errors.
+
+2. **Test Adding/Removing Rows**:
+   - Add or remove rows and ensure the updates are correctly reflected in the `assessments` state.
+
+3. **Test Final Submit**:
+   - Ensure the final `assessments` state is structured as expected and contains the correct nested data.
+
+---
+
+### **Final Code for `handleInputChange`**
+Here's the final implementation of `handleInputChange`:
+
+```typescript
+handleInputChange = (
+  newValue: string,
+  nestedField: string, // "quantity" or "pricePerUnit"
+  index: number,
+  partIndex?: number
+): void => {
+  this.setState((prevState) => {
+    const assessments = [...prevState.assessments]; // Shallow copy of assessments
+
+    if (partIndex !== undefined) {
+      // Update a nested property (quantity or pricePerUnit)
+      const items = [...assessments[index].humanResources || []]; // Ensure the nested array exists
+      const updatedItem = { ...items[partIndex] }; // Shallow copy of specific item
+
+      updatedItem[nestedField] = newValue; // Dynamically update the nested property
+
+      items[partIndex] = updatedItem; // Replace the updated item in the array
+      assessments[index].humanResources = items; // Update the nested array
+    } else {
+      // Update top-level properties (e.g., activity)
+      assessments[index] = { ...assessments[index], [nestedField]: newValue };
+    }
+
+    return { assessments }; // Update state
+  });
+};
+```
+
+This should resolve the issue and prevent any further errors related to undefined values when typing in the `Quantity` or `Price Per Unit` fields.
+
+To avoid duplicating code for handling `Machines` and `Materials`. The goal is to make the code reusable and maintainable while supporting all three types (`humanResources`, `machines`, and `materials`). Fortunately, we don't need separate methods for each type. Instead, we can generalize the logic to handle all fields dynamically.
+
+---
+
+### **Generalizing `handleInputChange`**
+
+The key is to treat `humanResources`, `machines`, and `materials` as dynamic fields. We will pass the `field` (e.g., `humanResources`, `machines`, or `materials`) as a parameter to the `handleInputChange` method. Here's the updated method:
+
+```typescript
+handleInputChange = (
+  newValue: string,
+  nestedField: string, // "quantity" or "pricePerUnit"
+  index: number,
+  partIndex?: number,
+  field?: string // The parent field: "humanResources", "machines", or "materials"
+): void => {
+  this.setState((prevState) => {
+    const assessments = [...prevState.assessments]; // Shallow copy of assessments
+
+    if (partIndex !== undefined && field) {
+      // Update a nested property (e.g., quantity or pricePerUnit)
+      const items = [...(assessments[index][field] || [])]; // Ensure the nested array exists
+      const updatedItem = { ...items[partIndex] }; // Shallow copy of specific item
+
+      updatedItem[nestedField] = newValue; // Dynamically update the nested property
+
+      items[partIndex] = updatedItem; // Replace the updated item in the array
+      assessments[index][field] = items; // Update the nested array
+    } else {
+      // Update top-level properties (e.g., activity)
+      assessments[index] = { ...assessments[index], [nestedField]: newValue };
+    }
+
+    return { assessments }; // Update state
+  });
+};
+```
+
+---
+
+### **Changes in `renderTable`**
+
+Now, when rendering the table for `humanResources`, `machines`, or `materials`, we simply pass the `field` dynamically. Update the `TextField` callbacks in the `renderTable` method:
+
+```tsx
+<TextField
+  value={item.quantity.toString()}
+  onChanged={(newValue: string) =>
+    this.handleInputChange(newValue, "quantity", index, partIndex, field)
+  }
+/>
+<TextField
+  value={item.pricePerUnit.toString()}
+  onChanged={(newValue: string) =>
+    this.handleInputChange(newValue, "pricePerUnit", index, partIndex, field)
+  }
+/>
+```
+
+Here, the `field` is passed dynamically as `humanResources`, `machines`, or `materials`.
+
+---
+
+### **Full Updated `renderTable`**
+Here is the full updated `renderTable` implementation:
+
+```tsx
+renderTable = (
+  label: string, // Label for the table (e.g., "Human Resource", "Machine", "Material")
+  field: string, // Parent field (e.g., "humanResources", "machines", "materials")
+  options: IDropdownOption[], // Dropdown options for the field
+  assessment: any, // Current assessment object
+  index: number // Index of the current assessment
+) => (
+  <table>
+    <tbody>
+      <tr>
+        <th>{label}</th>
+        <th>Quantity</th>
+        <th>Price Per Unit</th>
+      </tr>
+      {Array.isArray(assessment[field]) && assessment[field].length > 0 ? (
+        assessment[field].map((item: any, partIndex: number) => (
+          <tr key={partIndex}>
+            <td>
+              <GenericDropdown
+                label={`${label} ${partIndex + 1}`}
+                options={options}
+                selectedKey={item.item ? item.item.key : undefined}
+                onChanged={(option) =>
+                  this.handleDropdownChange(field, option!, index, partIndex)
+                }
+              />
+            </td>
+            <td>
+              <TextField
+                value={item.quantity.toString()}
+                onChanged={(newValue: string) =>
+                  this.handleInputChange(newValue, "quantity", index, partIndex, field)
+                }
+              />
+            </td>
+            <td>
+              <TextField
+                value={item.pricePerUnit.toString()}
+                onChanged={(newValue: string) =>
+                  this.handleInputChange(newValue, "pricePerUnit", index, partIndex, field)
+                }
+              />
+            </td>
+            <td>
+              <PrimaryButton
+                text="Remove"
+                onClick={() => this.removeRow(field, index, partIndex)}
+              />
+            </td>
+          </tr>
+        ))
+      ) : (
+        <tr>
+          <td colSpan={4}>No {label.toLowerCase()} added yet.</td>
+        </tr>
+      )}
+    </tbody>
+  </table>
+);
+```
+
+---
+
+### **Rendering Human Resources, Machines, and Materials**
+Now, in your `render` method, you can dynamically handle `humanResources`, `machines`, and `materials` without any duplication. Here's how to use the updated `renderTable`:
+
+```tsx
+{/* Human Resources */}
+{this.renderTable(
+  "Human Resource",
+  "humanResources",
+  this.filterInventoryItems(["نیروی انسانی"]), // Filtered dropdown options
+  assessment,
+  index
+)}
+<PrimaryButton
+  text="Add Human Resource"
+  onClick={() => this.addRow("humanResources", index)}
+/>
+
+{/* Machines */}
+{this.renderTable(
+  "Machine",
+  "machines",
+  this.filterInventoryItems(["ماشین آلات"]), // Filtered dropdown options
+  assessment,
+  index
+)}
+<PrimaryButton
+  text="Add Machine"
+  onClick={() => this.addRow("machines", index)}
+/>
+
+{/* Materials */}
+{this.renderTable(
+  "Material",
+  "materials",
+  this.filterInventoryItems(["ابزار", "محصول", "مواد اولیه"]), // Filtered dropdown options
+  assessment,
+  index
+)}
+<PrimaryButton
+  text="Add Material"
+  onClick={() => this.addRow("materials", index)}
+/>
+```
+
+---
+
+### **How It Works**
+
+1. **Dynamic Field Handling**:
+   - The `field` parameter in `renderTable` ensures that the same `handleInputChange` and `handleDropdownChange` methods are reused for `humanResources`, `machines`, and `materials`.
+
+2. **Nested Updates**:
+   - The `handleInputChange` method dynamically updates the correct parent field and nested property (`quantity` or `pricePerUnit`) based on the `field` and `nestedField` parameters.
+
+3. **Adding Rows**:
+   - The `addRow` method works without modification since the `field` parameter determines which array (`humanResources`, `machines`, or `materials`) will get the new row.
+
+4. **Removing Rows**:
+   - The `removeRow` method also works dynamically based on the `field` parameter.
+
+---
+
+### **Final Thoughts**
+With these changes, your code is now dynamic, reusable, and well-structured. You no longer need separate methods for `humanResources`, `machines`, or `materials`. Everything is driven by the `field` parameter, making the code easier to maintain and extend in the future (e.g., adding new categories).
+
+
+
+
+
 
 **Why the placeHolder do not change after selecting item?**
 
@@ -1212,422 +1982,3 @@ Since you are using an older version of SPFx with React 15.6.2 and TypeScript 2.
   </th>
   ...
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-````
-import * as React from "react";
-import {
-  PrimaryButton,
-  TextField,
-  IDropdownOption,
-} from "office-ui-fabric-react";
-import GenericDropdown from "./GenericDropdown";
-import { ITechnicalAssessmentState } from "./ITechnicalAssessmentState";
-import { ITechnicalAssessmentProps } from "./ITechnicalAssessmentProps";
-import { set } from "lodash";
-
-import ProjectRequestService from "../services/ProjectRequestService";
-
-class TechnicalAssessmentTable extends React.Component<
-  ITechnicalAssessmentProps,
-  ITechnicalAssessmentState
-> {
-  private projectRequestService: ProjectRequestService;
-
-  constructor(props: ITechnicalAssessmentProps) {
-    super(props);
-    this.projectRequestService = new ProjectRequestService();
-    this.state = {
-      assessments: [],
-      inventoryItems: [],
-    };
-  }
-
-  componentDidMount() {
-    this.loadInventoryItems();
-  }
-
-  handleFinalSubmit = (): void => {
-    const { assessments } = this.state;
-    const { requestId, resetForm } = this.props;
-
-    if (!assessments || assessments.length === 0) {
-      alert("Please add at least one assessment before submitting.");
-      return;
-    }
-
-    this.projectRequestService
-      .saveAssessments(assessments, requestId)
-      .then(() => {
-        alert("Assessments saved successfully!");
-        resetForm(); // Reset the form after saving
-      })
-      .catch((error) => {
-        console.error("Error saving assessments:", error);
-        alert(
-          "Error saving assessments. Please check the console for details."
-        );
-      });
-  };
-
-  loadInventoryItems = () => {
-    this.projectRequestService.getInventoryItems().then((items) => {
-      this.setState({ inventoryItems: items });
-    });
-  };
-
-  filterInventoryItems = (categories: string[]): IDropdownOption[] => {
-    const { inventoryItems } = this.state;
-    return inventoryItems
-      .filter((item) => categories.indexOf(item.itemCategory) > -1)
-      .map((item) => ({ key: item.key, text: item.text }));
-  };
-handleInputChange = (
-    newValue: string,
-    field: string,
-    index: number,
-    partIndex?: number
-  ): void => {
-    this.setState((prevState) => {
-      const assessments = [...prevState.assessments]; // Shallow copy of assessments
-
-      if (partIndex !== undefined) {
-        // Update a nested property (quantity or pricePerUnit)
-        const items = [...assessments[index][field]]; // Shallow copy of nested array
-        const updatedItem = { ...items[partIndex] }; // Shallow copy of specific item
-
-        // Update the corresponding property dynamically
-        updatedItem[field === "quantity" ? "quantity" : "pricePerUnit"] =
-          newValue;
-
-        // Replace the updated item in the array
-        items[partIndex] = updatedItem;
-        assessments[index][field] = items; // Update the nested array
-      } else {
-        // Update top-level properties (e.g., activity)
-        assessments[index] = { ...assessments[index], [field]: newValue };
-      }
-
-      return { assessments }; // Update state
-    });
-  };
-
-  handleDropdownChange = (
-    field: string,
-    option: IDropdownOption,
-    index: number,
-    partIndex: number
-  ): void => {
-    this.setState((prevState) => {
-      const assessments = [...prevState.assessments];
-      assessments[index][field][partIndex].item = option;
-      return { assessments };
-    });
-  };
-addRow = (field: string, index: number) => {
-    this.setState((prevState) => {
-      const assessments = [...prevState.assessments]; // Shallow copy of assessments
-
-      // Ensure the field exists and is an array
-      if (!Array.isArray(assessments[index][field])) {
-        assessments[index][field] = [];
-      }
-
-      // Add a new row with default values
-      assessments[index][field].push({
-        item: { key: "", text: "" }, // Default dropdown item
-        quantity: 0, // Default quantity
-        pricePerUnit: 0, // Default price per unit
-      });
-
-      return { assessments }; // Update state
-    });
-  };
-
-  removeRow = (field: string, index: number, partIndex: number) => {
-    this.setState((prevState) => {
-      const assessments = [...prevState.assessments];
-      assessments[index][field].splice(partIndex, 1);
-      return { assessments };
-    });
-  };
-  addAssessment = () => {
-    this.setState((prevState) => ({
-      assessments: [
-        ...prevState.assessments,
-        {
-          activity: "", // Default activity
-          humanResources: [], // Initialize as an empty array
-          machines: [], // Initialize as an empty array
-          materials: [], // Initialize as an empty array
-        },
-      ],
-    }));
-  };
-renderTable = (
-    label: string,
-    field: string,
-    options: IDropdownOption[],
-    assessment: any,
-    index: number
-  ) => (
-    <table>
-      <tbody>
-        <tr>
-          <th>{label}</th>
-          <th>Quantity</th>
-          <th>Price Per Unit</th>
-        </tr>
-        {Array.isArray(assessment[field]) && assessment[field].length > 0 ? (
-          assessment[field].map((item: any, partIndex: number) => (
-            <tr key={partIndex}>
-              <td>
-                <GenericDropdown
-                  label={`${label} ${partIndex + 1}`}
-                  options={options}
-                  selectedKey={item.item ? item.item.key : undefined}
-                  onChanged={(option) =>
-                    this.handleDropdownChange(field, option!, index, partIndex)
-                  }
-                />
-              </td>
-              <td>
-                <TextField
-                  value={item.quantity.toString()}
-                  onChanged={(newValue: string) =>
-                    this.handleInputChange(
-                      newValue,
-                      "quantity",
-                      index,
-                      partIndex
-                    )
-                  }
-                />
-              </td>
-              <td>
-                <TextField
-                  value={item.pricePerUnit.toString()}
-                  onChanged={(newValue: string) =>
-                    this.handleInputChange(
-                      newValue,
-                      "pricePerUnit",
-                      index,
-                      partIndex
-                    )
-                  }
-                />
-              </td>
-              <td>
-                <PrimaryButton
-                  text="Remove"
-                  onClick={() => this.removeRow(field, index, partIndex)}
-                />
-              </td>
-            </tr>
-          ))
-        ) : (
-          <tr>
-            <td colSpan={4}>No {label.toLowerCase()} added yet.</td>
-          </tr>
-        )}
-      </tbody>
-    </table>
-  );
-render() {
-    const { assessments } = this.state;
-    console.log("Assessments state:", assessments); // Debug log
-
-    return (
-      <div>
-        <h3>Technical Assessments</h3>
-        {assessments.map((assessment, index) => (
-          <div key={index}>
-            <TextField
-              label={`Activity ${index + 1}`}
-              value={assessment.activity}
-              onChanged={(newValue: string) =>
-                this.handleInputChange(newValue, "activity", index)
-              }
-            />
-
-            {/* Human Resources */}
-            {this.renderTable(
-              "Human Resource",
-              "humanResources",
-              this.filterInventoryItems(["نیروی انسانی"]),
-              assessment,
-              index
-            )}
-            <PrimaryButton
-              text="Add Human Resource"
-              onClick={() => this.addRow("humanResources", index)}
-            />
-
-            {/* Machines */}
-            {this.renderTable(
-              "Machine",
-              "machines",
-              this.filterInventoryItems(["ماشین آلات"]),
-              assessment,
-              index
-            )}
-            <PrimaryButton
-              text="Add Machine"
-              onClick={() => this.addRow("machines", index)}
-            />
-
-            {/* Materials */}
-            {this.renderTable(
-              "Material",
-              "materials",
-              this.filterInventoryItems(["ابزار", "محصول", "مواد اولیه"]),
-              assessment,
-              index
-            )}
-            <PrimaryButton
-              text="Add Material"
-              onClick={() => this.addRow("materials", index)}
-            />
-
-            <hr />
-          </div>
-        ))}
-        <PrimaryButton text="Add Assessment" onClick={this.addAssessment} />
-        <PrimaryButton text="Final Submit" onClick={this.handleFinalSubmit} />
-      </div>
-    );
-  }
-}
-
-export default TechnicalAssessmentTable;
-```
-```PerojectRequestService.ts
-import { sp } from "@pnp/sp";
-import "@pnp/sp/webs";
-import "@pnp/sp/lists";
-import "@pnp/sp/items";
-import { IAssessment, IResource } from "../components/IAssessment";
-import { IDropdownOption } from "office-ui-fabric-react";
-
-// Define an interface for inventory items with category
-export interface IDropdownOptionWithCategory {
-  key: string | number;
-  text: string;
-  itemCategory: string;
-}
-
-export default class ProjectRequestService {
-  public getCustomerOptions(): Promise<IDropdownOption[]> {
-    return sp.web.lists
-      .getByTitle("Customer")
-      .items.get()
-      .then((data) => data.map((item) => ({ key: item.Id, text: item.Title })));
-  }
-
-  public createProjectRequest(requestData: any): Promise<any> {
-    return sp.web.lists
-      .getByTitle("ProjectRequests")
-      .items.add(requestData)
-      .then((result) => {
-        console.log("Create Response:", result);
-        return result.data;
-      })
-      .catch((error) => {
-        console.error("Create Error:", error);
-        throw error;
-      });
-  }
-
-  public getInventoryItems(): Promise<IDropdownOptionWithCategory[]> {
-    return sp.web.lists
-      .getByTitle("InventoryItems")
-      .items.select("Id", "Title", "ItemCategory")
-      .get()
-      .then((data) =>
-        data.map((item) => ({
-          key: item.Id,
-          text: item.Title,
-          itemCategory: item.ItemCategory,
-        }))
-      );
-  }
-
-
-public saveAssessments(
-  assessments: IAssessment[],
-  requestId: number
-): Promise<void> {
-  const batch = sp.web.createBatch();
-
-  assessments.forEach((assessment) => {
-    const createData = (resource: IResource, type: string) => ({
-      Title: assessment.activity || "No Activity",
-      RequestIDId: requestId,
-      [`${type}Id`]: resource.item ? resource.item.key : null,
-      [`${type}Quantity`]: resource.quantity,
-      [`${type}PricePerUnit`]: resource.pricePerUnit, // Add PricePerUnit field
-    });
-
-    assessment.humanResources.forEach((resource) =>
-      sp.web.lists
-        .getByTitle("TechnicalAssessments")
-        .items.inBatch(batch)
-        .add(createData(resource, "HumanResource"))
-    );
-
-    assessment.machines.forEach((resource) =>
-      sp.web.lists
-        .getByTitle("TechnicalAssessments")
-        .items.inBatch(batch)
-        .add(createData(resource, "Machine"))
-    );
-
-    assessment.materials.forEach((resource) =>
-      sp.web.lists
-        .getByTitle("TechnicalAssessments")
-        .items.inBatch(batch)
-        .add(createData(resource, "Material"))
-    );
-  });
-
-  return batch
-    .execute()
-    .then(() => {
-      console.log("Assessments saved successfully");
-    })
-    .catch((error) => {
-      console.error("Error saving assessments", error);
-      throw error;
-    });
-}
-}
-```
-
-````
-SharePoint 2019 - On-premises
-dev.env. : SPFx@1.4.1 ( node@8.17.0 , react@15.6.2, @pnp/sp@2.0.9, typescript@2.4.2 ,update and upgrade are not options)
-As soon as typing any value in 'Quantity' or 'PricePerValue it returns this error in the console,
-TechnicalAssessmentTable.tsx:9  Uncaught TypeError: Cannot read properties of undefined (reading 'length')
-    at __spreadArrays (TechnicalAssessmentTable.tsx:9:76)
-    at TechnicalAssessmentTable.<anonymous> (TechnicalAssessmentTable.tsx:338:20)
-    at Object._processPendingState (sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228:56683)
-    at Object.updateComponent (sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228:56015)
-    at Object.performUpdateIfNecessary (sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228:55591)
-    at Object.performUpdateIfNecessary (sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214:33704)
-    at s (sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214:30140)
-    at r.perform (sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214:35384)
-    at o.perform (sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214:35384)
-    at o.perform (sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214:31291)
-It might help if you know before modifying the code, the error was appeared "as soon as" I type a value (data) in the quantity or pricePerUnit boxes. When I clicked on addRow or Remove or changing the dropdown, there wasn't any error. I think it could point us to the `handleInputChange` method. Besides, I feel it might be something specific to the SharePoint  Architecture; although, we don't deal with backend in this method but in last version of the code, when I was assuming the SharePoint data as an object, it was working well. But the problem was that the dropdown fields (HumantResource, Machine, Material) were lookup columns that couldn't accept multi values (the option are not tick) so, it was throwing error on submit.
-If you need any more information, let me know.

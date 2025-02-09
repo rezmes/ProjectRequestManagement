@@ -75,6 +75,41 @@ class ProjectRequestForm extends React.Component<
     });
   };
 
+  calculateEstimatedCost = async () => {
+    const { requestId } = this.state; // Assuming requestId is stored in the state
+
+    if (!requestId) {
+      console.error("RequestID is not available.");
+      return;
+    }
+
+    try {
+      // Fetch all PricingDetails for this RequestID
+      const pricingDetails =
+        await this.projectRequestService.getPricingDetailsByRequestID(
+          requestId
+        );
+
+      // Sum up the TotalCost values
+      const estimatedCost = pricingDetails.reduce((sum, item) => {
+        return sum + (item.TotalCost || 0); // Ensure TotalCost is treated as a number
+      }, 0);
+
+      console.log("Calculated Estimated Cost:", estimatedCost);
+
+      // Update the state with the calculated cost
+      this.setState({ estimatedCost });
+
+      // Optionally, save the calculated cost to the ProjectRequests list
+      await this.projectRequestService.updateProjectRequestEstimatedCost(
+        requestId,
+        estimatedCost
+      );
+    } catch (error) {
+      console.error("Error calculating estimated cost:", error);
+    }
+  };
+
   handleCreateProjectRequest = (): void => {
     const {
       requestTitle,

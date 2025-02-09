@@ -10,5 +10,15 @@
     "src/**/*.scss.ts": true
   },
   "typescript.tsdk": ".\\node_modules\\typescript\\lib",
-  "bitoAI.codeCompletion.enableAutoCompletion": false
+  "bitoAI.codeCompletion.enableAutoCompletion": false,
+  "cSpell.words": [
+    "آلات",
+    "ابزار",
+    "انسانی",
+    "اولیه",
+    "ماشین",
+    "محصول",
+    "مواد",
+    "نیروی"
+  ]
 }

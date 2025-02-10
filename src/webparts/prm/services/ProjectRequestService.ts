@@ -1,3 +1,5 @@
+// ProjectRequestService.ts
+
 import { sp } from "@pnp/sp";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
@@ -17,6 +19,7 @@ export interface IPricingDetails {
   UnitPrice: number;
   Quantity: number;
   AssessmentItemID: number;
+  TotalCost?: number; // Optional if not always included
 
 }
 
@@ -62,7 +65,7 @@ export default class ProjectRequestService {
       .items.add(assessmentData);
   }
 
-public saveAssessments(
+  public saveAssessments(
   assessments: IAssessment[],
   requestId: number
 ): Promise<number[]> {
@@ -112,25 +115,31 @@ public saveAssessments(
       console.error("Error saving assessments", error);
       throw error;
     });
-}
+  }
 
 public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
+  console.log("Fetching Pricing Details for RequestID:", requestId);
   return sp.web.lists
     .getByTitle("PricingDetails")
-    .items.filter(`RequestIDId eq ${requestId}`) // Filter by RequestID lookup field
-    .select("Id", "UnitPrice", "Quantity", "TotalCost")
+    .items.filter(`RequestIDId eq ${requestId}`)
+    .select("Id", "UnitPrice", "Quantity", "AssessmentItemIDId")
     .get()
-    .then((items) => {
-      console.log("Fetched Pricing Details:", items);
-      return items;
+    .then(items => {
+      console.log("Raw Fetched Items:", items);
+      const calculatedItems = items.map(item => ({
+        ...item,
+        TotalCost: item.UnitPrice * item.Quantity
+      }));
+      console.log("Calculated Items (with TotalCost):", calculatedItems);
+      return calculatedItems;
     })
-    .catch((error) => {
+    .catch(error => {
       console.error("Error fetching pricing details:", error);
       throw error;
     });
 }
 
-public updateProjectRequestEstimatedCost(requestId: number, estimatedCost: number): Promise<void> {
+  public updateProjectRequestEstimatedCost(requestId: number, estimatedCost: number): Promise<void> {
   return sp.web.lists
     .getByTitle("ProjectRequests")
     .items.getById(requestId)
@@ -142,41 +151,37 @@ public updateProjectRequestEstimatedCost(requestId: number, estimatedCost: numbe
       console.error("Error updating estimated cost:", error);
       throw error;
     });
-}
+  }
 
+  public savePricingDetails(pricingDetails: IPricingDetails[]): Promise<void> {
+    const batch = sp.web.createBatch();
 
-public savePricingDetails(pricingDetails: IPricingDetails[]): Promise<void> {
-  const batch = sp.web.createBatch();
+    pricingDetails.forEach((detail) => {
+      const data = {
+        RequestIDId: detail.RequestID, // Lookup field
+        UnitPrice: parseFloat(detail.UnitPrice.toString()), // Ensure it's a number
+        Quantity: parseInt(detail.Quantity.toString()), // Ensure it's a number
+        AssessmentItemIDId: detail.AssessmentItemID, // Lookup field
+        TotalCost: detail.UnitPrice * detail.Quantity // Add TotalCost here
+      };
 
-  pricingDetails.forEach((detail) => {
-    const data = {
-      RequestIDId: detail.RequestID, // Lookup field: Use RequestIDId and pass the ID of the referenced item
-      UnitPrice: parseFloat(detail.UnitPrice.toString()), // Ensure it's a number
-      Quantity: parseInt(detail.Quantity.toString()), // Ensure it's a number
-      AssessmentItemIDId: detail.AssessmentItemID, // Lookup field: Use AssessmentItemIDId and pass the ID of the referenced item
-    };
+      console.log("Pricing Detail Data to Add:", data);
 
-    console.log("Pricing Detail Data to Add:", data);
-
-    sp.web.lists
-      .getByTitle("PricingDetails")
-      .items.inBatch(batch)
-      .add(data);
-  });
-
-  return batch
-    .execute()
-    .then(() => {
-      console.log("Pricing details saved successfully");
-    })
-    .catch((error) => {
-      console.error("Error saving pricing details", error);
-      throw error;
+      sp.web.lists
+        .getByTitle("PricingDetails")
+        .items.inBatch(batch)
+        .add(data);
     });
-}
 
-
-
-
+    return batch
+      .execute()
+      .then(() => {
+        console.log("Pricing details saved successfully");
+      })
+      .catch((error) => {
+        console.error("Error saving pricing details", error);
+        throw error;
+      });
+  }
 
 }

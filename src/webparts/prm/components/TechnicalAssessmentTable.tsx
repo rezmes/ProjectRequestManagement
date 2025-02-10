@@ -49,16 +49,18 @@ class TechnicalAssessmentTable extends React.Component<
     this.projectRequestService
       .saveAssessments(assessments, requestId)
       .then((assessmentIds) => {
+        console.log("Assessment IDs:", assessmentIds);
+
         // Map assessments to pricing details using the created IDs
         assessments.forEach((assessment, index) => {
           ["humanResources", "machines", "materials"].forEach((field) => {
             if (Array.isArray(assessment[field])) {
               assessment[field].forEach((item: any) => {
                 pricingDetails.push({
-                  RequestID: requestId, // Use the correct project request ID
-                  UnitPrice: parseFloat(item.pricePerUnit), // Ensure it's a number
-                  Quantity: parseInt(item.quantity), // Ensure it's a number
-                  AssessmentItemID: assessmentIds[index], // Use the corresponding TechnicalAssessment ID
+                  RequestID: requestId,
+                  UnitPrice: parseFloat(item.pricePerUnit),
+                  Quantity: parseInt(item.quantity),
+                  AssessmentItemID: assessmentIds[index],
                 });
               });
             }
@@ -71,8 +73,29 @@ class TechnicalAssessmentTable extends React.Component<
         return this.projectRequestService.savePricingDetails(pricingDetails);
       })
       .then(() => {
-        alert("Assessments and pricing details saved successfully!");
-        resetForm(); // Reset the form after saving
+        console.log("Pricing details saved successfully.");
+        return this.projectRequestService.getPricingDetailsByRequestID(
+          requestId
+        );
+      })
+      .then((pricingDetails) => {
+        console.log("Fetched Pricing Details After Save:", pricingDetails);
+
+        // Calculate the total estimated cost
+        const totalEstimatedCost = pricingDetails.reduce(
+          (sum, detail) => sum + detail.TotalCost,
+          0
+        );
+
+        console.log("Total Estimated Cost:", totalEstimatedCost);
+
+        // Update the ProjectRequest with the estimated cost
+        return this.projectRequestService
+          .updateProjectRequestEstimatedCost(requestId, totalEstimatedCost)
+          .then(() => {
+            alert("Assessments and pricing details saved successfully!");
+            resetForm();
+          });
       })
       .catch((error) => {
         console.error("Error saving assessments and pricing details:", error);

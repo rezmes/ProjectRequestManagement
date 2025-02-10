@@ -99,7 +99,7 @@ class PricingDetails extends React.Component<IPricingDetailsProps> {
                       type="number"
                     />
                   </td>
-                  <td>{totalCost.toFixed(2)}</td>
+                  <td>{totalCost.toFixed(0)}</td>
                   <td>
                     <PrimaryButton
                       text="Remove"

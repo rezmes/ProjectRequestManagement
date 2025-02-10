@@ -33,9 +33,11 @@ class ProjectRequestForm extends React.Component<
       requestDate: moment().format("YYYY-MM-DD"),
       estimatedDuration: 0,
       estimatedCost: 0,
+      requestNote: "",
       RequestStatus: "New",
       customerOptions: [],
-      assessments: [], // Add this line
+      assessments: [],
+      formNumber: null,
     };
 
     this.resetForm = this.resetForm.bind(this);
@@ -110,6 +112,66 @@ class ProjectRequestForm extends React.Component<
     }
   };
 
+  // handleCreateProjectRequest = (): void => {
+  //   const {
+  //     requestTitle,
+  //     selectedCustomer,
+  //     requestDate,
+  //     estimatedDuration,
+  //     estimatedCost,
+  //     requestNote,
+  //     RequestStatus,
+  //   } = this.state;
+
+  //   this.projectRequestService
+  //     .getNextFormNumber()
+  //     .then((formNumber) => {
+  //       // Prepare the request data
+  //       console.log("Next Form Number:", formNumber);
+  //       const requestData = {
+  //         Title: requestTitle.trim(),
+  //         CustomerId: selectedCustomer || null,
+  //         RequestDate: requestDate,
+  //         EstimatedDuration: estimatedDuration,
+  //         EstimatedCost: estimatedCost,
+  //         Description1: requestNote,
+  //         RequestStatus: RequestStatus.trim(),
+  //         FormNumber: formNumber,
+  //       };
+
+  //       // Create the project request
+  //       this.projectRequestService
+  //         .createProjectRequest(requestData)
+  //         .then((response) => {
+  //           if (response && response.Id) {
+  //             const requestId = response.Id;
+  //             this.setState(
+  //               {
+  //                 isProjectCreated: true,
+  //                 requestId,
+  //                 formNumber,
+  //               },
+  //               () => {
+  //                 console.log("New project created with ID:", requestId);
+  //                 console.log("Form Number Set in State:", formNumber);
+  //                 alert(
+  //                   "Project request created successfully! You can now add assessments."
+  //                 );
+  //               }
+  //             );
+  //           } else {
+  //             alert("Error creating project request");
+  //           }
+  //         });
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error creating project request:", error);
+  //       alert(
+  //         "There was an error creating your project request. Please check the console for details."
+  //       );
+  //     });
+  // };
+
   handleCreateProjectRequest = (): void => {
     const {
       requestTitle,
@@ -117,45 +179,75 @@ class ProjectRequestForm extends React.Component<
       requestDate,
       estimatedDuration,
       estimatedCost,
+      requestNote,
       RequestStatus,
     } = this.state;
 
-    // Prepare the request data
-    const requestData = {
-      Title: requestTitle.trim(),
-      CustomerId: selectedCustomer || null,
-      RequestDate: requestDate,
-      EstimatedDuration: estimatedDuration,
-      EstimatedCost: estimatedCost,
-      RequestStatus: RequestStatus.trim(),
-    };
-
-    // Create the project request
+    // Step 1: Get the next form number
     this.projectRequestService
-      .createProjectRequest(requestData)
+      .getNextFormNumber()
+      .then((formNumber) => {
+        console.log("Next Form Number:", formNumber);
+
+        // Step 2: Prepare the request data
+        const requestData = {
+          Title: requestTitle.trim(),
+          CustomerId: selectedCustomer || null,
+          RequestDate: requestDate,
+          EstimatedDuration: estimatedDuration,
+          EstimatedCost: estimatedCost,
+          Description1: requestNote,
+          RequestStatus: RequestStatus.trim(),
+          FormNumber: formNumber,
+        };
+
+        // Step 3: Create the project request
+        return this.projectRequestService.createProjectRequest(requestData);
+      })
       .then((response) => {
         if (response && response.Id) {
-          const requestId = response.Id;
-          this.setState(
-            {
-              isProjectCreated: true,
-              requestId,
-            },
-            () => {
-              console.log("New project created with ID:", requestId);
-              alert(
-                "Project request created successfully! You can now add assessments."
+          const requestId = response.Id; // Get the request ID of the newly created project request
+
+          console.log("New project created with ID:", requestId);
+
+          // Step 4: Create the Document Set and update the hyperlink column
+          const documentSetName = `Request-${requestId}`; // Name the Document Set based on the Request ID
+          return this.projectRequestService
+            .createDocumentSet("RelatedDocuments", documentSetName, requestId)
+            .then((documentSetLink) => {
+              console.log("Document Set created with link:", documentSetLink);
+
+              // Step 5: Update the DocumentSetLink in the ProjectRequests list
+              return this.projectRequestService.updateDocumentSetLink(
+                requestId,
+                documentSetLink
               );
-            }
-          );
+            })
+            .then(() => {
+              console.log("Document Set link updated successfully.");
+              this.setState(
+                {
+                  isProjectCreated: true,
+                  requestId: response.Id,
+                  formNumber: response.FormNumber,
+                },
+                () => {
+                  alert(
+                    "Project request created successfully! A Document Set has been created for related documents."
+                  );
+                }
+              );
+            });
         } else {
-          alert("Error creating project request");
+          throw new Error(
+            "Error creating project request. Response was invalid."
+          );
         }
       })
       .catch((error) => {
-        console.error("Error creating project request:", error);
+        console.error("Error creating project request or Document Set:", error);
         alert(
-          "There was an error creating your project request. Please check the console for details."
+          "There was an error creating your project request or its associated Document Set. Please check the console for details."
         );
       });
   };
@@ -170,6 +262,7 @@ class ProjectRequestForm extends React.Component<
       requestDate: moment().format("YYYY-MM-DD"),
       estimatedDuration: 0,
       estimatedCost: 0,
+      requestNote: "",
       RequestStatus: "New",
       // Reset any other state variables as needed
     });
@@ -185,7 +278,9 @@ class ProjectRequestForm extends React.Component<
       requestDate,
       estimatedDuration,
       estimatedCost,
+      requestNote,
       customerOptions,
+      formNumber,
     } = this.state;
 
     return (
@@ -201,6 +296,9 @@ class ProjectRequestForm extends React.Component<
               <strong>Project ID:</strong> {requestId}
             </p>
             <p>
+              <strong>Form Number:</strong> {formNumber}
+            </p>
+            <p>
               <strong>Title:</strong> {requestTitle}
             </p>
             <p>
@@ -209,6 +307,7 @@ class ProjectRequestForm extends React.Component<
             <p>
               <strong>Request Date:</strong> {requestDate}
             </p>
+            <p>Request Note:</p> {requestNote}
             {/* Include other information as needed */}
           </div>
         )}
@@ -256,7 +355,16 @@ class ProjectRequestForm extends React.Component<
           type="number"
           readOnly={isProjectCreated}
         />
-
+        <TextField
+          label="Request Note"
+          value={requestNote}
+          onChanged={(newValue) =>
+            this.handleInputChange(newValue || "", "requestNote")
+          }
+          multiline
+          rows={4}
+          readOnly={isProjectCreated}
+        />
         {/* Create Button */}
         {!isProjectCreated && (
           <PrimaryButton

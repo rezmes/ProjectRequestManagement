@@ -13,6 +13,7 @@ export interface IProjectRequestFormState {
   requestDate: string;
   estimatedDuration: number;
   estimatedCost: number;
+  requestNote: string;
   RequestStatus: string;
 
   // Customer Information
@@ -22,4 +23,5 @@ export interface IProjectRequestFormState {
 
   // Assessments
   assessments: IAssessment[];
+  formNumber: Number | null;
 }

@@ -908,6 +908,7 @@ class ProjectRequestForm extends React.Component<
       requestDate,
       estimatedDuration,
       estimatedCost,
+      requestNote,
       RequestStatus,
     } = this.state;
 
@@ -961,6 +962,7 @@ class ProjectRequestForm extends React.Component<
       requestDate: moment().format("YYYY-MM-DD"),
       estimatedDuration: 0,
       estimatedCost: 0,
+      requestNote: "",
       RequestStatus: "New",
       // Reset any other state variables as needed
     });
@@ -976,6 +978,7 @@ class ProjectRequestForm extends React.Component<
       requestDate,
       estimatedDuration,
       estimatedCost,
+      requestNote,
       customerOptions,
     } = this.state;
 
@@ -1000,6 +1003,7 @@ class ProjectRequestForm extends React.Component<
             <p>
               <strong>Request Date:</strong> {requestDate}
             </p>
+            <p>Request Note:</p> {requestNote}
             {/* Include other information as needed */}
           </div>
         )}

@@ -666,7 +666,8 @@ public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
 
     } catch (error) {
         console.error("[DOCSET CREATION ERROR]", error);
-        throw new Error(`Document Set creation failed: ${error.message}`);
+        return null;
+        // throw new Error(`Document Set creation failed: ${error.message}`);
     }
 }
 
@@ -724,7 +725,30 @@ public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
 //   }
 // }
 
-public updateDocumentSetLink(
+//  public async updateDocumentSetLink( // ✅ متد updateDocumentSetLink رو اصلاح کردیم
+// requestId: number,
+//  documentSetUrl: string // ✅ اسم پارامتر رو به documentSetUrl تغییر دادیم و نوعش رو string گذاشتیم
+//  ) {
+//  try {
+//  await sp.web.lists
+//  .getByTitle("ProjectRequests")
+//  .items.getById(requestId)
+//  .update({
+//  DocumentSetLink: { // ✅ اینجا شیء Hyperlink رو می سازیم
+//  Url: documentSetUrl,
+// Description: "Project Documents",
+//  },
+//  });
+// console.log("DocumentSetLink updated successfully.");
+//  } catch (error) {
+//  console.error("Error updating DocumentSetLink:", error);
+//  // ✅ پرتاب مجدد خطا برای اینکه به catch در ProjectRequestForm برسه
+//  throw error;
+//  }
+// }
+
+
+public async updateDocumentSetLink(
   requestId: number,
   documentSetLink: { url: string; text: string }
 ): Promise<void> {
@@ -732,27 +756,57 @@ public updateDocumentSetLink(
 
   // SharePoint hyperlink field requires this specific format
   const hyperlinkValue = {
-    __metadata: { type: "SP.FieldUrlValue" }, // REQUIRED metadata
-    Url: documentSetLink.url,
-    Description: documentSetLink.text
+      __metadata: { type: "SP.FieldUrlValue" }, // REQUIRED metadata
+      Url: documentSetLink.url,
+      Description: documentSetLink.text
   };
 
-
-  return sp.web.lists
-    .getByTitle("ProjectRequests")
-    .items.getById(requestId)
-    .update({
-      // Use internal name with correct casing
-      DocumentSetLink: hyperlinkValue
-    })
-    .then(() => {
+  try { // ✅ اضافه کردن try...catch
+      await sp.web.lists
+          .getByTitle("ProjectRequests")
+          .items.getById(requestId)
+          .update({
+              // Use internal name with correct casing
+              DocumentSetLink: hyperlinkValue
+          });
       console.log("DocumentSetLink updated successfully.");
-    })
-    .catch((error) => {
+  } catch (error) {
       console.error("Error updating DocumentSetLink:", error);
-      throw error;
-    });
+      // ✅ پرتاب مجدد خطا برای اینکه به catch در ProjectRequestForm برسه
+      throw error; // ✅ مهم: پرتاب مجدد خطا
+  }
 }
+
+
+// public updateDocumentSetLink(
+//   requestId: number,
+//   documentSetLink: { url: string; text: string }
+// ): Promise<void> {
+//   console.log(`Updating DocumentSetLink for Request ID: ${requestId}`);
+
+//   // SharePoint hyperlink field requires this specific format
+//   const hyperlinkValue = {
+//     __metadata: { type: "SP.FieldUrlValue" }, // REQUIRED metadata
+//     Url: documentSetLink.url,
+//     Description: documentSetLink.text
+//   };
+
+
+//   return sp.web.lists
+//     .getByTitle("ProjectRequests")
+//     .items.getById(requestId)
+//     .update({
+//       // Use internal name with correct casing
+//       DocumentSetLink: hyperlinkValue
+//     })
+//     .then(() => {
+//       console.log("DocumentSetLink updated successfully.");
+//     })
+//     .catch((error) => {
+//       console.error("Error updating DocumentSetLink:", error);
+//       throw error;
+//     });
+// }
 
 
 }

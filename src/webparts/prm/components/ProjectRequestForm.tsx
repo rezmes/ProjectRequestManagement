@@ -588,11 +588,25 @@ class ProjectRequestForm extends React.Component<
                 }
             })
             .catch((error) => {
-                console.error("Error creating project request or Document Set:", error);
-                alert(
-                    "There was an error creating your project request or its associated Document Set. Please check the console for details."
-                );
-            });
+              console.error("Error creating project request or Document Set:", error);
+              console.warn(
+                  "There was an error creating your project request or its associated Document Set. Please check the console for details."
+              );
+              // ✅ نمایش پیغام خطای دقیق تر در کنسول
+              console.error("Detailed error:", error); // نمایش کامل شیء خطا
+              if (error instanceof Error) { // بررسی اینکه آیا error از نوع Error است
+                  console.error("Error message:", error.message); // نمایش فقط پیغام خطا (اگر وجود داشته باشد)
+              }
+          });
+            // .catch((error) => {
+            //     console.error("Error creating project request or Document Set:", error);
+            //     console.warn( // ✅ تغییر از alert به console.warn
+            //     "There was an error creating your project request or its associated Document Set. Please check the console for details."
+            // );
+            //     // alert(
+            //     //     "There was an error creating your project request or its associated Document Set. Please check the console for details."
+            //     // );
+            // });
     };
 
     resetForm = (): void => {

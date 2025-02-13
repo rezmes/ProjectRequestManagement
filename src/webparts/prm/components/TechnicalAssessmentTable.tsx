@@ -23,7 +23,7 @@ class TechnicalAssessmentTable extends React.Component<
 
   constructor(props: ITechnicalAssessmentProps) {
     super(props);
-    this.projectRequestService = new ProjectRequestService();
+    this.projectRequestService = new ProjectRequestService(this.context);
     this.state = {
       assessments: [],
       inventoryItems: [],

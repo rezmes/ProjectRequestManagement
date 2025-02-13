@@ -22,7 +22,7 @@ class ProjectRequestForm extends React.Component<
 
   constructor(props: IProjectRequestFormProps) {
     super(props);
-    this.projectRequestService = new ProjectRequestService();
+    this.projectRequestService = new ProjectRequestService(this.props.context);
     this.state = {
       isProjectCreated: false,
       showProjectForm: true,
@@ -112,66 +112,6 @@ class ProjectRequestForm extends React.Component<
     }
   };
 
-  // handleCreateProjectRequest = (): void => {
-  //   const {
-  //     requestTitle,
-  //     selectedCustomer,
-  //     requestDate,
-  //     estimatedDuration,
-  //     estimatedCost,
-  //     requestNote,
-  //     RequestStatus,
-  //   } = this.state;
-
-  //   this.projectRequestService
-  //     .getNextFormNumber()
-  //     .then((formNumber) => {
-  //       // Prepare the request data
-  //       console.log("Next Form Number:", formNumber);
-  //       const requestData = {
-  //         Title: requestTitle.trim(),
-  //         CustomerId: selectedCustomer || null,
-  //         RequestDate: requestDate,
-  //         EstimatedDuration: estimatedDuration,
-  //         EstimatedCost: estimatedCost,
-  //         Description1: requestNote,
-  //         RequestStatus: RequestStatus.trim(),
-  //         FormNumber: formNumber,
-  //       };
-
-  //       // Create the project request
-  //       this.projectRequestService
-  //         .createProjectRequest(requestData)
-  //         .then((response) => {
-  //           if (response && response.Id) {
-  //             const requestId = response.Id;
-  //             this.setState(
-  //               {
-  //                 isProjectCreated: true,
-  //                 requestId,
-  //                 formNumber,
-  //               },
-  //               () => {
-  //                 console.log("New project created with ID:", requestId);
-  //                 console.log("Form Number Set in State:", formNumber);
-  //                 alert(
-  //                   "Project request created successfully! You can now add assessments."
-  //                 );
-  //               }
-  //             );
-  //           } else {
-  //             alert("Error creating project request");
-  //           }
-  //         });
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error creating project request:", error);
-  //       alert(
-  //         "There was an error creating your project request. Please check the console for details."
-  //       );
-  //     });
-  // };
-
   handleCreateProjectRequest = (): void => {
     const {
       requestTitle,
@@ -207,17 +147,21 @@ class ProjectRequestForm extends React.Component<
       .then((response) => {
         if (response && response.Id) {
           const requestId = response.Id; // Get the request ID of the newly created project request
-
           console.log("New project created with ID:", requestId);
 
-          // Step 4: Create the Document Set and update the hyperlink column
+          // Step 4: Create the Document Set
           const documentSetName = `Request-${requestId}`; // Name the Document Set based on the Request ID
           return this.projectRequestService
-            .createDocumentSet("RelatedDocuments", documentSetName, requestId)
-            .then((documentSetLink) => {
-              console.log("Document Set created with link:", documentSetLink);
+            .createDocumentSetWithMetadata("RelatedDocuments", documentSetName)
+            .then(() => {
+              console.log("Document Set created successfully.");
 
               // Step 5: Update the DocumentSetLink in the ProjectRequests list
+              const documentSetLink = {
+                url: `${this.props.context.pageContext.web.absoluteUrl}/RelatedDocuments/${documentSetName}`,
+                text: `Documents for Request ${requestId}`,
+              };
+
               return this.projectRequestService.updateDocumentSetLink(
                 requestId,
                 documentSetLink

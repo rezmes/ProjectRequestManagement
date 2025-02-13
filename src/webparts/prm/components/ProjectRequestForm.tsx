@@ -152,7 +152,7 @@ class ProjectRequestForm extends React.Component<
           // Step 4: Create the Document Set
           const documentSetName = `Request-${requestId}`; // Name the Document Set based on the Request ID
           return this.projectRequestService
-            .createDocumentSetWithMetadata("RelatedDocuments", documentSetName)
+          .createDocumentSet(documentSetName)
             .then(() => {
               console.log("Document Set created successfully.");
 

@@ -65,8 +65,7 @@ export default class ProjectRequestService {
 
         // Create Document Set
         const documentSetName = `Request-${requestId}`;
-        const documentSetLink = await this.createDocumentSetWithMetadata(
-          "RelatedDocuments",
+        const documentSetLink = await this.createDocumentSet(
           documentSetName
         );
 
@@ -307,83 +306,83 @@ export default class ProjectRequestService {
   // }
 
 
-  public async createDocumentSetWithMetadata(
-    libraryName: string,
-    documentSetName: string
-  ): Promise<{ url: string; text: string }> {
-    try {
-      // 1️⃣ Hardcoded Content Type ID for Document Set
-      const contentTypeId = "0x0120D520008B9019F0FE283E4983DA536FEE7BC9F9001FCA0DD0A8585C4AB6988C0454FE37B3";
+//   public async createDocumentSetWithMetadata(
+//     libraryName: string,
+//     documentSetName: string
+//   ): Promise<{ url: string; text: string }> {
+//     try {
+//       // 1️⃣ Hardcoded Content Type ID for Document Set
+//       const contentTypeId = "0x0120D520008B9019F0FE283E4983DA536FEE7BC9F9001FCA0DD0A8585C4AB6988C0454FE37B3";
 
-      // 2️⃣ Get the form digest value using the new `getFormDigest()` method
-      const formDigestValue = await this.getFormDigest(); // ✅ Correctly fetches digest value
+//       // 2️⃣ Get the form digest value using the new `getFormDigest()` method
+//       const formDigestValue = await this.getFormDigest(); // ✅ Correctly fetches digest value
 
-// 3️⃣ Fetch List Item Entity Type Name (Required for Document Set Creation) - Now with JSON parsing again!
-const listEntityTypeResponse = await this.context.spHttpClient.get(
-  `${this.context.pageContext.web.absoluteUrl}/_api/web/lists/getByTitle('${libraryName}')?$select=ListItemEntityTypeFullName`,
-  SPHttpClient.configurations.v1,
-  {
-    headers: {
-      "Accept": "application/json;odata=verbose" // Be very specific JSON OData verbose
-  }
-  }
-);
+// // 3️⃣ Fetch List Item Entity Type Name (Required for Document Set Creation) - Now with JSON parsing again!
+// const listEntityTypeResponse = await this.context.spHttpClient.get(
+//   `${this.context.pageContext.web.absoluteUrl}/_api/web/lists/getByTitle('${libraryName}')?$select=ListItemEntityTypeFullName`,
+//   SPHttpClient.configurations.v1,
+//   {
+//     headers: {
+//       "Accept": "application/json;odata=verbose" // Be very specific JSON OData verbose
+//   }
+//   }
+// );
 
-if (!listEntityTypeResponse.ok) {
-  throw new Error(`Failed to fetch List Entity Type. HTTP error ${listEntityTypeResponse.status}: ${listEntityTypeResponse.statusText}`);
-}
+// if (!listEntityTypeResponse.ok) {
+//   throw new Error(`Failed to fetch List Entity Type. HTTP error ${listEntityTypeResponse.status}: ${listEntityTypeResponse.statusText}`);
+// }
 
-const listEntityTypeData = await listEntityTypeResponse.json();
-console.log("listEntityTypeData:", listEntityTypeData);
-await new Promise(resolve => setTimeout(resolve, 1000)); // **INSERT THIS TINY DELAY**
- const listItemEntityTypeFullName = listEntityTypeData.d.ListItemEntityTypeFullName;
-// const listItemEntityTypeFullName = "SP.Data.DocumentSet"; //  یه چیز الکی برای تست!
-console.log("listItemEntityTypeFullName:", listItemEntityTypeFullName);
-
-
-    // 4️⃣ Prepare API endpoint for creating a Document Set (POST request remains the same)
-    const endpoint = `${this.context.pageContext.web.absoluteUrl}/_api/web/lists/getByTitle('${libraryName}')//RootFolder/Children`;
+// const listEntityTypeData = await listEntityTypeResponse.json();
+// console.log("listEntityTypeData:", listEntityTypeData);
+// await new Promise(resolve => setTimeout(resolve, 1000)); // **INSERT THIS TINY DELAY**
+//  const listItemEntityTypeFullName = listEntityTypeData.d.ListItemEntityTypeFullName;
+// // const listItemEntityTypeFullName = "SP.Data.DocumentSet"; //  یه چیز الکی برای تست!
+// console.log("listItemEntityTypeFullName:", listItemEntityTypeFullName);
 
 
-    // 5️⃣ Execute request to create the Document Set (POST request remains the same)
-    const response = await this.context.spHttpClient.post(
-        endpoint,
-        SPHttpClient.configurations.v1,
-        {
-            headers: {
-              "Accept": "*/*"
-                // "Accept": "application/json;odata=verbose",
-                // "Content-Type": "application/json;odata=verbose",
-                // "X-RequestDigest": formDigestValue
-            },
-            body: JSON.stringify({
-                "__metadata": { "type": listItemEntityTypeFullName }, // Use the parsed ListItemEntityTypeFullName
-                "Title": documentSetName,
-                "ContentTypeId": contentTypeId
-            })
-        }
-    );
+//     // 4️⃣ Prepare API endpoint for creating a Document Set (POST request remains the same)
+//     const endpoint = `${this.context.pageContext.web.absoluteUrl}/_api/web/lists/getByTitle('${libraryName}')//RootFolder/Children`;
 
-    if (!response.ok) {
-        throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
-    }
 
-    // 6️⃣ Process response (remains the same - assuming POST response is JSON)
-    const result = await response.json();
-    return {
-        url: `${window.location.origin}${result.d.FileRef}`,
-        text: `Documents for Request ${documentSetName.split('-')[1]}`
-    };
+//     // 5️⃣ Execute request to create the Document Set (POST request remains the same)
+//     const response = await this.context.spHttpClient.post(
+//         endpoint,
+//         SPHttpClient.configurations.v1,
+//         {
+//             headers: {
+//               "Accept": "*/*"
+//                 // "Accept": "application/json;odata=verbose",
+//                 // "Content-Type": "application/json;odata=verbose",
+//                 // "X-RequestDigest": formDigestValue
+//             },
+//             body: JSON.stringify({
+//                 "__metadata": { "type": listItemEntityTypeFullName }, // Use the parsed ListItemEntityTypeFullName
+//                 "Title": documentSetName,
+//                 "ContentTypeId": contentTypeId
+//             })
+//         }
+//     );
 
-} catch (error) {
-    console.error("❌ Document Set creation failed. Details:", {
-        libraryName,
-        documentSetName,
-        error: error.message
-    });
-    throw error;
-}
-}
+//     if (!response.ok) {
+//         throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+//     }
+
+//     // 6️⃣ Process response (remains the same - assuming POST response is JSON)
+//     const result = await response.json();
+//     return {
+//         url: `${window.location.origin}${result.d.FileRef}`,
+//         text: `Documents for Request ${documentSetName.split('-')[1]}`
+//     };
+
+// } catch (error) {
+//     console.error("❌ Document Set creation failed. Details:", {
+//         libraryName,
+//         documentSetName,
+//         error: error.message
+//     });
+//     throw error;
+// }
+// }
 
 
 
@@ -604,108 +603,108 @@ public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
   //       throw error;
   //     });
   // }
-  public async createDocumentSet(documentSetName: string): Promise<{ url: string; text: string }> {
-    try {
+  // public async createDocumentSet(documentSetName: string): Promise<{ url: string; text: string }> {
+  //   try {
 
-      const libraryName = "RelatedDocuments";
-      const contentTypeId = "0x0120D520008B9019F0FE283E4983DA536FEE7BC9F9001FCA0DD0A8585C4AB6988C0454FE37B3";
-      const listUrl = `${this.context.pageContext.web.absoluteUrl}/${libraryName}`;
+  //     const libraryName = "RelatedDocuments";
+  //     const contentTypeId = "0x0120D520008B9019F0FE283E4983DA536FEE7BC9F9001FCA0DD0A8585C4AB6988C0454FE37B3";
+  //     const listUrl = `${this.context.pageContext.web.absoluteUrl}/${libraryName}`;
   
 
-      const headers = {
-        "Accept": "application/json;odata=verbose",
-        "Content-Type": "application/json;odata=verbose",
-        "Slug": `${libraryName}/${encodeURIComponent(documentSetName)}|${contentTypeId}`,
-        "X-RequestDigest": this.context.formDigestValue
-      };
+  //     const headers = {
+  //       "Accept": "application/json;odata=verbose",
+  //       "Content-Type": "application/json;odata=verbose",
+  //       "Slug": `${libraryName}/${encodeURIComponent(documentSetName)}|${contentTypeId}`,
+  //       "X-RequestDigest": this.context.formDigestValue
+  //     };
   
 
-      const postBody = JSON.stringify({
-        Title: documentSetName,
-        Path: libraryName
-      });
+  //     const postBody = JSON.stringify({
+  //       Title: documentSetName,
+  //       Path: libraryName
+  //     });
   
 
-      const endpoint = `${this.context.pageContext.web.absoluteUrl}/_vti_bin/listdata.svc/${libraryName}`;
-      const response: SPHttpClientResponse = await this.context.spHttpClient.post(
-        endpoint,
-        SPHttpClient.configurations.v1,
-        {
-          headers,
-          body: postBody
-        }
-      );
+  //     const endpoint = `${this.context.pageContext.web.absoluteUrl}/_vti_bin/listdata.svc/${libraryName}`;
+  //     const response: SPHttpClientResponse = await this.context.spHttpClient.post(
+  //       endpoint,
+  //       SPHttpClient.configurations.v1,
+  //       {
+  //         headers,
+  //         body: postBody
+  //       }
+  //     );
   
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
+  //     if (!response.ok) {
+  //       throw new Error(`HTTP error! Status: ${response.status}`);
+  //     }
   
 
-      const result = await response.json();
-      const serverRelativeUrl = result.d.ServerRelativeUrl;
+  //     const result = await response.json();
+  //     const serverRelativeUrl = result.d.ServerRelativeUrl;
       
-      return {
-        url: `${this.context.pageContext.web.absoluteUrl}${serverRelativeUrl}`, // ✅ استفاده از this.context.pageContext.web.absoluteUrl
-        text: `Documents for ${documentSetName}`
-      };
+  //     return {
+  //       url: `${this.context.pageContext.web.absoluteUrl}${serverRelativeUrl}`, // ✅ استفاده از this.context.pageContext.web.absoluteUrl
+  //       text: `Documents for ${documentSetName}`
+  //     };
   
-    } catch (error) {
-      console.error("[DOCSET CREATION ERROR]", error);
-      throw new Error(`Document Set creation failed: ${error.message}`);
+  //   } catch (error) {
+  //     console.error("[DOCSET CREATION ERROR]", error);
+  //     throw new Error(`Document Set creation failed: ${error.message}`);
+  //   }
+  // }
+
+
+public async createDocumentSet(documentSetName: string): Promise<{ url: string; text: string }> {
+  try {
+    // 1️⃣ Hardcoded values (Verify these match your environment)
+    const libraryName = "RelatedDocuments";
+    const contentTypeId = "0x0120D520008B9019F0FE283E4983DA536FEE7BC9F9001FCA0DD0A8585C4AB6988C0454FE37B3";
+    const listUrl = `${this.context.pageContext.web.absoluteUrl}/${libraryName}`;
+
+    // 2️⃣ Prepare headers with critical Slug value
+    const headers = {
+      "Accept": "application/json;odata=verbose",
+      "Content-Type": "application/json;odata=verbose",
+      "Slug": `${libraryName}/${encodeURIComponent(documentSetName)}|${contentTypeId}`,
+      "X-RequestDigest": this.context.formDigestValue
+    };
+
+    // 3️⃣ Prepare POST body
+    const postBody = JSON.stringify({
+      Title: documentSetName,
+      Path: libraryName
+    });
+
+    // 4️⃣ Execute legacy REST call
+    const endpoint = `${this.context.pageContext.web.absoluteUrl}/_vti_bin/listdata.svc/${libraryName}`;
+    const response: SPHttpClientResponse = await this.context.spHttpClient.post(
+      endpoint,
+      SPHttpClient.configurations.v1,
+      {
+        headers,
+        body: postBody
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
     }
-  }
 
-
-// public async createDocumentSet(documentSetName: string): Promise<{ url: string; text: string }> {
-//   try {
-//     // 1️⃣ Hardcoded values (Verify these match your environment)
-//     const libraryName = "RelatedDocuments";
-//     const contentTypeId = "0x0120D520008B9019F0FE283E4983DA536FEE7BC9F9001FCA0DD0A8585C4AB6988C0454FE37B3";
-//     const listUrl = `${this.context.pageContext.web.absoluteUrl}/${libraryName}`;
-
-//     // 2️⃣ Prepare headers with critical Slug value
-//     const headers = {
-//       "Accept": "application/json;odata=verbose",
-//       "Content-Type": "application/json;odata=verbose",
-//       "Slug": `${libraryName}/${encodeURIComponent(documentSetName)}|${contentTypeId}`,
-//       "X-RequestDigest": this.context.formDigestValue
-//     };
-
-//     // 3️⃣ Prepare POST body
-//     const postBody = JSON.stringify({
-//       Title: documentSetName,
-//       Path: libraryName
-//     });
-
-//     // 4️⃣ Execute legacy REST call
-//     const endpoint = `${this.context.pageContext.web.absoluteUrl}/_vti_bin/listdata.svc/${libraryName}`;
-//     const response: SPHttpClientResponse = await this.context.spHttpClient.post(
-//       endpoint,
-//       SPHttpClient.configurations.v1,
-//       {
-//         headers,
-//         body: postBody
-//       }
-//     );
-
-//     if (!response.ok) {
-//       throw new Error(`HTTP error! Status: ${response.status}`);
-//     }
-
-//     // 5️⃣ Process response
-//     const result = await response.json();
-//     const serverRelativeUrl = result.d.ServerRelativeUrl;
+    // 5️⃣ Process response
+    const result = await response.json();
+    const serverRelativeUrl = result.d.ServerRelativeUrl;
     
-//     return {
-//       url: `${window.location.origin}${serverRelativeUrl}`,
-//       text: `Documents for ${documentSetName}`
-//     };
+    return {
+      url: `${window.location.origin}${serverRelativeUrl}`,
+      text: `Documents for ${documentSetName}`
+    };
 
-//   } catch (error) {
-//     console.error("[DOCSET CREATION ERROR]", error);
-//     throw new Error(`Document Set creation failed: ${error.message}`);
-//   }
-// }
+  } catch (error) {
+    console.error("[DOCSET CREATION ERROR]", error);
+    throw new Error(`Document Set creation failed: ${error.message}`);
+  }
+}
 
 public updateDocumentSetLink(
   requestId: number,

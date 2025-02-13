@@ -557,52 +557,8 @@ public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
   }
 
 
-  // public createDocumentSet(
-  //   libraryName: string, // The library where the Document Set will be created
-  //   documentSetName: string, // The name of the Document Set
-  //   requestId: number // The ID of the related request
-  // ): Promise<{ url: string; text: string }> {
-  //   console.log(`Creating Document Set: ${documentSetName}`);
 
-  //   const siteUrl = sp.web.toUrl(); // Get the site URL
-  //   const libraryPath = `${siteUrl}/${libraryName}`; // Path to the document library
-  //   const documentSetPath = `${libraryPath}/${documentSetName}`; // Path for the Document Set
 
-  //   // Step 1: Create the folder in the library
-  //   return sp.web.folders
-  //     .add(`${libraryName}/${documentSetName}`)
-  //     .then((folderResult) => {
-  //       console.log("Folder created for Document Set:", folderResult);
-
-  //       // Step 2: Set the folder content type to Document Set
-  //       const documentSetContentTypeId = "0x0120D520"; // Default Content Type ID for Document Set in SharePoint
-  //       const folderItemId = folderResult.data.UniqueId; // Unique ID of the created folder
-
-  //       // Use REST API to update the folder's content type
-  //       return sp.web.getFolderByServerRelativePath(folderResult.data.ServerRelativeUrl)
-  //         .getItem()
-  //         .then((folderItem) => {
-  //           return folderItem.update({
-  //             ContentTypeId: documentSetContentTypeId, // Update to Document Set content type
-  //           });
-  //         })
-  //         .then(() => {
-  //           console.log("Folder content type updated to Document Set.");
-
-  //           // Return the Document Set link
-  //           const documentSetUrl = folderResult.data.ServerRelativeUrl;
-  //           const absoluteUrl = `${window.location.origin}${documentSetUrl}`;
-  //           return {
-  //             url: absoluteUrl, // Full URL of the Document Set
-  //             text: `Documents for Request ${requestId}`, // Text for the hyperlink
-  //           };
-  //         });
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error creating Document Set:", error);
-  //       throw error;
-  //     });
-  // }
   // public async createDocumentSet(documentSetName: string): Promise<{ url: string; text: string }> {
   //   try {
 
@@ -641,8 +597,9 @@ public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
   
 
   //     const result = await response.json();
+  //     console.log("result: ", result);
   //     const serverRelativeUrl = result.d.ServerRelativeUrl;
-      
+  //     console.log("servierRelativeUrl ", serverRelativeUrl);
   //     return {
   //       url: `${this.context.pageContext.web.absoluteUrl}${serverRelativeUrl}`, // ✅ استفاده از this.context.pageContext.web.absoluteUrl
   //       text: `Documents for ${documentSetName}`
@@ -655,56 +612,117 @@ public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
   // }
 
 
-public async createDocumentSet(documentSetName: string): Promise<{ url: string; text: string }> {
-  try {
-    // 1️⃣ Hardcoded values (Verify these match your environment)
-    const libraryName = "RelatedDocuments";
-    const contentTypeId = "0x0120D520008B9019F0FE283E4983DA536FEE7BC9F9001FCA0DD0A8585C4AB6988C0454FE37B3";
-    const listUrl = `${this.context.pageContext.web.absoluteUrl}/${libraryName}`;
+  public async createDocumentSet(documentSetName: string): Promise<{ url: string; text: string }> {
+    try {
+        const libraryName = "RelatedDocuments";
+        const contentTypeId = "0x0120D520008B9019F0FE283E4983DA536FEE7BC9F9001FCA0DD0A8585C4AB6988C0454FE37B3";
+        const listUrl = `${this.context.pageContext.web.absoluteUrl}/${libraryName}`;
 
-    // 2️⃣ Prepare headers with critical Slug value
-    const headers = {
-      "Accept": "application/json;odata=verbose",
-      "Content-Type": "application/json;odata=verbose",
-      "Slug": `${libraryName}/${encodeURIComponent(documentSetName)}|${contentTypeId}`,
-      "X-RequestDigest": this.context.formDigestValue
-    };
+        const headers = {
+            "Accept": "application/json;odata=verbose",
+            "Content-Type": "application/json;odata=verbose",
+            "Slug": `${libraryName}/${encodeURIComponent(documentSetName)}|${contentTypeId}`,
+            "X-RequestDigest": this.context.formDigestValue
+        };
 
-    // 3️⃣ Prepare POST body
-    const postBody = JSON.stringify({
-      Title: documentSetName,
-      Path: libraryName
-    });
+        const postBody = JSON.stringify({
+            Title: documentSetName,
+            Path: libraryName
+        });
 
-    // 4️⃣ Execute legacy REST call
-    const endpoint = `${this.context.pageContext.web.absoluteUrl}/_vti_bin/listdata.svc/${libraryName}`;
-    const response: SPHttpClientResponse = await this.context.spHttpClient.post(
-      endpoint,
-      SPHttpClient.configurations.v1,
-      {
-        headers,
-        body: postBody
-      }
-    );
+        const endpoint = `${this.context.pageContext.web.absoluteUrl}/_vti_bin/listdata.svc/${libraryName}`;
+        const response: SPHttpClientResponse = await this.context.spHttpClient.post(
+            endpoint,
+            SPHttpClient.configurations.v1,
+            {
+                headers,
+                body: postBody
+            }
+        );
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log("result: ", result);
+
+        // استخراج شناسه سند (Document ID) و پردازش URL
+        const docIdFullUrl = result.d["شناسهسند"]; // ✅ اسم فیلد "شناسهسند" (فارسی!)
+        console.log("docIdFullUrl: ", docIdFullUrl); // لاگ کامل شناسه سند
+
+        const docIdUrlPart = docIdFullUrl.split(',')[0]; // ✅ جدا کردن قسمت اول URL (قبل از کاما)
+        console.log("docIdUrlPart: ", docIdUrlPart); // لاگ قسمت اول URL
+
+        // ساخت URL نهایی Document Set بر اساس DocIdRedir.aspx و شناسه سند
+        const documentSetUrl = docIdUrlPart; // ✅ دیگه نیازی به ترکیب با this.context.pageContext.web.absoluteUrl نیست!
+
+        console.log("documentSetUrl: ", documentSetUrl); // لاگ URL نهایی
+
+        return {
+            url: documentSetUrl, // ✅ استفاده از URL استخراج شده از شناسه سند
+            text: `Documents for ${documentSetName}`
+        };
+
+    } catch (error) {
+        console.error("[DOCSET CREATION ERROR]", error);
+        throw new Error(`Document Set creation failed: ${error.message}`);
     }
-
-    // 5️⃣ Process response
-    const result = await response.json();
-    const serverRelativeUrl = result.d.ServerRelativeUrl;
-    
-    return {
-      url: `${window.location.origin}${serverRelativeUrl}`,
-      text: `Documents for ${documentSetName}`
-    };
-
-  } catch (error) {
-    console.error("[DOCSET CREATION ERROR]", error);
-    throw new Error(`Document Set creation failed: ${error.message}`);
-  }
 }
+
+
+// public async createDocumentSet(documentSetName: string): Promise<{ url: string; text: string }> {
+//   try {
+//     // 1️⃣ Hardcoded values (Verify these match your environment)
+//     const libraryName = "RelatedDocuments";
+//     const contentTypeId = "0x0120D520008B9019F0FE283E4983DA536FEE7BC9F9001FCA0DD0A8585C4AB6988C0454FE37B3";
+//     const listUrl = `${this.context.pageContext.web.absoluteUrl}/${libraryName}`;
+
+//     // 2️⃣ Prepare headers with critical Slug value
+//     const headers = {
+//       "Accept": "application/json;odata=verbose",
+//       "Content-Type": "application/json;odata=verbose",
+//       "Slug": `${libraryName}/${encodeURIComponent(documentSetName)}|${contentTypeId}`,
+//       "X-RequestDigest": this.context.formDigestValue
+//     };
+
+//     // 3️⃣ Prepare POST body
+//     const postBody = JSON.stringify({
+//       Title: documentSetName,
+//       Path: libraryName
+//     });
+
+//     // 4️⃣ Execute legacy REST call
+//     const endpoint = `${this.context.pageContext.web.absoluteUrl}/_vti_bin/listdata.svc/${libraryName}`;
+//     const response: SPHttpClientResponse = await this.context.spHttpClient.post(
+//       endpoint,
+//       SPHttpClient.configurations.v1,
+//       {
+//         headers,
+//         body: postBody
+//       }
+//     );
+
+//     if (!response.ok) {
+//       throw new Error(`HTTP error! Status: ${response.status}`);
+//     }
+
+//     // 5️⃣ Process response
+//     const result = await response.json();
+//     const serverRelativeUrl = result.d.ServerRelativeUrl;
+    
+//     return {
+//       url: `${window.location.origin}${serverRelativeUrl}`,
+//       text: `Documents for ${documentSetName}`
+      
+//     };
+    
+
+//   } catch (error) {
+//     console.error("[DOCSET CREATION ERROR]", error);
+//     throw new Error(`Document Set creation failed: ${error.message}`);
+//   }
+// }
 
 public updateDocumentSetLink(
   requestId: number,
@@ -718,6 +736,7 @@ public updateDocumentSetLink(
     Url: documentSetLink.url,
     Description: documentSetLink.text
   };
+
 
   return sp.web.lists
     .getByTitle("ProjectRequests")
@@ -734,6 +753,7 @@ public updateDocumentSetLink(
       throw error;
     });
 }
+
 
 }
 

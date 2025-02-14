@@ -55,30 +55,61 @@ export default class ProjectRequestService {
       });
     }
 
+  // public createProjectRequest(requestData: any): Promise<any> {
+  //   return sp.web.lists
+  //     .getByTitle("ProjectRequests")
+  //     .items.add(requestData)
+  //     .then(async (result) => {
+  //       const requestId = result.data.Id;
+  //       console.log("Request form created. ID:", requestId);
+
+  //       // Create Document Set
+  //       const documentSetName = `Request-${requestId}`;
+  //       const documentSetLink = await this.createDocumentSet(
+  //         documentSetName
+  //       );
+
+  //       // Update ProjectRequest with link
+  //       await this.updateDocumentSetLink(requestId, documentSetLink);
+
+  //       return { success: true, requestId };
+  //     })
+  //     .catch((error) => {
+  //       console.error("Project request creation failed:", error);
+  //       throw error;
+  //     });
+  // }
+
+
   public createProjectRequest(requestData: any): Promise<any> {
     return sp.web.lists
-      .getByTitle("ProjectRequests")
-      .items.add(requestData)
-      .then(async (result) => {
-        const requestId = result.data.Id;
-        console.log("Request form created. ID:", requestId);
+        .getByTitle("ProjectRequests")
+        .items.add(requestData)
+        .then(async (result) => {
+            console.log("Raw API Response:", result); // ✅ Log full response
+            const requestId = result.data.Id;
+            console.log("Extracted Request ID:", requestId); // ✅ Log extracted ID
 
-        // Create Document Set
-        const documentSetName = `Request-${requestId}`;
-        const documentSetLink = await this.createDocumentSet(
-          documentSetName
-        );
+            if (!requestId) {
+                throw new Error("Error: requestId is undefined!");
+            }
 
-        // Update ProjectRequest with link
-        await this.updateDocumentSetLink(requestId, documentSetLink);
+            const documentSetName = `Request-${requestId}`;
+            const documentSetLink = await this.createDocumentSet(documentSetName);
 
-        return { success: true, requestId };
-      })
-      .catch((error) => {
-        console.error("Project request creation failed:", error);
-        throw error;
-      });
-  }
+            await this.updateDocumentSetLink(requestId, documentSetLink);
+
+            return { success: true, requestId };
+        })
+        .catch((error) => {
+            console.error("Project request creation failed:", error);
+            throw error;
+        });
+}
+
+
+
+
 
   // Method to fetch form digest value
   // private async getFormDigestValue(): Promise<string> {
@@ -565,7 +596,7 @@ public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
   //     const libraryName = "RelatedDocuments";
   //     const contentTypeId = "0x0120D520008B9019F0FE283E4983DA536FEE7BC9F9001FCA0DD0A8585C4AB6988C0454FE37B3";
   //     const listUrl = `${this.context.pageContext.web.absoluteUrl}/${libraryName}`;
-  
+
 
   //     const headers = {
   //       "Accept": "application/json;odata=verbose",
@@ -573,13 +604,13 @@ public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
   //       "Slug": `${libraryName}/${encodeURIComponent(documentSetName)}|${contentTypeId}`,
   //       "X-RequestDigest": this.context.formDigestValue
   //     };
-  
+
 
   //     const postBody = JSON.stringify({
   //       Title: documentSetName,
   //       Path: libraryName
   //     });
-  
+
 
   //     const endpoint = `${this.context.pageContext.web.absoluteUrl}/_vti_bin/listdata.svc/${libraryName}`;
   //     const response: SPHttpClientResponse = await this.context.spHttpClient.post(
@@ -590,11 +621,11 @@ public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
   //         body: postBody
   //       }
   //     );
-  
+
   //     if (!response.ok) {
   //       throw new Error(`HTTP error! Status: ${response.status}`);
   //     }
-  
+
 
   //     const result = await response.json();
   //     console.log("result: ", result);
@@ -604,7 +635,7 @@ public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
   //       url: `${this.context.pageContext.web.absoluteUrl}${serverRelativeUrl}`, // ✅ استفاده از this.context.pageContext.web.absoluteUrl
   //       text: `Documents for ${documentSetName}`
   //     };
-  
+
   //   } catch (error) {
   //     console.error("[DOCSET CREATION ERROR]", error);
   //     throw new Error(`Document Set creation failed: ${error.message}`);
@@ -612,65 +643,352 @@ public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
   // }
 
 
-  public async createDocumentSet(documentSetName: string): Promise<{ url: string; text: string }> {
-    try {
-        const libraryName = "RelatedDocuments";
-        const contentTypeId = "0x0120D520008B9019F0FE283E4983DA536FEE7BC9F9001FCA0DD0A8585C4AB6988C0454FE37B3";
-        const listUrl = `${this.context.pageContext.web.absoluteUrl}/${libraryName}`;
 
-        const headers = {
-            "Accept": "application/json;odata=verbose",
-            "Content-Type": "application/json;odata=verbose",
-            "Slug": `${libraryName}/${encodeURIComponent(documentSetName)}|${contentTypeId}`,
-            "X-RequestDigest": this.context.formDigestValue
-        };
 
-        const postBody = JSON.stringify({
-            Title: documentSetName,
-            Path: libraryName
-        });
 
-        const endpoint = `${this.context.pageContext.web.absoluteUrl}/_vti_bin/listdata.svc/${libraryName}`;
-        const response: SPHttpClientResponse = await this.context.spHttpClient.post(
-            endpoint,
-            SPHttpClient.configurations.v1,
-            {
-                headers,
-                body: postBody
-            }
-        );
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
+//   public async createDocumentSet(documentSetName: string): Promise<{ url: string; text: string }> {
+//     try {
+//         const libraryName = "RelatedDocuments";
+//         const contentTypeId = "0x0120D520008B9019F0FE283E4983DA536FEE7BC9F9001FCA0DD0A8585C4AB6988C0454FE37B3";
+//         const listUrl = `${this.context.pageContext.web.absoluteUrl}/${libraryName}`;
 
-        const result = await response.json();
-        console.log("result: ", result);
+//         const headers = {
+//             "Accept": "application/json;odata=verbose",
+//             "Content-Type": "application/json;odata=verbose",
+//             "Slug": `${libraryName}/${encodeURIComponent(documentSetName)}|${contentTypeId}`,
+//             "X-RequestDigest": this.context.formDigestValue
+//         };
 
-        // استخراج شناسه سند (Document ID) و پردازش URL
-        const docIdFullUrl = result.d["شناسهسند"]; // ✅ اسم فیلد "شناسهسند" (فارسی!)
-        console.log("docIdFullUrl: ", docIdFullUrl); // لاگ کامل شناسه سند
+//         const postBody = JSON.stringify({
+//             Title: documentSetName,
+//             Path: libraryName
+//         });
 
-        const docIdUrlPart = docIdFullUrl.split(',')[0]; // ✅ جدا کردن قسمت اول URL (قبل از کاما)
-        console.log("docIdUrlPart: ", docIdUrlPart); // لاگ قسمت اول URL
+//         const endpoint = `${this.context.pageContext.web.absoluteUrl}/_vti_bin/listdata.svc/${libraryName}`;
+//         const response: SPHttpClientResponse = await this.context.spHttpClient.post(
+//             endpoint,
+//             SPHttpClient.configurations.v1,
+//             {
+//                 headers,
+//                 body: postBody
+//             }
+//         );
 
-        // ساخت URL نهایی Document Set بر اساس DocIdRedir.aspx و شناسه سند
-        const documentSetUrl = docIdUrlPart; // ✅ دیگه نیازی به ترکیب با this.context.pageContext.web.absoluteUrl نیست!
+//         if (!response.ok) {
+//             throw new Error(`HTTP error! Status: ${response.status}`);
+//         }
 
-        console.log("documentSetUrl: ", documentSetUrl); // لاگ URL نهایی
+//         const result = await response.json();
+//         console.log("result: ", result);
 
-        return {
-            url: documentSetUrl, // ✅ استفاده از URL استخراج شده از شناسه سند
-            text: `Documents for ${documentSetName}`
-        };
+//         // استخراج شناسه سند (Document ID) و پردازش URL
+//         const docIdFullUrl = result.d["شناسهسند"]; // ✅ اسم فیلد "شناسهسند" (فارسی!)
+//         console.log("docIdFullUrl: ", docIdFullUrl); // لاگ کامل شناسه سند
 
-    } catch (error) {
-        console.error("[DOCSET CREATION ERROR]", error);
-        return null;
-        // throw new Error(`Document Set creation failed: ${error.message}`);
-    }
+//         const docIdUrlPart = docIdFullUrl.split(',')[0]; // ✅ جدا کردن قسمت اول URL (قبل از کاما)
+//         console.log("docIdUrlPart: ", docIdUrlPart); // لاگ قسمت اول URL
+
+//         // ساخت URL نهایی Document Set بر اساس DocIdRedir.aspx و شناسه سند
+//         const documentSetUrl = docIdUrlPart; // ✅ دیگه نیازی به ترکیب با this.context.pageContext.web.absoluteUrl نیست!
+
+//         console.log("documentSetUrl: ", documentSetUrl); // لاگ URL نهایی
+
+//         return {
+//             url: documentSetUrl, // ✅ استفاده از URL استخراج شده از شناسه سند
+//             text: `Documents for ${documentSetName}`
+//         };
+
+//     } catch (error) {
+//         console.error("[DOCSET CREATION ERROR]", error);
+//         return null;
+//         // throw new Error(`Document Set creation failed: ${error.message}`);
+//     }
+// }
+
+// public async createDocumentSet(documentSetName: string): Promise<{ url: string; text: string } | null> {
+//   try {
+//       const libraryName = "RelatedDocuments";
+//       const contentTypeId = "0x0120D520008B9019F0FE283E4983DA536FEE7BC9F9001FCA0DD0A8585C4AB6988C0454FE37B3";
+//       const siteUrl = this.context.pageContext.web.absoluteUrl;
+//       const endpoint = `${siteUrl}/_vti_bin/listdata.svc/${libraryName}`;
+//       console.log("DEBUG: siteUrl from pageContext:", this.context.pageContext.web.absoluteUrl);
+
+//       // ✅ Explicitly fetch X-RequestDigest
+//       const digestResponse = await this.context.spHttpClient.post(
+//           `${siteUrl}/_api/contextinfo`,
+//           SPHttpClient.configurations.v1,
+//           { headers: { "Accept": "application/json;odata=verbose" } }
+//       );
+
+
+//       console.log("DEBUG: siteUrl from pageContext:", this.context.pageContext.web.absoluteUrl);
+//       const digestJson = await digestResponse.json();
+//       const requestDigest = digestJson.d.GetContextWebInformation.FormDigestValue;
+
+
+//       console.log("[DIGEST VALUE RETRIEVED]:", requestDigest);
+
+//       const headers = {
+//           "Accept": "application/json;odata=verbose",
+//           "Content-Type": "application/json;odata=verbose",
+//           "Slug": `${libraryName}/${encodeURIComponent(documentSetName)}|${contentTypeId}`,
+//           "X-RequestDigest": requestDigest // ✅ Now properly set
+//       };
+//       console.log("DEBUG: siteUrl from pageContext:", this.context.pageContext.web.absoluteUrl);
+//       const postBody = JSON.stringify({
+//           Title: documentSetName,
+//           Path: libraryName
+//       });
+
+//       console.log("[DOCSET REQUEST] Sending request to:", endpoint);
+//       console.log("[DOCSET HEADERS]", headers);
+//       console.log("[DOCSET BODY]", postBody);
+
+//       const response: SPHttpClientResponse = await this.context.spHttpClient.post(
+//           endpoint,
+//           SPHttpClient.configurations.v1,
+//           { headers, body: postBody }
+//       );
+
+//       if (!response.ok) {
+//           const errorText = await response.text();
+//           throw new Error(`HTTP error ${response.status}: ${errorText}`);
+//       }
+
+//       const result = await response.json();
+//       console.log("[DOCSET CREATION SUCCESS] API Response:", result);
+
+//       if (!result.d || !result.d["شناسهسند"]) {
+//           throw new Error("Error: Document Set ID (شناسهسند) is missing in the response.");
+//       }
+
+//       // ✅ Extract only the first part of the URL (before the comma)
+//       const docIdFullUrl = result.d["شناسهسند"];
+//       console.log("Raw شناسهسند:", docIdFullUrl);
+
+//       const docIdUrlPart = docIdFullUrl.split(',')[0]; // ✅ Take only the first part
+//       console.log("Extracted Document Set URL:", docIdUrlPart);
+
+//       return {
+//           url: docIdUrlPart, // ✅ Use extracted URL
+//           text: `Documents for ${documentSetName}`
+//       };
+
+//   } catch (error) {
+//       console.error("[DOCSET CREATION ERROR]", error);
+//       return null; // Prevents further processing if doc set creation fails
+//   }
+// }
+
+
+
+
+
+
+// public async createDocumentSet(documentSetName: string): Promise<{ url: string; text: string } | null> {
+//   try {
+//       const libraryName = "RelatedDocuments";
+//       const contentTypeId = "0x0120D520008B9019F0FE283E4983DA536FEE7BC9F9001FCA0DD0A8585C4AB6988C0454FE37B3";
+//       const siteUrl = this.context.pageContext.web.absoluteUrl;
+//       const endpoint = `${siteUrl}/_vti_bin/listdata.svc/${libraryName}`;
+
+//       console.log("DEBUG: siteUrl from pageContext:", this.context.pageContext.web.absoluteUrl);
+
+//       // ✅ Use getFormDigest() instead of making a direct API call
+//       const requestDigest = await this.getFormDigest();
+//       if (!requestDigest) {
+//           throw new Error("Failed to retrieve X-RequestDigest.");
+//       }
+//       console.log("[DIGEST VALUE RETRIEVED]:", requestDigest);
+
+//       const headers = {
+//           "Accept": "application/json;odata=verbose",
+//           "Content-Type": "application/json;odata=verbose",
+//           "Slug": `${libraryName}/${encodeURIComponent(documentSetName)}|${contentTypeId}`,
+//           "X-RequestDigest": requestDigest // ✅ Now properly set
+//       };
+
+//       const postBody = JSON.stringify({
+//           Title: documentSetName,
+//           Path: libraryName
+//       });
+
+//       console.log("[DOCSET REQUEST] Sending request to:", endpoint);
+//       console.log("[DOCSET HEADERS]", headers);
+//       console.log("[DOCSET BODY]", postBody);
+
+//       const response: SPHttpClientResponse = await this.context.spHttpClient.post(
+//           endpoint,
+//           SPHttpClient.configurations.v1,
+//           { headers, body: postBody }
+//       );
+
+//       if (!response.ok) {
+//           const errorText = await response.text();
+//           throw new Error(`HTTP error ${response.status}: ${errorText}`);
+//       }
+
+//       const result = await response.json();
+//       console.log("[DOCSET CREATION SUCCESS] API Response:", result);
+
+//       if (!result.d || !result.d["شناسهسند"]) {
+//           throw new Error("Error: Document Set ID (شناسهسند) is missing in the response.");
+//       }
+
+//       const docIdFullUrl = result.d["شناسهسند"];
+//       console.log("Raw شناسهسند:", docIdFullUrl);
+
+//       const docIdUrlPart = docIdFullUrl.split(',')[0];
+//       console.log("Extracted Document Set URL:", docIdUrlPart);
+
+//       return {
+//           url: docIdUrlPart,
+//           text: `Documents for ${documentSetName}`
+//       };
+
+//   } catch (error) {
+//       console.error("[DOCSET CREATION ERROR]", error);
+//       return null;
+//   }
+// }
+
+
+
+
+
+// ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// public async createDocumentSet(documentSetName: string): Promise<{ url: string; text: string } | null> {
+//   try {
+//       const libraryName = "RelatedDocuments";
+//       const contentTypeId = "0x0120D520008B9019F0FE283E4983DA536FEE7BC9F9001FCA0DD0A8585C4AB6988C0454FE37B3";
+//       const listUrl = `${this.context.pageContext.web.absoluteUrl}/${libraryName}`;
+
+//       const headers = {
+//           "Accept": "application/json;odata=verbose",
+//           "Content-Type": "application/json;odata=verbose",
+//           "Slug": `${libraryName}/${encodeURIComponent(documentSetName)}|${contentTypeId}`,
+//           "X-RequestDigest": this.context.formDigestValue
+//       };
+
+//       const postBody = JSON.stringify({
+//           Title: documentSetName,
+//           Path: libraryName
+//       });
+
+//       const endpoint = `${this.context.pageContext.web.absoluteUrl}/_vti_bin/listdata.svc/${libraryName}`;
+//       const response: SPHttpClientResponse = await this.context.spHttpClient.post(
+//           endpoint,
+//           SPHttpClient.configurations.v1,
+//           {
+//               headers,
+//               body: postBody
+//           }
+//       );
+
+//       if (!response.ok) {
+//           throw new Error(`HTTP error! Status: ${response.status}`);
+//       }
+
+//       const result = await response.json();
+//       console.log("API Response:", result);
+
+//       // ✅ Extract Persian document ID field correctly
+//       if (!result.d || !result.d["شناسهسند"]) {
+//           throw new Error("Error: Document Set ID (شناسهسند) is missing in the response.");
+//       }
+
+//       // ✅ Extract only first part of the URL (before the comma)
+//       const docIdFullUrl = result.d["شناسهسند"];
+//       console.log("Raw شناسهسند:", docIdFullUrl);
+
+//       const docIdUrlPart = docIdFullUrl.split(',')[0]; // ✅ Take only the first part
+//       console.log("Extracted Document Set URL:", docIdUrlPart);
+
+//       return {
+//           url: docIdUrlPart, // ✅ Use extracted URL
+//           text: `Documents for ${documentSetName}`
+//       };
+
+//   } catch (error) {
+//       console.error("[DOCSET CREATION ERROR]", error);
+//       return null;
+//   }
+// }
+// ////////////////////////////////////////////////////////////////////////////////
+
+// ProjectRequestService.ts (در متد createDocumentSet -  *دقیقاً  مطابق  کد  قبلی  خودتون*)
+
+public async createDocumentSet(documentSetName: string): Promise<{ url: string; text: string } | null> {
+  try {
+      const libraryName = "RelatedDocuments";
+      const contentTypeId = "0x0120D520008B9019F0FE283E4983DA536FEE7BC9F9001FCA0DD0A8585C4AB6988C0454FE37B3";
+      const siteUrl = this.context.pageContext.web.absoluteUrl;
+      const endpoint = `${siteUrl}/_vti_bin/listdata.svc/${libraryName}`;
+
+      console.log("DEBUG: siteUrl from pageContext:", this.context.pageContext.web.absoluteUrl);
+
+      // ✅ Use getFormDigest() instead of making a direct API call
+      const requestDigest = await this.getFormDigest();
+      if (!requestDigest) {
+          throw new Error("Failed to retrieve X-RequestDigest.");
+      }
+      console.log("[DIGEST VALUE RETRIEVED]:", requestDigest);
+
+      const headers = {
+          "Accept": "application/json;odata=verbose",
+          "Content-Type": "application/json;odata=verbose",
+          "Slug": `${libraryName}/${encodeURIComponent(documentSetName)}|${contentTypeId}`,
+          "X-RequestDigest": requestDigest // ✅ Now properly set
+      };
+
+      const postBody = JSON.stringify({
+          Title: documentSetName,
+          Path: libraryName
+      });
+
+      console.log("[DOCSET REQUEST] Sending request to:", endpoint);
+      console.log("[DOCSET HEADERS]", headers);
+      console.log("[DOCSET BODY]", postBody);
+
+      const response: SPHttpClientResponse = await this.context.spHttpClient.post(
+          endpoint,
+          SPHttpClient.configurations.v1,
+          { headers, body: postBody }
+      );
+
+      if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`HTTP error ${response.status}: ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log("[DOCSET CREATION SUCCESS] API Response:", result); // ✅  این  خط  قبلاً  بود
+
+      console.log("Full response from createDocumentSet:", response); // ✅ خط جدید - اضافه کردن این خط برای بررسی پاسخ کامل سرور
+
+
+      if (!result.d || !result.d["شناسهسند"]) {
+          throw new Error("Error: Document Set ID (شناسهسند) is missing in the response.");
+      }
+
+      const docIdFullUrl = result.d["شناسهسند"];
+      console.log("Raw شناسهسند:", docIdFullUrl);
+
+      const docIdUrlPart = docIdFullUrl.split(',')[0];
+      console.log("Extracted Document Set URL:", docIdUrlPart);
+
+      return {
+          url: docIdUrlPart,
+          text: `Documents for ${documentSetName}`
+      };
+
+  } catch (error) {
+      console.error("[DOCSET CREATION ERROR]", error);
+      return null;
+  }
 }
-
 
 // public async createDocumentSet(documentSetName: string): Promise<{ url: string; text: string }> {
 //   try {
@@ -711,13 +1029,13 @@ public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
 //     // 5️⃣ Process response
 //     const result = await response.json();
 //     const serverRelativeUrl = result.d.ServerRelativeUrl;
-    
+
 //     return {
 //       url: `${window.location.origin}${serverRelativeUrl}`,
 //       text: `Documents for ${documentSetName}`
-      
+
 //     };
-    
+
 
 //   } catch (error) {
 //     console.error("[DOCSET CREATION ERROR]", error);
@@ -756,27 +1074,69 @@ public async updateDocumentSetLink(
 
   // SharePoint hyperlink field requires this specific format
   const hyperlinkValue = {
-      __metadata: { type: "SP.FieldUrlValue" }, // REQUIRED metadata
+      __metadata: { type: "SP.FieldUrlValue" },
       Url: documentSetLink.url,
       Description: documentSetLink.text
   };
 
-  try { // ✅ اضافه کردن try...catch
-      await sp.web.lists
-          .getByTitle("ProjectRequests")
-          .items.getById(requestId)
-          .update({
-              // Use internal name with correct casing
-              DocumentSetLink: hyperlinkValue
-          });
-      console.log("DocumentSetLink updated successfully.");
+  try {
+      console.log("[DEBUG - SITE URL BEFORE CONCAT]:", this.context.pageContext.web.absoluteUrl);
+      const updateUrl = sp.web.lists
+          .getByTitle('ProjectRequests')
+          .items.getById(requestId).toUrl();
+      console.log("[DEBUG - UPDATE URL (TOURL) BEFORE CONCAT]:", updateUrl);
+
+      let fullUpdateUrl = this.context.pageContext.web.absoluteUrl + updateUrl; // ساخت URL کامل و مطلق با استفاده از siteUrl
+
+      fullUpdateUrl = encodeURIComponent(fullUpdateUrl); // ✅ Encode کردن کل URL با encodeURIComponent()
+
+      console.log("[DEBUG - FULL URL BEFORE UPDATE REQUEST (ENCODED)]:", fullUpdateUrl); // ✅ لاگ جدید - نمایش URL کامل و مطلق بعد از Encode شدن
+
+      // await sp.web.lists  // ❌ کامنت کردن خط update برای جلوگیری از ارسال درخواست واقعی و فقط دیدن URL
+      //     .getByTitle("ProjectRequests")
+      //     .items.getById(requestId)
+      //     .update({
+      //         DocumentSetLink: hyperlinkValue
+      //     });
+      console.log("DocumentSetLink update skipped (for debugging).");
+
+      console.log("DocumentSetLink updated successfully."); // این لاگ به اشتباه نمایش داده می شود چون update کامنت شده! در دیباگ دقت کنید
+
   } catch (error) {
       console.error("Error updating DocumentSetLink:", error);
-      // ✅ پرتاب مجدد خطا برای اینکه به catch در ProjectRequestForm برسه
-      throw error; // ✅ مهم: پرتاب مجدد خطا
+      throw error;
   }
 }
+// ///////////////////////////////////////////////////////////////////////////////////
+// public async updateDocumentSetLink(
+//   requestId: number,
+//   documentSetLink: { url: string; text: string }
+// ): Promise<void> {
+//   console.log(`Updating DocumentSetLink for Request ID: ${requestId}`);
 
+//   // SharePoint hyperlink field requires this specific format
+//   const hyperlinkValue = {
+//       __metadata: { type: "SP.FieldUrlValue" }, // REQUIRED metadata
+//       Url: documentSetLink.url,
+//       Description: documentSetLink.text
+//   };
+
+//   try { // ✅ اضافه کردن try...catch
+//       await sp.web.lists
+//           .getByTitle("ProjectRequests")
+//           .items.getById(requestId)
+//           .update({
+//               // Use internal name with correct casing
+//               DocumentSetLink: hyperlinkValue
+//           });
+//       console.log("DocumentSetLink updated successfully.");
+//   } catch (error) {
+//       console.error("Error updating DocumentSetLink:", error);
+//       // ✅ پرتاب مجدد خطا برای اینکه به catch در ProjectRequestForm برسه
+//       throw error; // ✅ مهم: پرتاب مجدد خطا
+//   }
+// }
+// ////////////////////////////////////////////////////////////////
 
 // public updateDocumentSetLink(
 //   requestId: number,

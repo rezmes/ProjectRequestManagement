@@ -548,43 +548,59 @@ class ProjectRequestForm extends React.Component<
                 return this.projectRequestService.createProjectRequest(requestData);
             })
             .then((response) => {
-                if (response && response.Id) {
-                    const requestId = response.Id; // Get the request ID of the newly created project request
-
+                if (response && response.requestId) {
+                    const requestId = response.requestId; // ✅ Corrected
+            
                     console.log("New project created with ID:", requestId);
-
-                    // Step 4: Create the Document Set and update the hyperlink column
-                    const documentSetName = `Request-${requestId}`; // Name the Document Set based on the Request ID
-                    return this.projectRequestService // ✅ استفاده از سرویس createDocumentSet خود شما
-                        .createDocumentSet(documentSetName) // ✅ فقط documentSetName رو پاس بده
+            
+                    const documentSetName = `Request-${requestId}`;
+                    return this.projectRequestService
+                        .createDocumentSet(documentSetName)
+                        // .then((documentSetLink) => {
+                        //     if (!documentSetLink) {
+                        //         throw new Error("Document Set creation failed. No valid link returned.");
+                        //     }
+                        
+                        //     console.log("Document Set created with link:", documentSetLink);
+                        
+                        //     return this.projectRequestService.updateDocumentSetLink(
+                        //         requestId,
+                        //         documentSetLink
+                        //     );
+                        // })
                         .then((documentSetLink) => {
+                            if (!documentSetLink) {
+                                console.error("Document Set creation failed. No link returned.");
+                                throw new Error("Document Set creation failed. No valid link returned.");
+                            }
+                        
                             console.log("Document Set created with link:", documentSetLink);
-
-                            // Step 5: Update the DocumentSetLink in the ProjectRequests list
-                            return this.projectRequestService.updateDocumentSetLink( // ✅ استفاده از سرویس updateDocumentSetLink خود شما
-                                requestId,
-                                documentSetLink
-                            );
+                        
+                            if (!this.state.requestId) { // ✅ Prevent duplicate calls
+                                return this.projectRequestService.updateDocumentSetLink(
+                                    requestId,
+                                    documentSetLink
+                                );
+                            } else {
+                                console.warn("Skipping duplicate updateDocumentSetLink call.");
+                                return Promise.resolve();
+                            }
                         })
                         .then(() => {
                             console.log("Document Set link updated successfully.");
                             this.setState(
                                 {
                                     isProjectCreated: true,
-                                    requestId: response.Id,
-                                    formNumber: response.FormNumber,
+                                    requestId: response.requestId, // ✅ Ensure correct variable is used
+                                    formNumber: response.FormNumber, // ✅ Ensure correct variable is used
                                 },
                                 () => {
-                                    alert(
-                                        "Project request created successfully! A Document Set has been created for related documents."
-                                    );
+                                    alert("Project request created successfully!");
                                 }
                             );
                         });
                 } else {
-                    throw new Error(
-                        "Error creating project request. Response was invalid."
-                    );
+                    throw new Error("Error creating project request. Response was invalid.");
                 }
             })
             .catch((error) => {

@@ -24,4 +24,10 @@ export interface IProjectRequestFormState {
   // Assessments
   assessments: IAssessment[];
   formNumber: Number | null;
+
+  // Document Set Link
+  documentSetLink?: {
+    url: string;
+    text: string;
+  };
 }

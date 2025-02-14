@@ -56,31 +56,32 @@ export default class ProjectRequestService {
     }
 
 
-  public createProjectRequest(requestData: any): Promise<any> {
-    return sp.web.lists
-        .getByTitle("ProjectRequests")
-        .items.add(requestData)
-        .then(async (result) => {
-            console.log("Raw API Response:", result); // ✅ Log full response
-            const requestId = result.data.Id;
-            console.log("Extracted Request ID:", requestId); // ✅ Log extracted ID
 
-            if (!requestId) {
-                throw new Error("Error: requestId is undefined!");
-            }
-
-            const documentSetName = `Request-${requestId}`;
-            const documentSetLink = await this.createDocumentSet(documentSetName);
-
-            await this.updateDocumentSetLink(requestId, documentSetLink);
-
-            return { success: true, requestId };
-        })
-        .catch((error) => {
-            console.error("Project request creation failed:", error);
-            throw error;
-        });
+public createProjectRequest(requestData: any): Promise<any> {
+  return sp.web.lists
+    .getByTitle("ProjectRequests")
+    .items.add(requestData)
+    .then(async (result) => {
+      console.log("Raw API Response:", result);
+      const requestId = result.data.Id;
+      if (!requestId) {
+          throw new Error("Error: requestId is undefined!");
+      }
+      const documentSetName = `Request-${requestId}`;
+      const documentSetLink = await this.createDocumentSet(documentSetName);
+      if (!documentSetLink) {
+          throw new Error("Document Set creation failed. No valid link returned.");
+      }
+      await this.updateDocumentSetLink(requestId, documentSetLink);
+      // Return both the requestId and documentSetLink
+      return { success: true, requestId, documentSetLink, FormNumber: result.data.FormNumber };
+    })
+    .catch((error) => {
+      console.error("Project request creation failed:", error);
+      throw error;
+    });
 }
+
 
   public async getFormDigest(): Promise<string> {
     try {
@@ -271,7 +272,7 @@ public async createDocumentSet(documentSetName: string): Promise<{ url: string; 
       if (!requestDigest) {
           throw new Error("Failed to retrieve X-RequestDigest.");
       }
-      console.log("[DIGEST VALUE RETRIEVED]:", requestDigest);
+
 
       const headers = {
           "Accept": "application/json;odata=verbose",
@@ -285,9 +286,7 @@ public async createDocumentSet(documentSetName: string): Promise<{ url: string; 
           Path: libraryName
       });
 
-      console.log("[DOCSET REQUEST] Sending request to:", endpoint);
-      console.log("[DOCSET HEADERS]", headers);
-      console.log("[DOCSET BODY]", postBody);
+
 
       const response: SPHttpClientResponse = await this.context.spHttpClient.post(
           endpoint,
@@ -351,9 +350,6 @@ public async updateDocumentSetLink(
 
       let fullUpdateUrl = this.context.pageContext.web.absoluteUrl + updateUrl; // ساخت URL کامل و مطلق با استفاده از siteUrl
 
-      // fullUpdateUrl = encodeURIComponent(fullUpdateUrl); // ✅ Encode کردن کل URL با encodeURIComponent()
-
-      // console.log("[DEBUG - FULL URL BEFORE UPDATE REQUEST (ENCODED)]:", fullUpdateUrl); // ✅ لاگ جدید - نمایش URL کامل و مطلق بعد از Encode شدن
 
       await sp.web.lists  // ❌ کامنت کردن خط update برای جلوگیری از ارسال درخواست واقعی و فقط دیدن URL
           .getByTitle("ProjectRequests")

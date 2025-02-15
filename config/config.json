@@ -13,6 +13,10 @@
   },
   "externals": {},
   "localizedResources": {
-    "PrmWebPartStrings": "lib/webparts/prm/loc/{locale}.js"
+    "MyWebPartStrings": {
+      "default": "lib/webparts/myWebPart/loc/fa-IR.js",
+      "en-us": "lib/webparts/myWebPart/loc/en-us.js",
+      "fa-IR": "lib/webparts/myWebPart/loc/fa-IR.js"
+  }
   }
 }

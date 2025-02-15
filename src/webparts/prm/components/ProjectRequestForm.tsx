@@ -17,6 +17,10 @@ import "moment-jalaali";
 import TechnicalAssessmentTable from "./TechnicalAssessmentTable";
 import styles from "./ProjectRequestForm.module.scss";
 import UIFabricWizard from "./UIFabricWizard";
+
+import * as strings from 'MyWebPartStrings';
+
+
 class ProjectRequestForm extends React.Component<
   IProjectRequestFormProps,
   IProjectRequestFormState
@@ -198,146 +202,292 @@ class ProjectRequestForm extends React.Component<
     });
   };
 
-  render() {
-    const {
-      isProjectCreated,
-      requestId,
-      selectedCustomer,
-      selectedCustomerName,
-      requestTitle,
-      requestDate,
-      estimatedDuration,
-      estimatedCost,
-      requestNote,
-      customerOptions,
-      formNumber,
-      documentSetLink,
-    } = this.state;
+//   render() {
+//     const {
+//       isProjectCreated,
+//       requestId,
+//       selectedCustomer,
+//       selectedCustomerName,
+//       requestTitle,
+//       requestDate,
+//       estimatedDuration,
+//       estimatedCost,
+//       requestNote,
+//       customerOptions,
+//       formNumber,
+//       documentSetLink,
+//     } = this.state;
 
-    const locale =
-      this.props.context.pageContext.cultureInfo.currentCultureName;
-    const containerClass = locale === "fa-IR" ? "rtlContainer" : "ltrContainer";
-    return (
-      <div className={`${containerClass} ${styles.projectRequestForm}`}>
-        <UIFabricWizard />
-        <h2 className={styles.header}>
-          {isProjectCreated ? "Add Assessments" : "Create Project Request"}
-        </h2>
+//     const locale =
+//       this.props.context.pageContext.cultureInfo.currentCultureName;
+//     const containerClass = locale === "fa-IR" ? "rtlContainer" : "ltrContainer";
+//     return (
+//       <div className={`${containerClass} ${styles.projectRequestForm}`}>
+//         <UIFabricWizard />
+//         <h2 className={styles.header}>
+//           {isProjectCreated ? "Add Assessments" : "Create Project Request"}
+//         </h2>
 
-        {isProjectCreated && (
-          <div>
-            <h3>Project Information</h3>
-            <p>
-              <strong>Project ID:</strong> {requestId}
-            </p>
-            <p>
-              <strong>Form Number:</strong> {formNumber}
-            </p>
-            <p>
-              <strong>Title:</strong> {requestTitle}
-            </p>
-            <p>
-              <strong>Customer Name:</strong> {selectedCustomerName}
-            </p>
-            <p>
-              <strong>Request Date:</strong> {requestDate}
-            </p>
-            <p>Request Note:</p> {requestNote}
-          </div>
-        )}
+//         {isProjectCreated && (
+//           <div>
+//             <h3>Project Information</h3>
+//             <p>
+//               <strong>Project ID:</strong> {requestId}
+//             </p>
+//             <p>
+//               <strong>Form Number:</strong> {formNumber}
+//             </p>
+//             <p>
+//               <strong>Title:</strong> {requestTitle}
+//             </p>
+//             <p>
+//               <strong>Customer Name:</strong> {selectedCustomerName}
+//             </p>
+//             <p>
+//               <strong>Request Date:</strong> {requestDate}
+//             </p>
+//             <p>Request Note:</p> {requestNote}
+//           </div>
+//         )}
 
-        {isProjectCreated && (
-          <div>
-            {/* Document Set Link */}
-            {documentSetLink && (
-              <div className={styles.docSetLink}>
-                <Icon iconName="OpenFolderHorizontal" />
-                <Link href={documentSetLink.url} target="_blank">
-                  {documentSetLink.text}
-                </Link>
-              </div>
-            )}
-          </div>
-        )}
+//         {isProjectCreated && (
+//           <div>
+//             {/* Document Set Link */}
+//             {documentSetLink && (
+//               <div className={styles.docSetLink}>
+//                 <Icon iconName="OpenFolderHorizontal" />
+//                 <Link href={documentSetLink.url} target="_blank">
+//                   {documentSetLink.text}
+//                 </Link>
+//               </div>
+//             )}
+//           </div>
+//         )}
 
-        {/* Project Request Form */}
-        <TextField
-          label="Request Title"
-          value={requestTitle}
-          onChanged={(newValue) =>
-            this.handleInputChange(newValue || "", "requestTitle")
-          }
-          readOnly={isProjectCreated}
-        />
-        <GenericDropdown
-          label="Customer"
-          options={customerOptions}
-          selectedKey={selectedCustomer}
-          onChanged={this.handleDropdownChange}
-          placeHolder="Select Customer"
-          disabled={isProjectCreated}
-        />
-        <TextField
-          label="Request Date"
-          value={requestDate}
-          onChanged={(newValue) =>
-            this.handleInputChange(newValue || "", "requestDate")
-          }
-          readOnly={isProjectCreated}
-        />
-        <TextField
-          label="Estimated Duration (days)"
-          value={estimatedDuration.toString()}
-          onChanged={(newValue) =>
-            this.setState({ estimatedDuration: parseInt(newValue) || 0 })
-          }
-          type="number"
-          readOnly={isProjectCreated}
-        />
-        <TextField
-          label="Estimated Cost"
-          value={estimatedCost.toString()}
-          onChanged={(newValue) =>
-            this.setState({ estimatedCost: parseInt(newValue) || 0 })
-          }
-          type="number"
-          readOnly={isProjectCreated}
-        />
-        <TextField
-          label="Request Note"
-          value={requestNote}
-          onChanged={(newValue) =>
-            this.handleInputChange(newValue || "", "requestNote")
-          }
-          multiline
-          rows={4}
-          readOnly={isProjectCreated}
-        />
+//         {/* Project Request Form */}
+//         <TextField
+//           label="Request Title"
+//           value={requestTitle}
+//           onChanged={(newValue) =>
+//             this.handleInputChange(newValue || "", "requestTitle")
+//           }
+//           readOnly={isProjectCreated}
+//         />
+//         <GenericDropdown
+//           label="Customer"
+//           options={customerOptions}
+//           selectedKey={selectedCustomer}
+//           onChanged={this.handleDropdownChange}
+//           placeHolder="Select Customer"
+//           disabled={isProjectCreated}
+//         />
+//         <TextField
+//           label="Request Date"
+//           value={requestDate}
+//           onChanged={(newValue) =>
+//             this.handleInputChange(newValue || "", "requestDate")
+//           }
+//           readOnly={isProjectCreated}
+//         />
+//         <TextField
+//           label="Estimated Duration (days)"
+//           value={estimatedDuration.toString()}
+//           onChanged={(newValue) =>
+//             this.setState({ estimatedDuration: parseInt(newValue) || 0 })
+//           }
+//           type="number"
+//           readOnly={isProjectCreated}
+//         />
+//         <TextField
+//           label="Estimated Cost"
+//           value={estimatedCost.toString()}
+//           onChanged={(newValue) =>
+//             this.setState({ estimatedCost: parseInt(newValue) || 0 })
+//           }
+//           type="number"
+//           readOnly={isProjectCreated}
+//         />
+//         <TextField
+//           label="Request Note"
+//           value={requestNote}
+//           onChanged={(newValue) =>
+//             this.handleInputChange(newValue || "", "requestNote")
+//           }
+//           multiline
+//           rows={4}
+//           readOnly={isProjectCreated}
+//         />
 
-        {/* Create Button */}
-        <div className={styles.buttonGroup}>
-          {!isProjectCreated && (
-            <PrimaryButton
-              text="Create"
-              onClick={this.handleCreateProjectRequest}
-            />
-          )}
-          {/* Cancel Button */}
-          <div>
-            <PrimaryButton text="Cancel" onClick={this.resetForm} />
-          </div>
+//         {/* Create Button */}
+//         <div className={styles.buttonGroup}>
+//           {!isProjectCreated && (
+//             <PrimaryButton
+//               text="Create"
+//               onClick={this.handleCreateProjectRequest}
+//             />
+//           )}
+//           {/* Cancel Button */}
+//           <div>
+//             <PrimaryButton text="Cancel" onClick={this.resetForm} />
+//           </div>
+//         </div>
+//         {/* Technical Assessment Table */}
+//         {isProjectCreated && requestId && (
+//           <TechnicalAssessmentTable
+//             projectRequestService={this.projectRequestService}
+//             requestId={requestId}
+//             resetForm={this.resetForm}
+//           />
+//         )}
+//       </div>
+//     );
+//   }
+// }
+
+// export default ProjectRequestForm;
+// ProjectRequestForm.tsx
+render() {
+  const {
+    isProjectCreated,
+    requestId,
+    selectedCustomer,
+    selectedCustomerName,
+    requestTitle,
+    requestDate,
+    estimatedDuration,
+    estimatedCost,
+    requestNote,
+    customerOptions,
+    formNumber,
+    documentSetLink,
+  } = this.state;
+
+  const locale =
+    this.props.context.pageContext.cultureInfo.currentCultureName;
+  const containerClass = locale === "fa-IR" ? "rtlContainer" : "ltrContainer";
+
+  return (
+    <div className={`${containerClass} ${styles.projectRequestForm}`}>
+      <UIFabricWizard />
+      <h2 className={styles.header}>
+        {isProjectCreated ? strings.AddAssessments : strings.CreateProjectRequest}
+      </h2>
+
+      {isProjectCreated && (
+        <div>
+          <h3>{strings.ProjectInformation}</h3>
+          <p>
+            <strong>{strings.ProjectID}:</strong> {requestId}
+          </p>
+          <p>
+            <strong>{strings.FormNumber}:</strong> {formNumber}
+          </p>
+          <p>
+            <strong>{strings.Title}:</strong> {requestTitle}
+          </p>
+          <p>
+            <strong>{strings.CustomerName}:</strong> {selectedCustomerName}
+          </p>
+          <p>
+            <strong>{strings.RequestDate}:</strong> {requestDate}
+          </p>
+          <p>{strings.RequestNote}:</p> {requestNote}
         </div>
-        {/* Technical Assessment Table */}
-        {isProjectCreated && requestId && (
-          <TechnicalAssessmentTable
-            projectRequestService={this.projectRequestService}
-            requestId={requestId}
-            resetForm={this.resetForm}
+      )}
+
+      {isProjectCreated && (
+        <div>
+          {/* Document Set Link */}
+          {documentSetLink && (
+            <div className={styles.docSetLink}>
+              <Icon iconName="OpenFolderHorizontal" />
+              <Link href={documentSetLink.url} target="_blank">
+                {documentSetLink.text}
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Project Request Form */}
+      <TextField
+        label={strings.RequestTitle}
+        value={requestTitle}
+        onChanged={(newValue) =>
+          this.handleInputChange(newValue || "", "requestTitle")
+        }
+        readOnly={isProjectCreated}
+      />
+      <GenericDropdown
+        label={strings.Customer}
+        options={customerOptions}
+        selectedKey={selectedCustomer}
+        onChanged={this.handleDropdownChange}
+        placeHolder={strings.SelectCustomer}
+        disabled={isProjectCreated}
+      />
+      <TextField
+        label={strings.RequestDate}
+        value={requestDate}
+        onChanged={(newValue) =>
+          this.handleInputChange(newValue || "", "requestDate")
+        }
+        readOnly={isProjectCreated}
+      />
+      <TextField
+        label={strings.EstimatedDuration}
+        value={estimatedDuration.toString()}
+        onChanged={(newValue) =>
+          this.setState({ estimatedDuration: parseInt(newValue) || 0 })
+        }
+        type="number"
+        readOnly={isProjectCreated}
+      />
+      <TextField
+        label={strings.EstimatedCost}
+        value={estimatedCost.toString()}
+        onChanged={(newValue) =>
+          this.setState({ estimatedCost: parseInt(newValue) || 0 })
+        }
+        type="number"
+        readOnly={isProjectCreated}
+      />
+      <TextField
+        label={strings.RequestNote}
+        value={requestNote}
+        onChanged={(newValue) =>
+          this.handleInputChange(newValue || "", "requestNote")
+        }
+        multiline
+        rows={4}
+        readOnly={isProjectCreated}
+      />
+
+      {/* Create Button */}
+      <div className={styles.buttonGroup}>
+        {!isProjectCreated && (
+          <PrimaryButton
+            text={strings.Create}
+            onClick={this.handleCreateProjectRequest}
           />
         )}
+        {/* Cancel Button */}
+        <div>
+          <PrimaryButton text={strings.Cancel} onClick={this.resetForm} />
+        </div>
       </div>
-    );
-  }
+      {/* Technical Assessment Table */}
+      {isProjectCreated && requestId && (
+        <TechnicalAssessmentTable
+          projectRequestService={this.projectRequestService}
+          requestId={requestId}
+          resetForm={this.resetForm}
+        />
+      )}
+    </div>
+  );
 }
 
-export default ProjectRequestForm;
+}
+
+export default ProjectRequestForm

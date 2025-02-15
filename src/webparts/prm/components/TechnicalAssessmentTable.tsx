@@ -12,6 +12,9 @@ import { ITechnicalAssessmentProps } from "./ITechnicalAssessmentProps";
 import PricingDetails from "./PricingDetails";
 import styles from "./TechnicalAssessmentTable.module.scss";
 
+import * as strings from 'MyWebPartStrings';
+
+
 import ProjectRequestService, {
   IPricingDetails,
 } from "../services/ProjectRequestService";
@@ -218,60 +221,119 @@ class TechnicalAssessmentTable extends React.Component<
     />
   );
 
-  render() {
-    const { assessments } = this.state;
+//   render() {
+//     const { assessments } = this.state;
 
-    return (
-      <div className={styles.assessmentContainer}>
-        <h3 className={styles.assessmentHeading}>Technical Assessments</h3>
-        {assessments.map((assessment, index) => (
-          <div key={index}>
-            <TextField
-              label={`Activity ${index + 1}`}
-              value={assessment.activity}
-              onChanged={(newValue: string) =>
-                this.handleInputChange(newValue, "activity", index)
-              }
-            />
+//     return (
+//       <div className={styles.assessmentContainer}>
+//         <h3 className={styles.assessmentHeading}>Technical Assessments</h3>
+//         {assessments.map((assessment, index) => (
+//           <div key={index}>
+//             <TextField
+//               label={`Activity ${index + 1}`}
+//               value={assessment.activity}
+//               onChanged={(newValue: string) =>
+//                 this.handleInputChange(newValue, "activity", index)
+//               }
+//             />
 
-            {this.renderTable(
-              "Human Resource",
-              "humanResources",
-              this.filterInventoryItems(["نیروی انسانی"]),
-              assessment,
-              index
-            )}
-            {this.renderTable(
-              "Machine",
-              "machines",
-              this.filterInventoryItems(["ماشین آلات"]),
-              assessment,
-              index
-            )}
-            {this.renderTable(
-              "Material",
-              "materials",
-              this.filterInventoryItems(["ابزار", "محصول", "مواد اولیه"]),
-              assessment,
-              index
-            )}
+//             {this.renderTable(
+//               "Human Resource",
+//               "humanResources",
+//               this.filterInventoryItems(["نیروی انسانی"]),
+//               assessment,
+//               index
+//             )}
+//             {this.renderTable(
+//               "Machine",
+//               "machines",
+//               this.filterInventoryItems(["ماشین آلات"]),
+//               assessment,
+//               index
+//             )}
+//             {this.renderTable(
+//               "Material",
+//               "materials",
+//               this.filterInventoryItems(["ابزار", "محصول", "مواد اولیه"]),
+//               assessment,
+//               index
+//             )}
 
-            <hr />
-          </div>
-        ))}
-        <PrimaryButton
-          className={styles.addAssessmentButton}
-          text="Add Assessment"
-          onClick={this.addAssessment}
-        />
-        <PrimaryButton
-          className={styles.finalSubmitButton}
-          text="Final Submit"
-          onClick={this.handleFinalSubmit}
-        />
-      </div>
-    );
-  }
+//             <hr />
+//           </div>
+//         ))}
+//         <PrimaryButton
+//           className={styles.addAssessmentButton}
+//           text="Add Assessment"
+//           onClick={this.addAssessment}
+//         />
+//         <PrimaryButton
+//           className={styles.finalSubmitButton}
+//           text="Final Submit"
+//           onClick={this.handleFinalSubmit}
+//         />
+//       </div>
+//     );
+//   }
+// }
+
+// export default TechnicalAssessmentTable;
+// TechnicalAssessmentTable.tsx
+render() {
+  const { assessments } = this.state;
+
+  return (
+    <div className={styles.assessmentContainer}>
+      <h3 className={styles.assessmentHeading}>{strings.TechnicalAssessments}</h3>
+      {assessments.map((assessment, index) => (
+        <div key={index}>
+          <TextField
+            label={`${strings.Activity} ${index + 1}`}
+            value={assessment.activity}
+            onChanged={(newValue: string) =>
+              this.handleInputChange(newValue, "activity", index)
+            }
+          />
+
+          {this.renderTable(
+            strings.HumanResource,
+            "humanResources",
+            this.filterInventoryItems([strings.HumanResource]),
+            assessment,
+            index
+          )}
+          {this.renderTable(
+            strings.Machine,
+            "machines",
+            this.filterInventoryItems([strings.Machine]),
+            assessment,
+            index
+          )}
+          {this.renderTable(
+            strings.Material,
+            "materials",
+            this.filterInventoryItems([strings.Material]),
+            assessment,
+            index
+          )}
+
+          <hr />
+        </div>
+      ))}
+      <PrimaryButton
+        className={styles.addAssessmentButton}
+        text={strings.AddAssessment}
+        onClick={this.addAssessment}
+      />
+      <PrimaryButton
+        className={styles.finalSubmitButton}
+        text={strings.FinalSubmit}
+        onClick={this.handleFinalSubmit}
+      />
+    </div>
+  );
+}
+
 }
 
 export default TechnicalAssessmentTable;

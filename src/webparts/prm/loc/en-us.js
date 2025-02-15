@@ -2,6 +2,37 @@ define([], function() {
   return {
     "PropertyPaneDescription": "Description",
     "BasicGroupName": "Group Name",
-    "DescriptionFieldLabel": "Description Field"
-  }
+    "DescriptionFieldLabel": "Description Field",
+    
+      AddAssessments: "Add Assessments",
+      CreateProjectRequest: "Create Project Request",
+      ProjectInformation: "Project Information",
+      ProjectID: "Project ID",
+      FormNumber: "Form Number",
+      Title: "Title",
+      CustomerName: "Customer Name",
+      RequestDate: "Request Date",
+      RequestNote: "Request Note",
+      RequestTitle: "Request Title",
+      Customer: "Customer",
+      SelectCustomer: "Select Customer",
+      EstimatedDuration: "Estimated Duration (days)",
+      EstimatedCost: "Estimated Cost",
+      Create: "Create",
+      Cancel: "Cancel",
+      TechnicalAssessments: "Technical Assessments",
+      Activity: "Activity",
+      HumanResource: "Human Resource",
+      Machine: "Machine",
+      Material: "Material",
+      AddAssessment: "Add Assessment",
+      FinalSubmit: "Final Submit",
+      Quantity: "Quantity",
+      PricePerUnit: "Price Per Unit",
+      TotalCost: "Total Cost",
+      Remove: "Remove",
+      No: "No",
+      AddedYet: "Added yet",
+      Add: "Add"
+  };
 });

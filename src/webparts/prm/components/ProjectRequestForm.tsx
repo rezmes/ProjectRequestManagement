@@ -15,7 +15,8 @@ import ProjectRequestService from "../services/ProjectRequestService"; // ✅ م
 import * as moment from "moment";
 import "moment-jalaali";
 import TechnicalAssessmentTable from "./TechnicalAssessmentTable";
-
+import styles from "./ProjectRequestForm.module.scss";
+import UIFabricWizard from "./UIFabricWizard";
 class ProjectRequestForm extends React.Component<
   IProjectRequestFormProps,
   IProjectRequestFormState
@@ -213,9 +214,13 @@ class ProjectRequestForm extends React.Component<
       documentSetLink,
     } = this.state;
 
+    const locale =
+      this.props.context.pageContext.cultureInfo.currentCultureName;
+    const containerClass = locale === "fa-IR" ? "rtlContainer" : "ltrContainer";
     return (
-      <div>
-        <h2>
+      <div className={`${containerClass} ${styles.projectRequestForm}`}>
+        <UIFabricWizard />
+        <h2 className={styles.header}>
           {isProjectCreated ? "Add Assessments" : "Create Project Request"}
         </h2>
 
@@ -238,32 +243,20 @@ class ProjectRequestForm extends React.Component<
               <strong>Request Date:</strong> {requestDate}
             </p>
             <p>Request Note:</p> {requestNote}
-            {/* Include other information as needed */}
-            <p>
-              {/* Document Set Link */}
-              {documentSetLink && (
-                <div
-                  style={{
-                    marginTop: "20px",
-                    padding: "10px",
-                    border: "1px solid #ddd",
-                    borderRadius: "4px",
-                  }}
-                >
-                  <Icon
-                    iconName="OpenFolderHorizontal"
-                    style={{ marginRight: "8px" }}
-                  />
-                  <Link
-                    href={documentSetLink.url}
-                    target="_blank"
-                    style={{ fontSize: "16px" }}
-                  >
-                    {documentSetLink.text}
-                  </Link>
-                </div>
-              )}
-            </p>
+          </div>
+        )}
+
+        {isProjectCreated && (
+          <div>
+            {/* Document Set Link */}
+            {documentSetLink && (
+              <div className={styles.docSetLink}>
+                <Icon iconName="OpenFolderHorizontal" />
+                <Link href={documentSetLink.url} target="_blank">
+                  {documentSetLink.text}
+                </Link>
+              </div>
+            )}
           </div>
         )}
 
@@ -322,13 +315,18 @@ class ProjectRequestForm extends React.Component<
         />
 
         {/* Create Button */}
-        {!isProjectCreated && (
-          <PrimaryButton
-            text="Create"
-            onClick={this.handleCreateProjectRequest}
-          />
-        )}
-
+        <div className={styles.buttonGroup}>
+          {!isProjectCreated && (
+            <PrimaryButton
+              text="Create"
+              onClick={this.handleCreateProjectRequest}
+            />
+          )}
+          {/* Cancel Button */}
+          <div>
+            <PrimaryButton text="Cancel" onClick={this.resetForm} />
+          </div>
+        </div>
         {/* Technical Assessment Table */}
         {isProjectCreated && requestId && (
           <TechnicalAssessmentTable
@@ -337,11 +335,6 @@ class ProjectRequestForm extends React.Component<
             resetForm={this.resetForm}
           />
         )}
-
-        {/* Cancel Button */}
-        <div>
-          <PrimaryButton text="Cancel" onClick={this.resetForm} />
-        </div>
       </div>
     );
   }

@@ -10,6 +10,7 @@ import GenericDropdown from "./GenericDropdown";
 import { ITechnicalAssessmentState } from "./ITechnicalAssessmentState";
 import { ITechnicalAssessmentProps } from "./ITechnicalAssessmentProps";
 import PricingDetails from "./PricingDetails";
+import styles from "./TechnicalAssessmentTable.module.scss";
 
 import ProjectRequestService, {
   IPricingDetails,
@@ -221,8 +222,8 @@ class TechnicalAssessmentTable extends React.Component<
     const { assessments } = this.state;
 
     return (
-      <div>
-        <h3>Technical Assessments</h3>
+      <div className={styles.assessmentContainer}>
+        <h3 className={styles.assessmentHeading}>Technical Assessments</h3>
         {assessments.map((assessment, index) => (
           <div key={index}>
             <TextField
@@ -258,8 +259,16 @@ class TechnicalAssessmentTable extends React.Component<
             <hr />
           </div>
         ))}
-        <PrimaryButton text="Add Assessment" onClick={this.addAssessment} />
-        <PrimaryButton text="Final Submit" onClick={this.handleFinalSubmit} />
+        <PrimaryButton
+          className={styles.addAssessmentButton}
+          text="Add Assessment"
+          onClick={this.addAssessment}
+        />
+        <PrimaryButton
+          className={styles.finalSubmitButton}
+          text="Final Submit"
+          onClick={this.handleFinalSubmit}
+        />
       </div>
     );
   }

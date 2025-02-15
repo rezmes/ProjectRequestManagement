@@ -1,0 +1,40 @@
+.assessmentContainer {
+  background-color: var(--white-color);
+  padding: 15px;
+  margin-bottom: 30px;
+  border: 1px solid var(--gray-300);
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.assessmentHeading {
+  font-size: 1.5rem;
+  color: var(--web-part-heading);
+  margin-bottom: 10px;
+}
+
+.pricingTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pricingTable th,
+.pricingTable td {
+  padding: 8px;
+  border: 1px solid var(--gray-300);
+  text-align: left;
+}
+
+.pricingTable th {
+  background-color: var(--primary);
+  color: var(--white-color);
+}
+
+.pricingTable tr:nth-child(even) {
+  background-color: var(--gray-200);
+}
+
+.addAssessmentButton,
+.finalSubmitButton {
+  margin-top: 15px;
+}

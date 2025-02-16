@@ -36,6 +36,79 @@ export default class ProjectRequestService {
   constructor(context:any) {
   this.context = context;
 }
+
+
+// import { SPHttpClient, ISPHttpClientOptions, SPHttpClientResponse } from '@microsoft/sp-http';
+// import { WebPartContext } from '@microsoft/sp-webpart-base';
+
+// export default class ProjectRequestService {
+//   private context: WebPartContext;
+
+//   constructor(context: WebPartContext) {
+//     this.context = context;
+//   }
+
+  /**
+   * Retrieves managed metadata terms matching the given label.
+   * Uses the SOAP endpoint at /_vti_bin/TaxonomyClientService.asmx.
+   * @param label The term label to search for.
+   * @param language The LCID of the language (default is 1033 for English).
+   */
+  public getTermsByLabel(label: string, language: number = 1065): Promise<{ id: string; label: string }[]> {
+    const soapEnvelope: string = `
+      <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                     xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+        <soap:Body>
+          <GetTermsByLabel xmlns="http://schemas.microsoft.com/sharepoint/taxonomy/soap/">
+            <label>${label}</label>
+            <language>${language}</language>
+            <defaultLabelOnly>true</defaultLabelOnly>
+            <trimUnavailable>false</trimUnavailable>
+            <resultCollectionSize>100</resultCollectionSize>
+          </GetTermsByLabel>
+        </soap:Body>
+      </soap:Envelope>
+    `;
+
+    const requestOptions: ISPHttpClientOptions = {
+      body: soapEnvelope,
+      headers: {
+        "Content-Type": "text/xml; charset=utf-8",
+        "SOAPAction": "http://schemas.microsoft.com/sharepoint/taxonomy/soap/GetTermsByLabel"
+      }
+    };
+
+    return this.context.spHttpClient
+      .post(`${this.context.pageContext.web.absoluteUrl}/_vti_bin/TaxonomyClientService.asmx`, SPHttpClient.configurations.v1, requestOptions)
+      .then((response: SPHttpClientResponse) => {
+        if (!response.ok) {
+          return Promise.reject(new Error(`Error retrieving terms: ${response.statusText}`));
+        }
+        return response.text();
+      })
+      .then((responseText: string) => {
+        const parser: DOMParser = new DOMParser();
+        const xmlDoc: Document = parser.parseFromString(responseText, "text/xml");
+        const termNodes: NodeListOf<Element> = xmlDoc.querySelectorAll("Term");
+        const terms: { id: string; label: string }[] = [];
+        termNodes.forEach((termNode) => {
+          const idNode = termNode.querySelector("Id");
+          const labelNode = termNode.querySelector("DefaultLabel");
+          if (idNode && labelNode) {
+            terms.push({ id: idNode.textContent || "", label: labelNode.textContent || "" });
+          }
+        });
+        return terms;
+      });
+  }
+
+
+
+
+
+
+
   public getCustomerOptions(): Promise<IDropdownOption[]> {
     return sp.web.lists
       .getByTitle("Customer")
@@ -83,36 +156,36 @@ public createProjectRequest(requestData: any): Promise<any> {
 }
 
 
-  // public async getFormDigest(): Promise<string> {
-  //   try {
-  //     const digestElement = document.getElementById("__REQUESTDIGEST");
-  //     const digestValue = digestElement ? digestElement.getAttribute("value") : "";
+  public async getFormDigest(): Promise<string> {
+    try {
+      const digestElement = document.getElementById("__REQUESTDIGEST");
+      const digestValue = digestElement ? digestElement.getAttribute("value") : "";
 
-  //     const response = await fetch(
-  //       `${this.context.pageContext.web.absoluteUrl}/_api/contextinfo`,
-  //       {
-  //         method: "POST",
-  //         headers: {
-  //           "Accept": "application/json;odata=verbose",
-  //           "Content-Type": "application/json;odata=verbose",
-  //           "X-RequestDigest": digestValue || "" // Use extracted form digest if available
-  //         },
-  //         credentials: "include" // Ensures authentication
-  //       }
-  //     );
+      const response = await fetch(
+        `${this.context.pageContext.web.absoluteUrl}/_api/contextinfo`,
+        {
+          method: "POST",
+          headers: {
+            "Accept": "application/json;odata=verbose",
+            "Content-Type": "application/json;odata=verbose",
+            "X-RequestDigest": digestValue || "" // Use extracted form digest if available
+          },
+          credentials: "include" // Ensures authentication
+        }
+      );
 
-  //     if (!response.ok) {
-  //       throw new Error(`Failed to fetch Form Digest. HTTP ${response.status}: ${response.statusText}`);
-  //     }
+      if (!response.ok) {
+        throw new Error(`Failed to fetch Form Digest. HTTP ${response.status}: ${response.statusText}`);
+      }
 
-  //     const responseData = await response.json();
-  //     return responseData.d.GetContextWebInformation.FormDigestValue;
+      const responseData = await response.json();
+      return responseData.d.GetContextWebInformation.FormDigestValue;
 
-  //   } catch (error) {
-  //     console.error("❌ FormDigest fetch failed:", error);
-  //     throw error;
-  //   }
-  // }
+    } catch (error) {
+      console.error("❌ FormDigest fetch failed:", error);
+      throw error;
+    }
+  }
 
   public getInventoryItems(): Promise<IDropdownOptionWithCategory[]> {
     return sp.web.lists

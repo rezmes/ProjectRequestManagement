@@ -12,7 +12,7 @@ import { ITechnicalAssessmentProps } from "./ITechnicalAssessmentProps";
 import PricingDetails from "./PricingDetails";
 import styles from "./TechnicalAssessmentTable.module.scss";
 
-import * as strings from "MyWebPartStrings";
+import * as strings from "PrmWebPartStrings";
 
 import ProjectRequestService, {
   IPricingDetails,

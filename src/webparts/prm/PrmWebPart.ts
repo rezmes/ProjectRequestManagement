@@ -3,7 +3,7 @@ import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import { Version } from '@microsoft/sp-core-library';
 import { IPropertyPaneConfiguration, PropertyPaneTextField, BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
-import * as strings from 'MyWebPartStrings';
+import * as strings from 'PrmWebPartStrings';
 import ProjectRequestForm from './components/ProjectRequestForm';
 import { sp } from "@pnp/sp";
 import { IProjectRequestFormProps } from './components/IProjectRequestFormProps';

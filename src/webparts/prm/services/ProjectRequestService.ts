@@ -83,36 +83,36 @@ public createProjectRequest(requestData: any): Promise<any> {
 }
 
 
-  public async getFormDigest(): Promise<string> {
-    try {
-      const digestElement = document.getElementById("__REQUESTDIGEST");
-      const digestValue = digestElement ? digestElement.getAttribute("value") : "";
+  // public async getFormDigest(): Promise<string> {
+  //   try {
+  //     const digestElement = document.getElementById("__REQUESTDIGEST");
+  //     const digestValue = digestElement ? digestElement.getAttribute("value") : "";
 
-      const response = await fetch(
-        `${this.context.pageContext.web.absoluteUrl}/_api/contextinfo`,
-        {
-          method: "POST",
-          headers: {
-            "Accept": "application/json;odata=verbose",
-            "Content-Type": "application/json;odata=verbose",
-            "X-RequestDigest": digestValue || "" // Use extracted form digest if available
-          },
-          credentials: "include" // Ensures authentication
-        }
-      );
+  //     const response = await fetch(
+  //       `${this.context.pageContext.web.absoluteUrl}/_api/contextinfo`,
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           "Accept": "application/json;odata=verbose",
+  //           "Content-Type": "application/json;odata=verbose",
+  //           "X-RequestDigest": digestValue || "" // Use extracted form digest if available
+  //         },
+  //         credentials: "include" // Ensures authentication
+  //       }
+  //     );
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch Form Digest. HTTP ${response.status}: ${response.statusText}`);
-      }
+  //     if (!response.ok) {
+  //       throw new Error(`Failed to fetch Form Digest. HTTP ${response.status}: ${response.statusText}`);
+  //     }
 
-      const responseData = await response.json();
-      return responseData.d.GetContextWebInformation.FormDigestValue;
+  //     const responseData = await response.json();
+  //     return responseData.d.GetContextWebInformation.FormDigestValue;
 
-    } catch (error) {
-      console.error("❌ FormDigest fetch failed:", error);
-      throw error;
-    }
-  }
+  //   } catch (error) {
+  //     console.error("❌ FormDigest fetch failed:", error);
+  //     throw error;
+  //   }
+  // }
 
   public getInventoryItems(): Promise<IDropdownOptionWithCategory[]> {
     return sp.web.lists

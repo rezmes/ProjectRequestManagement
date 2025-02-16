@@ -1,14 +1,4 @@
-// declare interface IMyWebPartStrings {
-//   PropertyPaneDescription: string;
-//   BasicGroupName: string;
-//   DescriptionFieldLabel: string;
-// }
-
-// declare module 'MyWebPartStrings' {
-//   const strings: IMyWebPartStrings;
-//   export = strings;
-// }
-declare interface IMyWebPartStrings {
+declare interface IPrmWebPartStrings {
   PropertyPaneDescription: string;
   BasicGroupName: string;
   DescriptionFieldLabel: string;
@@ -44,7 +34,7 @@ declare interface IMyWebPartStrings {
   Add: string;
 }
 
-declare module 'MyWebPartStrings' {
+declare module 'PrmWebPartStrings' {
   const strings: IMyWebPartStrings;
   export = strings;
 }

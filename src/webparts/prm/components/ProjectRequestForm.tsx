@@ -18,7 +18,7 @@ import TechnicalAssessmentTable from "./TechnicalAssessmentTable";
 import styles from "./ProjectRequestForm.module.scss";
 import UIFabricWizard from "./UIFabricWizard";
 
-import * as strings from "MyWebPartStrings";
+import * as strings from "PrmWebPartStrings";
 
 class ProjectRequestForm extends React.Component<
   IProjectRequestFormProps,

@@ -16,9 +16,11 @@ export class GenericDropdown extends React.Component<
   IGenericDropdownProps,
   {}
 > {
+  
   public render(): React.ReactElement<IGenericDropdownProps> {
     const { label, options, selectedKey, onChanged, placeHolder, disabled } =
       this.props;
+      console.log("Dropdown Options:", this.props.options); // Debugging
     return (
       <Dropdown
         label={label}

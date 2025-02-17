@@ -110,15 +110,41 @@ class TechnicalAssessmentTable extends React.Component<
 
   loadInventoryItems = () => {
     this.projectRequestService.getInventoryItems().then((items) => {
+      console.log("Inventory Items:", items); // Debugging
       this.setState({ inventoryItems: items });
     });
   };
-
+  
+  // filterInventoryItems = (categories: string[]): IDropdownOption[] => {
+  //   const { inventoryItems } = this.state;
+  //   const filteredItems = inventoryItems
+  //     .filter((item) => categories.indexOf(item.itemCategory) > -1)
+  //     .map((item) => ({ key: item.key, text: item.text }));
+  //   console.log("Filtered Items:", filteredItems); // Debugging
+  //   return filteredItems;
+  // };
   filterInventoryItems = (categories: string[]): IDropdownOption[] => {
     const { inventoryItems } = this.state;
-    return inventoryItems
-      .filter((item) => categories.indexOf(item.itemCategory) > -1)
-      .map((item) => ({ key: item.key, text: item.text }));
+  
+    // Map English category keys to their Persian equivalents
+    const categoryMap: { [key: string]: string[] } = {
+      HumanResource: [strings.HumanResource, "نیروی انسانی"], // English & Persian
+      Machine: [strings.Machine, "ماشین آلات"], 
+      Material: [strings.Material,"ابزار","محصول","مواد اولیه"]
+    };
+  
+    // Get all valid category names for the requested categories
+    const validCategories = categories.reduce((acc, category) => {
+      return acc.concat(categoryMap[category] || [category]);
+    }, [] as string[]);
+  
+    // Filter items using indexOf for SPFx 1.4.1 compatibility
+    const filteredItems = inventoryItems.filter((item) => 
+      validCategories.indexOf(item.itemCategory) > -1
+    );
+  
+    console.log("Filtered Items:", filteredItems);
+    return filteredItems.map((item) => ({ key: item.key, text: item.text }));
   };
 
   handleInputChange = (

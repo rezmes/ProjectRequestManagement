@@ -9,6 +9,7 @@ declare interface IPrmWebPartStrings {
   FormNumber: string;
   Title: string;
   CustomerName: string;
+  ProjectCodeLabel: string,
   RequestDate: string;
   RequestNote: string;
   RequestTitle: string;

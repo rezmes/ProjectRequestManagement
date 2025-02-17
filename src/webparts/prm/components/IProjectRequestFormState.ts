@@ -20,7 +20,12 @@ export interface IProjectRequestFormState {
   selectedCustomer: string | number | null;
   selectedCustomerName: string;
   customerOptions: IDropdownOption[];
-  // projectCodeTerm: string;
+  
+  // PojectCode1 Information
+  ProjectCode1: {id:string; label: string} | null;
+  selectedTerm: { id: string; label: string } | null;
+  projectCodeTerm: { id: string; label: string } | null;
+  terms: { id: string; label: string }[];
 
   // Assessments
   assessments: IAssessment[];
@@ -32,10 +37,6 @@ export interface IProjectRequestFormState {
     text: string;
   };
 
-//combo box
 
-  selectedTerm: { id: string; label: string } | null;
-  terms: { id: string; label: string }[];
-  projectCodeTerm: { id: string; label: string } | null;
 
 }

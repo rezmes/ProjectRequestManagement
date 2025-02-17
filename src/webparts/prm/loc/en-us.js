@@ -11,6 +11,7 @@ define([], function() {
       FormNumber: "Form Number",
       Title: "Title",
       CustomerName: "Customer Name",
+      ProjectCodeLabel: "Project Code",
       RequestDate: "Request Date",
       RequestNote: "Request Note",
       RequestTitle: "Request Title",
@@ -34,5 +35,6 @@ define([], function() {
       No: "No",
       AddedYet: "Added yet",
       Add: "Add"
+     
   };
 });

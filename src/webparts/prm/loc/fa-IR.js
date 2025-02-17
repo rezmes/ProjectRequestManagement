@@ -11,6 +11,7 @@ define([], function() {
     FormNumber: "شماره فرم",
     Title: "عنوان",
     CustomerName: "نام مشتری",
+    ProjectCodeLabel: "شماره سفارش",
     RequestDate: "تاریخ درخواست",
     RequestNote: "یادداشت درخواست",
     RequestTitle: "عنوان درخواست",

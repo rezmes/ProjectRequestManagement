@@ -49,6 +49,7 @@ class ProjectRequestForm extends React.Component<
       projectCodeTerm: null,
       selectedTerm: null,
       terms: [],
+      ProjectCode1: null,
     };
 
     this.handleTermSelected = this.handleTermSelected.bind(this);
@@ -64,21 +65,10 @@ class ProjectRequestForm extends React.Component<
     this.loadCustomerOptions();
   }
 
-  // private handleTermSelected(term: { id: string; label: string }): void {
-  //   this.setState({ selectedTerm: term });
-  //   console.log("Selected Term:", term); // Log selected term
-  // }
-
-
-
-
-
-  private handleTermSelected = (term: { id: string; label: string }) => {
-    // Save the selected term to state or handle it as needed.
-    this.setState({ projectCodeTerm: term });
-  };
-
-
+  private handleTermSelected(term: { id: string; label: string }): void {
+    this.setState({ selectedTerm: term });
+    console.log("Selected Term:", term); // Log selected term
+  }
 
 
 
@@ -157,6 +147,7 @@ class ProjectRequestForm extends React.Component<
       estimatedCost,
       requestNote,
       RequestStatus,
+      ProjectCode1,
     } = this.state;
 
     // Step 1: Get the next form number
@@ -175,6 +166,7 @@ class ProjectRequestForm extends React.Component<
           Description1: requestNote,
           RequestStatus: RequestStatus.trim(),
           FormNumber: formNumber,
+          ProjectCode1: ProjectCode1 ? ProjectCode1.id: null,
         };
 
         // Step 3: Create the project request
@@ -312,33 +304,14 @@ class ProjectRequestForm extends React.Component<
           }
           readOnly={isProjectCreated}
         />
-        {/* <ManagedMetadataPicker
-          label={strings.ProjectCodeLabel} // e.g., "Project Code"
-          onTermSelected={this.handleTermSelected}
-          disabled={false} // Set to true if the picker should be disabled
-          context={this.props.context} // Pass the current WebPart context
-        /> */}
 
-        {/*
+
         <ManagedMetadataPicker
-  label={strings.ProjectCodeLabel}  // e.g., "Project Code"
-  onTermSelected={(term) => {
-    // Handle the selected term
-    console.log("Selected term:", term);
-  }}
-
-  placeHolder="Select a project code..."
-  context={this.props.context} // Ensure you pass the context
-  termSetId="your-term-set-id" // Provide the term set ID
-  // Alternatively, you can use fieldInternalName
-  // fieldInternalName="your-field-internal-name"
-/> */}
-
-<ManagedMetadataPicker
           label={strings.ProjectCodeLabel} // e.g., "Project Code"
           onTermSelected={this.handleTermSelected}
           context={this.props.context}
           placeHolder="Select Project Code"
+          disabled={isProjectCreated}
         />
         <GenericDropdown
           label={strings.Customer}
@@ -407,29 +380,7 @@ class ProjectRequestForm extends React.Component<
           />
         )}
 
-        <div>
-          <TextField
-            label="Request Title"
-            value={this.state.requestTitle}
-            onChanged={(value) => this.setState({ requestTitle: value })}
-          />
-          {/* <ManagedMetadataPicker
-            label="Project Code"
-            onTermSelected={this.handleTermSelected}
-            context={this.props.context}
-            termSetId={this.props.termSetId}
-            
-            // termSetId="5863383a-85c5-4fbd-8114-11ef83bf9175"
-            placeHolder="Select Project Code"
-          /> */}
-        <ManagedMetadataPicker
-          label={strings.ProjectCodeLabel} // e.g., "Project Code"
-          onTermSelected={this.handleTermSelected}
-          context={this.props.context}
-          placeHolder="Select Project Code"
-        />
-          <PrimaryButton text="Submit" onClick={this.handleSubmit} />
-        </div>
+
       </div>
     );
   }

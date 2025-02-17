@@ -9,7 +9,7 @@ import {
 } from "office-ui-fabric-react";
 import GenericDropdown from "./GenericDropdown";
 
-import * as strings from "MyWebPartStrings";
+import * as strings from "PrmWebPartStrings";
 
 interface IPricingDetailsProps {
   label: string;

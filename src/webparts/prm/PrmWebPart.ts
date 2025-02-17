@@ -28,6 +28,7 @@ export default class PrmWebPart extends BaseClientSideWebPart<IPrmWebPartProps> 
       spHttpClient: this.context.spHttpClient,
       siteUrl: this.context.pageContext.web.absoluteUrl,
 
+termSetId: '5863383a-85c5-4fbd-8114-11ef83bf9175',
       context: this.context,
     });
 

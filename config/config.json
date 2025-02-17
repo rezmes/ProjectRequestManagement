@@ -14,8 +14,6 @@
   "externals": {},
 
   "localizedResources": {
-    "MyWebPartStrings": "lib/webparts/prm/loc/en-us.js",
-    "MyWebPartStrings_en-us": "lib/webparts/prm/loc/en-us.js",
-    "MyWebPartStrings_fa-IR": "lib/webparts/prm/loc/fa-IR.js"
+    "PrmWebPartStrings": "lib/webparts/prm/loc/{locale}.js"
   }
 }

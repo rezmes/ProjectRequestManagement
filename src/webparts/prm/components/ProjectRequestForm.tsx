@@ -1,4 +1,4 @@
-// // ProjectRequestForm.tsx
+// ProjectRequestForm.tsx
 
 import * as React from "react";
 import {
@@ -17,6 +17,7 @@ import "moment-jalaali";
 import TechnicalAssessmentTable from "./TechnicalAssessmentTable";
 import styles from "./ProjectRequestForm.module.scss";
 import UIFabricWizard from "./UIFabricWizard";
+import ManagedMetadataPicker from "./ManagedMetadataPicker";
 
 import * as strings from "PrmWebPartStrings";
 
@@ -45,14 +46,42 @@ class ProjectRequestForm extends React.Component<
       assessments: [],
       formNumber: null,
       documentSetLink: null,
+      projectCodeTerm: null,
+      selectedTerm: null,
+      terms: [],
     };
 
+    this.handleTermSelected = this.handleTermSelected.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
     this.resetForm = this.resetForm.bind(this);
+  }
+
+  private handleSubmit(): void {
+    console.log("Form submitted with data:", this.state); // Log form data
   }
 
   componentDidMount() {
     this.loadCustomerOptions();
   }
+
+  // private handleTermSelected(term: { id: string; label: string }): void {
+  //   this.setState({ selectedTerm: term });
+  //   console.log("Selected Term:", term); // Log selected term
+  // }
+
+
+
+
+
+  private handleTermSelected = (term: { id: string; label: string }) => {
+    // Save the selected term to state or handle it as needed.
+    this.setState({ projectCodeTerm: term });
+  };
+
+
+
+
+
 
   loadCustomerOptions() {
     this.projectRequestService.getCustomerOptions().then((customerOptions) => {
@@ -184,6 +213,14 @@ class ProjectRequestForm extends React.Component<
       });
   };
 
+  // // Handler when a term is selected
+  // handleTermSelected = (term) => {
+  //   this.setState({ projectCodeTerm: term });
+  //   // Additional logic to handle the selected term can be added here
+  // };
+  private handleProjectCodeSelected(term: { id: string; label: string }): void {
+    // Handle the selected term
+  }
   resetForm = (): void => {
     this.setState({
       isProjectCreated: false,
@@ -275,6 +312,34 @@ class ProjectRequestForm extends React.Component<
           }
           readOnly={isProjectCreated}
         />
+        {/* <ManagedMetadataPicker
+          label={strings.ProjectCodeLabel} // e.g., "Project Code"
+          onTermSelected={this.handleTermSelected}
+          disabled={false} // Set to true if the picker should be disabled
+          context={this.props.context} // Pass the current WebPart context
+        /> */}
+
+        {/*
+        <ManagedMetadataPicker
+  label={strings.ProjectCodeLabel}  // e.g., "Project Code"
+  onTermSelected={(term) => {
+    // Handle the selected term
+    console.log("Selected term:", term);
+  }}
+
+  placeHolder="Select a project code..."
+  context={this.props.context} // Ensure you pass the context
+  termSetId="your-term-set-id" // Provide the term set ID
+  // Alternatively, you can use fieldInternalName
+  // fieldInternalName="your-field-internal-name"
+/> */}
+
+<ManagedMetadataPicker
+          label={strings.ProjectCodeLabel} // e.g., "Project Code"
+          onTermSelected={this.handleTermSelected}
+          context={this.props.context}
+          placeHolder="Select Project Code"
+        />
         <GenericDropdown
           label={strings.Customer}
           options={customerOptions}
@@ -341,6 +406,30 @@ class ProjectRequestForm extends React.Component<
             resetForm={this.resetForm}
           />
         )}
+
+        <div>
+          <TextField
+            label="Request Title"
+            value={this.state.requestTitle}
+            onChanged={(value) => this.setState({ requestTitle: value })}
+          />
+          {/* <ManagedMetadataPicker
+            label="Project Code"
+            onTermSelected={this.handleTermSelected}
+            context={this.props.context}
+            termSetId={this.props.termSetId}
+            
+            // termSetId="5863383a-85c5-4fbd-8114-11ef83bf9175"
+            placeHolder="Select Project Code"
+          /> */}
+        <ManagedMetadataPicker
+          label={strings.ProjectCodeLabel} // e.g., "Project Code"
+          onTermSelected={this.handleTermSelected}
+          context={this.props.context}
+          placeHolder="Select Project Code"
+        />
+          <PrimaryButton text="Submit" onClick={this.handleSubmit} />
+        </div>
       </div>
     );
   }

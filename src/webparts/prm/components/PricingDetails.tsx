@@ -189,7 +189,7 @@ class PricingDetails extends React.Component<IPricingDetailsProps> {
       removeRow,
       label,
     } = this.props;
-    console.log(`Options for ${label}:`, options); // Debugging
+    // console.log(`Options for ${label}:`, options); // Debugging
     return (
       <table className="technicalAssessmentTable">
         <tbody>

@@ -493,7 +493,7 @@ export default class ProjectRequestService {
       .getByTitle("ProjectRequests")
       .items.add(requestData)
       .then((result) => {
-        console.log("Create Response:", result);
+        // console.log("Create Response:", result);
         return result.data;
       })
       .catch((error) => {
@@ -561,7 +561,7 @@ public saveAssessments(
   return batch
     .execute()
     .then(() => {
-      console.log("Assessments saved successfully");
+      // console.log("Assessments saved successfully");
     })
     .catch((error) => {
       console.error("Error saving assessments", error);
@@ -584,7 +584,7 @@ public savePricingDetails(pricingDetails: IPricingDetails[]): Promise<void> {
       // Do not include TotalCost as it is a calculated column
     };
 
-    console.log("Pricing Detail Data to Add:", data);
+    // console.log("Pricing Detail Data to Add:", data);
 
     sp.web.lists
       .getByTitle("PricingDetails")
@@ -595,7 +595,7 @@ public savePricingDetails(pricingDetails: IPricingDetails[]): Promise<void> {
   return batch
     .execute()
     .then(() => {
-      console.log("Pricing details saved successfully");
+      // console.log("Pricing details saved successfully");
     })
     .catch((error) => {
       console.error("Error saving pricing details", error);
@@ -641,7 +641,7 @@ handleFinalSubmit = (): void => {
       });
     });
 
-    console.log("Pricing Details to Save:", pricingDetails);
+    // console.log("Pricing Details to Save:", pricingDetails);
 
     this.projectRequestService
       .saveAssessments(assessments, requestId)
@@ -934,7 +934,7 @@ class ProjectRequestForm extends React.Component<
               requestId,
             },
             () => {
-              console.log("New project created with ID:", requestId);
+              // console.log("New project created with ID:", requestId);
               alert(
                 "Project request created successfully! You can now add assessments."
               );
@@ -1158,7 +1158,7 @@ class TechnicalAssessmentTable extends React.Component<
       });
     });
 
-    console.log("Pricing Details to Save:", pricingDetails);
+    // console.log("Pricing Details to Save:", pricingDetails);
 
     this.projectRequestService
       .saveAssessments(assessments, requestId)
@@ -1418,11 +1418,11 @@ AND
 
 ```tsx
 handleDropdownChange = (option?: IDropdownOption): void => {
-  console.log("Dropdown Change Event:", option); // Log the dropdown change event
+  // console.log("Dropdown Change Event:", option); // Log the dropdown change event
   this.setState(
     { selectedCustomer: option ? option.key.toString() : undefined },
     () => {
-      console.log(
+      // console.log(
         "Updated selectedCustomer in state:",
         this.state.selectedCustomer
       ); // Log the updated
@@ -1910,7 +1910,7 @@ export class ParentComponent extends React.Component<
   }
 
   private handleDropdownChange = (option?: IDropdownOption): void => {
-    console.log("Dropdown Change Event:", option);
+    // console.log("Dropdown Change Event:", option);
 
     // Update the state with the selected option key
     this.setState(
@@ -1918,7 +1918,7 @@ export class ParentComponent extends React.Component<
         selectedCustomer: option ? option.key : undefined,
       },
       () => {
-        console.log(
+        // console.log(
           "Updated selectedCustomer in state:",
           this.state.selectedCustomer
         );

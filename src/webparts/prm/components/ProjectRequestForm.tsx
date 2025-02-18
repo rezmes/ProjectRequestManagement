@@ -57,7 +57,7 @@ class ProjectRequestForm extends React.Component<
   }
 
   // private handleSubmit(): void {
-  //   console.log("Form submitted with data:", this.state); // Log form data
+  //   // console.log("Form submitted with data:", this.state); // Log form data
   // }
 
   componentDidMount() {
@@ -66,7 +66,7 @@ class ProjectRequestForm extends React.Component<
 
   private handleTermSelected(term: { id: string; label: string }): void {
     this.setState({ selectedTerm: term });
-    console.log("Selected Term:", term); // Log selected term
+    // console.log("Selected Term:", term); // Log selected term
   }
 
 
@@ -122,7 +122,7 @@ class ProjectRequestForm extends React.Component<
         return sum + (item.TotalCost || 0); // Ensure TotalCost is treated as a number
       }, 0);
 
-      console.log("Calculated Estimated Cost:", estimatedCost);
+      // console.log("Calculated Estimated Cost:", estimatedCost);
 
       // Update the state with the calculated cost
       this.setState({ estimatedCost });
@@ -153,11 +153,11 @@ class ProjectRequestForm extends React.Component<
     this.projectRequestService
       .getNextFormNumber()
       .then((formNumber) => {
-        console.log("Next Form Number:", formNumber);
+        // console.log("Next Form Number:", formNumber);
         const requestDateISO = moment(requestDate, "jYYYY/jM/jD").toISOString();
-        console.log("requestDate:", requestDate); // Check the initial value
-        console.log("requestDateISO:", requestDateISO); // Check the converted ISO string
-        console.log("Type of requestDateISO:", typeof requestDateISO); // Should be "string"
+        // console.log("requestDate:", requestDate); // Check the initial value
+        // console.log("requestDateISO:", requestDateISO); // Check the converted ISO string
+        // console.log("Type of requestDateISO:", typeof requestDateISO); // Should be "string"
         // Step 2: Prepare the request data
         const requestData = {
           Title: requestTitle.trim(),
@@ -176,7 +176,7 @@ class ProjectRequestForm extends React.Component<
       })
       .then((response) => {
         if (response && response.requestId) {
-          console.log("New project created with ID:", response.requestId);
+          // console.log("New project created with ID:", response.requestId);
 
           // Update state to include documentSetLink for rendering
           this.setState(

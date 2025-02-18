@@ -52,7 +52,7 @@ class TechnicalAssessmentTable extends React.Component<
     this.projectRequestService
       .saveAssessments(assessments, requestId)
       .then((assessmentIds) => {
-        console.log("Assessment IDs:", assessmentIds);
+        // console.log("Assessment IDs:", assessmentIds);
 
         // Map assessments to pricing details using the created IDs
         assessments.forEach((assessment, index) => {
@@ -70,19 +70,19 @@ class TechnicalAssessmentTable extends React.Component<
           });
         });
 
-        console.log("Pricing Details to Save:", pricingDetails);
+        // console.log("Pricing Details to Save:", pricingDetails);
 
         // Save pricing details
         return this.projectRequestService.savePricingDetails(pricingDetails);
       })
       .then(() => {
-        console.log("Pricing details saved successfully.");
+        // console.log("Pricing details saved successfully.");
         return this.projectRequestService.getPricingDetailsByRequestID(
           requestId
         );
       })
       .then((pricingDetails) => {
-        console.log("Fetched Pricing Details After Save:", pricingDetails);
+        // console.log("Fetched Pricing Details After Save:", pricingDetails);
 
         // Calculate the total estimated cost
         const totalEstimatedCost = pricingDetails.reduce(
@@ -90,7 +90,7 @@ class TechnicalAssessmentTable extends React.Component<
           0
         );
 
-        console.log("Total Estimated Cost:", totalEstimatedCost);
+        // console.log("Total Estimated Cost:", totalEstimatedCost);
 
         // Update the ProjectRequest with the estimated cost
         return this.projectRequestService
@@ -110,7 +110,7 @@ class TechnicalAssessmentTable extends React.Component<
 
   loadInventoryItems = () => {
     this.projectRequestService.getInventoryItems().then((items) => {
-      console.log("Inventory Items:", items); // Debugging
+      // console.log("Inventory Items:", items); // Debugging
       this.setState({ inventoryItems: items });
     });
   };
@@ -120,15 +120,15 @@ class TechnicalAssessmentTable extends React.Component<
   //   const filteredItems = inventoryItems
   //     .filter((item) => categories.indexOf(item.itemCategory) > -1)
   //     .map((item) => ({ key: item.key, text: item.text }));
-  //   console.log("Filtered Items:", filteredItems); // Debugging
+  //   // console.log("Filtered Items:", filteredItems); // Debugging
   //   return filteredItems;
   // };
   filterInventoryItems = (categories: string[]): IDropdownOption[] => {
     const { inventoryItems } = this.state;
   
       // Debug: Log categories and inventory items
-  console.log("Filtering for categories:", categories);
-  console.log("All inventory items:", inventoryItems);
+  // console.log("Filtering for categories:", categories);
+  // console.log("All inventory items:", inventoryItems);
 
     // Map English category keys to their Persian equivalents
     const categoryMap: { [key: string]: string[] } = {
@@ -147,7 +147,7 @@ class TechnicalAssessmentTable extends React.Component<
       validCategories.indexOf(item.itemCategory) > -1
     );
   
-    console.log("Filtered Items:", filteredItems);
+    // console.log("Filtered Items:", filteredItems);
     return filteredItems.map((item) => ({ key: item.key, text: item.text }));
   };
 

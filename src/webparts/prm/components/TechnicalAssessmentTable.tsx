@@ -134,7 +134,7 @@ class TechnicalAssessmentTable extends React.Component<
     const categoryMap: { [key: string]: string[] } = {
       HumanResource: [strings.HumanResource,"نیروی انسانی"], // English & Persian
       Machine: [strings.Machine, "ماشین آلات"], 
-      Material: [strings.Material,"ابزار","محصول","مواد اولیه", ]
+      Material: [strings.Material,"ابزار","محصول","مواد اولیه" ]
     };
   
     // Get all valid category names for the requested categories

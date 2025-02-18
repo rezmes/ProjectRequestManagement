@@ -48,11 +48,11 @@ export default class UIFabricWizard extends React.Component<
             {/* Render your Technical Assessments components here */}
             <div>
               <PrimaryButton text="Back" onClick={this._goToPreviousStep} />
-              <PrimaryButton
+              {/* <PrimaryButton
                 text="Submit"
                 onClick={() => alert("Final submission")}
                 style={{ marginLeft: 10 }}
-              />
+              /> */}
             </div>
           </div>
         )}

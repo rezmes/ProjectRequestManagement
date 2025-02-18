@@ -12,8 +12,7 @@ import GenericDropdown from "./GenericDropdown";
 import { IProjectRequestFormProps } from "./IProjectRequestFormProps";
 import { IProjectRequestFormState } from "./IProjectRequestFormState";
 import ProjectRequestService from "../services/ProjectRequestService"; // ✅ مطمئن شو مسیر درسته
-import * as moment from "moment";
-import "moment-jalaali";
+import * as moment from "moment-jalaali";
 import TechnicalAssessmentTable from "./TechnicalAssessmentTable";
 import styles from "./ProjectRequestForm.module.scss";
 import UIFabricWizard from "./UIFabricWizard";
@@ -37,7 +36,7 @@ class ProjectRequestForm extends React.Component<
       selectedCustomer: null,
       selectedCustomerName: "",
       requestTitle: "",
-      requestDate: moment().format("YYYY-MM-DD"),
+      requestDate: moment().format("jYYYY/jM/jD"),
       estimatedDuration: 0,
       estimatedCost: 0,
       requestNote: "",
@@ -53,13 +52,13 @@ class ProjectRequestForm extends React.Component<
     };
 
     this.handleTermSelected = this.handleTermSelected.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
+    // this.handleSubmit = this.handleSubmit.bind(this);
     this.resetForm = this.resetForm.bind(this);
   }
 
-  private handleSubmit(): void {
-    console.log("Form submitted with data:", this.state); // Log form data
-  }
+  // private handleSubmit(): void {
+  //   console.log("Form submitted with data:", this.state); // Log form data
+  // }
 
   componentDidMount() {
     this.loadCustomerOptions();
@@ -155,12 +154,15 @@ class ProjectRequestForm extends React.Component<
       .getNextFormNumber()
       .then((formNumber) => {
         console.log("Next Form Number:", formNumber);
-
+        const requestDateISO = moment(requestDate, "jYYYY/jM/jD").toISOString();
+        console.log("requestDate:", requestDate); // Check the initial value
+        console.log("requestDateISO:", requestDateISO); // Check the converted ISO string
+        console.log("Type of requestDateISO:", typeof requestDateISO); // Should be "string"
         // Step 2: Prepare the request data
         const requestData = {
           Title: requestTitle.trim(),
           CustomerId: selectedCustomer || null,
-          RequestDate: requestDate,
+          RequestDate: requestDateISO,
           EstimatedDuration: estimatedDuration,
           EstimatedCost: estimatedCost,
           Description1: requestNote,
@@ -220,7 +222,7 @@ class ProjectRequestForm extends React.Component<
       selectedCustomer: null,
       selectedCustomerName: "",
       requestTitle: "",
-      requestDate: moment().format("YYYY-MM-DD"),
+      requestDate: moment().format("jYYYY/jM/jD"),
       estimatedDuration: 0,
       estimatedCost: 0,
       requestNote: "",

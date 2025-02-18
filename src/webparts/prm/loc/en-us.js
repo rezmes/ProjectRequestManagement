@@ -23,7 +23,7 @@ define([], function() {
       Cancel: "Cancel",
       TechnicalAssessments: "Technical Assessments",
       Activity: "Activity",
-      HumanResource: "Human Resource",
+      HumanResource: "HumanResource",
       Machine: "Machine",
       Material: "Material",
       AddAssessment: "Add Assessment",

@@ -149,6 +149,7 @@ import {
 } from "office-ui-fabric-react";
 import GenericDropdown from "./GenericDropdown";
 import * as strings from "PrmWebPartStrings";
+import styles from "./TechnicalAssessmentTable.module.scss";
 
 interface IPricingDetailsProps {
   label: string;
@@ -190,10 +191,10 @@ class PricingDetails extends React.Component<IPricingDetailsProps> {
     } = this.props;
     console.log(`Options for ${label}:`, options); // Debugging
     return (
-      <table>
+      <table className="technicalAssessmentTable">
         <tbody>
           <tr>
-            <th>{label}</th>
+            <th className="resourceColumn">{label}</th>
             <th>{strings.Quantity}</th>
             <th>{strings.PricePerUnit}</th>
             <th>{strings.TotalCost}</th>
@@ -204,7 +205,7 @@ class PricingDetails extends React.Component<IPricingDetailsProps> {
               const totalCost = item.quantity * item.pricePerUnit;
               return (
                 <tr key={partIndex}>
-                  <td>
+                  <td className="resourceColumn">
                     <GenericDropdown
                       label={`${label} ${partIndex + 1}`}
                       options={options}

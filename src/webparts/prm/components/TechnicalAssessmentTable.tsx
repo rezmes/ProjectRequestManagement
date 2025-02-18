@@ -126,11 +126,15 @@ class TechnicalAssessmentTable extends React.Component<
   filterInventoryItems = (categories: string[]): IDropdownOption[] => {
     const { inventoryItems } = this.state;
   
+      // Debug: Log categories and inventory items
+  console.log("Filtering for categories:", categories);
+  console.log("All inventory items:", inventoryItems);
+
     // Map English category keys to their Persian equivalents
     const categoryMap: { [key: string]: string[] } = {
-      HumanResource: [strings.HumanResource, "نیروی انسانی"], // English & Persian
+      HumanResource: [strings.HumanResource,"نیروی انسانی"], // English & Persian
       Machine: [strings.Machine, "ماشین آلات"], 
-      Material: [strings.Material,"ابزار","محصول","مواد اولیه"]
+      Material: [strings.Material,"ابزار","محصول","مواد اولیه", ]
     };
   
     // Get all valid category names for the requested categories
@@ -147,6 +151,7 @@ class TechnicalAssessmentTable extends React.Component<
     return filteredItems.map((item) => ({ key: item.key, text: item.text }));
   };
 
+  
   handleInputChange = (
     newValue: string,
     nestedField: string,

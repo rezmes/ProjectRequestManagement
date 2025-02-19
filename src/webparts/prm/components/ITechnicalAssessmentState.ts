@@ -8,4 +8,5 @@ import { IDropdownOptionWithCategory } from "../services/ProjectRequestService";
 export interface ITechnicalAssessmentState {
   assessments: IAssessment[];
   inventoryItems: IDropdownOptionWithCategory[];
+  isLoading: boolean;
 }

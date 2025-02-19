@@ -33,6 +33,8 @@ declare interface IPrmWebPartStrings {
   No: string;
   AddedYet: string;
   Add: string;
+  LoadingAssessments: string;
+  PleaseWait: string;
 }
 
 declare module 'PrmWebPartStrings' {

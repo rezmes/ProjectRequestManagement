@@ -1,8 +1,16 @@
 // IProjectRequestFormState.ts
+
 import { IDropdownOption } from 'office-ui-fabric-react';
 import { IAssessment } from './IAssessment';
 
+
 export interface IProjectRequestFormState {
+
+    // Add mode state
+    mode: 'create' | 'edit' | 'display';
+    // Add existing document set link
+    existingDocumentSetLink?: string;
+
   // Flags
   isProjectCreated: boolean;
   showProjectForm: boolean;

@@ -5,7 +5,7 @@ import {
   IDropdownOption,
   IconButton,
 } from "office-ui-fabric-react";
-import GenericDropdown from "./GenericDropdown";
+import {GenericDropdown} from "./GenericDropdown";
 import * as strings from "PrmWebPartStrings";
 import styles from "./TechnicalAssessmentTable.module.scss";
 
@@ -34,7 +34,7 @@ interface IPricingDetailsProps { // Corrected interface
   disabled?: boolean; // Add this line to IPricingDetailsProps
 }
 
-// ... rest of PricingDetails.tsx
+
 
 
 
@@ -51,7 +51,7 @@ class PricingDetails extends React.Component<IPricingDetailsProps> {
       removeRow,
       label,
     } = this.props;
-    // console.log(`Options for ${label}:`, options); // Debugging
+    console.log(`Options for ${label}:`, options); // Debugging
     return (
       <table className="technicalAssessmentTable">
         <tbody>
@@ -70,7 +70,7 @@ class PricingDetails extends React.Component<IPricingDetailsProps> {
                   <td className="resourceColumn">
                     <GenericDropdown
                       label={`${label} ${partIndex + 1}`}
-                      options={options}
+                      options={options || []}
                       selectedKey={item.item ? item.item.key : undefined}
                       onChanged={(option) =>
                         handleDropdownChange(field, option!, index, partIndex)

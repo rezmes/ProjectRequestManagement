@@ -64,7 +64,7 @@
 //     `;
 
 //     try {
-//       // console.log('Fetching terms with Term Set ID:', termSetId);
+//       console.log('Fetching terms with Term Set ID:', termSetId);
 //       const response = await this.context.spHttpClient.post(
 //         endpoint,
 //         SPHttpClient.configurations.v1,
@@ -78,7 +78,7 @@
 //       );
 
 //       const responseText = await response.text();
-//       // console.log('Response Text:', responseText);
+//       console.log('Response Text:', responseText);
 
 //       const parser = new DOMParser();
 //       const xmlDoc: Document = parser.parseFromString(responseText, 'text/xml');
@@ -101,7 +101,7 @@
 //         }
 //       });
 
-//       // console.log('Fetched Terms:', terms);
+//       console.log('Fetched Terms:', terms);
 
 //       if (searchText) {
 //         return terms.filter(term => term.label.indexOf(searchText) >= 0);
@@ -235,7 +235,7 @@
 //     .getByTitle("ProjectRequests")
 //     .items.add(requestData)
 //     .then(async (result) => {
-//       // console.log("Raw API Response:", result);
+//       console.log("Raw API Response:", result);
 //       const requestId = result.data.Id;
 //       if (!requestId) {
 //           throw new Error("Error: requestId is undefined!");
@@ -360,19 +360,19 @@
 //   }
 
 // public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
-//   // console.log("Fetching Pricing Details for RequestID:", requestId);
+//   console.log("Fetching Pricing Details for RequestID:", requestId);
 //   return sp.web.lists
 //     .getByTitle("PricingDetails")
 //     .items.filter(`RequestIDId eq ${requestId}`)
 //     .select("Id", "UnitPrice", "Quantity", "AssessmentItemIDId")
 //     .get()
 //     .then(items => {
-//       // console.log("Raw Fetched Items:", items);
+//       console.log("Raw Fetched Items:", items);
 //       const calculatedItems = items.map(item => ({
 //         ...item,
 //         TotalCost: item.UnitPrice * item.Quantity
 //       }));
-//       // console.log("Calculated Items (with TotalCost):", calculatedItems);
+//       console.log("Calculated Items (with TotalCost):", calculatedItems);
 //       return calculatedItems;
 //     })
 //     .catch(error => {
@@ -387,7 +387,7 @@
 //     .items.getById(requestId)
 //     .update({ EstimatedCost: estimatedCost }) // Update the EstimatedCost field
 //     .then(() => {
-//       // console.log("Estimated cost updated successfully.");
+//       console.log("Estimated cost updated successfully.");
 //     })
 //     .catch((error) => {
 //       console.error("Error updating estimated cost:", error);
@@ -407,7 +407,7 @@
 //         TotalCost: detail.UnitPrice * detail.Quantity // Add TotalCost here
 //       };
 
-//       // console.log("Pricing Detail Data to Add:", data);
+//       console.log("Pricing Detail Data to Add:", data);
 
 //       sp.web.lists
 //         .getByTitle("PricingDetails")
@@ -418,7 +418,7 @@
 //     return batch
 //       .execute()
 //       .then(() => {
-//         // console.log("Pricing details saved successfully");
+//         console.log("Pricing details saved successfully");
 //       })
 //       .catch((error) => {
 //         console.error("Error saving pricing details", error);
@@ -438,7 +438,7 @@
 //       const siteUrl = this.context.pageContext.web.absoluteUrl;
 //       const endpoint = `${siteUrl}/_vti_bin/listdata.svc/${libraryName}`;
 
-//       // console.log("DEBUG: siteUrl from pageContext:", this.context.pageContext.web.absoluteUrl);
+//       console.log("DEBUG: siteUrl from pageContext:", this.context.pageContext.web.absoluteUrl);
 
 //       // ✅ Use getFormDigest() instead of making a direct API call
 //       const requestDigest = await this.getFormDigest();
@@ -473,9 +473,9 @@
 //       }
 
 //       const result = await response.json();
-//       // console.log("[DOCSET CREATION SUCCESS] API Response:", result); // ✅  این  خط  قبلاً  بود
+//       console.log("[DOCSET CREATION SUCCESS] API Response:", result); // ✅  این  خط  قبلاً  بود
 
-//       // console.log("Full response from createDocumentSet:", response); // ✅ خط جدید - اضافه کردن این خط برای بررسی پاسخ کامل سرور
+//       console.log("Full response from createDocumentSet:", response); // ✅ خط جدید - اضافه کردن این خط برای بررسی پاسخ کامل سرور
 
 
 //       if (!result.d || !result.d["شناسهسند"]) {
@@ -483,10 +483,10 @@
 //       }
 
 //       const docIdFullUrl = result.d["شناسهسند"];
-//       // console.log("Raw شناسهسند:", docIdFullUrl);
+//       console.log("Raw شناسهسند:", docIdFullUrl);
 
 //       const docIdUrlPart = docIdFullUrl.split(',')[0];
-//       // console.log("Extracted Document Set URL:", docIdUrlPart);
+//       console.log("Extracted Document Set URL:", docIdUrlPart);
 
 //       return {
 //           url: docIdUrlPart,
@@ -505,7 +505,7 @@
 //   requestId: number,
 //   documentSetLink: { url: string; text: string }
 // ): Promise<void> {
-//   // console.log(`Updating DocumentSetLink for Request ID: ${requestId}`);
+//   console.log(`Updating DocumentSetLink for Request ID: ${requestId}`);
 
 //   // SharePoint hyperlink field requires this specific format
 //   const hyperlinkValue = {
@@ -515,11 +515,11 @@
 //   };
 
 //   try {
-//       // console.log("[DEBUG - SITE URL BEFORE CONCAT]:", this.context.pageContext.web.absoluteUrl);
+//       console.log("[DEBUG - SITE URL BEFORE CONCAT]:", this.context.pageContext.web.absoluteUrl);
 //       const updateUrl = sp.web.lists
 //           .getByTitle('ProjectRequests')
 //           .items.getById(requestId).toUrl();
-//       // console.log("[DEBUG - UPDATE URL (TOURL) BEFORE CONCAT]:", updateUrl);
+//       console.log("[DEBUG - UPDATE URL (TOURL) BEFORE CONCAT]:", updateUrl);
 
 //       let fullUpdateUrl = this.context.pageContext.web.absoluteUrl + updateUrl; // ساخت URL کامل و مطلق با استفاده از siteUrl
 
@@ -532,7 +532,7 @@
 //           });
 
 
-//       // console.log("DocumentSetLink updated successfully.");
+//       console.log("DocumentSetLink updated successfully.");
 
 //   } catch (error) {
 //       console.error("Error updating DocumentSetLink:", error);
@@ -577,6 +577,10 @@ import { SPHttpClient, SPHttpClientResponse, ISPHttpClientOptions, IHttpClientOp
 export interface IDropdownOptionWithCategory {
   key: string | number;
   text: string;
+  itemCategory: string;
+}
+
+export interface IDropdownOptionWithCategory extends IDropdownOption {
   itemCategory: string;
 }
 
@@ -650,7 +654,7 @@ public async getFullRequestData(formNumber: number): Promise<any> {
     `;
 
     try {
-      // console.log('Fetching terms with Term Set ID:', termSetId);
+      console.log('Fetching terms with Term Set ID:', termSetId);
       const response = await this.context.spHttpClient.post(
         endpoint,
         SPHttpClient.configurations.v1,
@@ -664,7 +668,7 @@ public async getFullRequestData(formNumber: number): Promise<any> {
       );
 
       const responseText = await response.text();
-      // console.log('Response Text:', responseText);
+      console.log('Response Text:', responseText);
 
       const parser = new DOMParser();
       const xmlDoc: Document = parser.parseFromString(responseText, 'text/xml');
@@ -687,7 +691,7 @@ public async getFullRequestData(formNumber: number): Promise<any> {
         }
       });
 
-      // console.log('Fetched Terms:', terms);
+      console.log('Fetched Terms:', terms);
 
       if (searchText) {
         return terms.filter(term => term.label.indexOf(searchText) >= 0);
@@ -821,7 +825,7 @@ public createProjectRequest(requestData: any): Promise<any> {
     .getByTitle("ProjectRequests")
     .items.add(requestData)
     .then(async (result) => {
-      // console.log("Raw API Response:", result);
+      console.log("Raw API Response:", result);
       const requestId = result.data.Id;
       if (!requestId) {
           throw new Error("Error: requestId is undefined!");
@@ -913,10 +917,10 @@ public async getAssessmentsByRequestId(requestId: number): Promise<IAssessment[]
       .get();
 
     return assessments.map(assessment => ({
-      activity: assessment.Title,
-      humanResources: this.mapResources(assessment, 'HumanResource'),
-      machines: this.mapResources(assessment, 'Machine'),
-      materials: this.mapResources(assessment, 'Material')
+      activity: assessment.Title || "",
+      humanResources: this.mapResources(assessment, 'HumanResource') || [],
+      machines: this.mapResources(assessment, 'Machine') || [],
+      materials: this.mapResources(assessment, 'Material') || [],
     }));
   } catch (error) {
     console.error("Error fetching assessments:", error);
@@ -988,19 +992,19 @@ private mapResources(assessment: any, type: string): IResource[] {
   }
 
 public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
-  // console.log("Fetching Pricing Details for RequestID:", requestId);
+  console.log("Fetching Pricing Details for RequestID:", requestId);
   return sp.web.lists
     .getByTitle("PricingDetails")
     .items.filter(`RequestIDId eq ${requestId}`)
     .select("Id", "UnitPrice", "Quantity", "AssessmentItemIDId")
     .get()
     .then(items => {
-      // console.log("Raw Fetched Items:", items);
+      console.log("Raw Fetched Items:", items);
       const calculatedItems = items.map(item => ({
         ...item,
         TotalCost: item.UnitPrice * item.Quantity
       }));
-      // console.log("Calculated Items (with TotalCost):", calculatedItems);
+      console.log("Calculated Items (with TotalCost):", calculatedItems);
       return calculatedItems;
     })
     .catch(error => {
@@ -1015,7 +1019,7 @@ public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
     .items.getById(requestId)
     .update({ EstimatedCost: estimatedCost }) // Update the EstimatedCost field
     .then(() => {
-      // console.log("Estimated cost updated successfully.");
+      console.log("Estimated cost updated successfully.");
     })
     .catch((error) => {
       console.error("Error updating estimated cost:", error);
@@ -1035,7 +1039,7 @@ public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
         TotalCost: detail.UnitPrice * detail.Quantity // Add TotalCost here
       };
 
-      // console.log("Pricing Detail Data to Add:", data);
+      console.log("Pricing Detail Data to Add:", data);
 
       sp.web.lists
         .getByTitle("PricingDetails")
@@ -1046,7 +1050,7 @@ public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
     return batch
       .execute()
       .then(() => {
-        // console.log("Pricing details saved successfully");
+        console.log("Pricing details saved successfully");
       })
       .catch((error) => {
         console.error("Error saving pricing details", error);
@@ -1066,7 +1070,7 @@ public async createDocumentSet(documentSetName: string): Promise<{ url: string; 
       const siteUrl = this.context.pageContext.web.absoluteUrl;
       const endpoint = `${siteUrl}/_vti_bin/listdata.svc/${libraryName}`;
 
-      // console.log("DEBUG: siteUrl from pageContext:", this.context.pageContext.web.absoluteUrl);
+      console.log("DEBUG: siteUrl from pageContext:", this.context.pageContext.web.absoluteUrl);
 
       // ✅ Use getFormDigest() instead of making a direct API call
       const requestDigest = await this.getFormDigest();
@@ -1101,9 +1105,9 @@ public async createDocumentSet(documentSetName: string): Promise<{ url: string; 
       }
 
       const result = await response.json();
-      // console.log("[DOCSET CREATION SUCCESS] API Response:", result); // ✅  این  خط  قبلاً  بود
+      console.log("[DOCSET CREATION SUCCESS] API Response:", result); // ✅  این  خط  قبلاً  بود
 
-      // console.log("Full response from createDocumentSet:", response); // ✅ خط جدید - اضافه کردن این خط برای بررسی پاسخ کامل سرور
+      console.log("Full response from createDocumentSet:", response); // ✅ خط جدید - اضافه کردن این خط برای بررسی پاسخ کامل سرور
 
 
       if (!result.d || !result.d["شناسهسند"]) {
@@ -1111,10 +1115,10 @@ public async createDocumentSet(documentSetName: string): Promise<{ url: string; 
       }
 
       const docIdFullUrl = result.d["شناسهسند"];
-      // console.log("Raw شناسهسند:", docIdFullUrl);
+      console.log("Raw شناسهسند:", docIdFullUrl);
 
       const docIdUrlPart = docIdFullUrl.split(',')[0];
-      // console.log("Extracted Document Set URL:", docIdUrlPart);
+      console.log("Extracted Document Set URL:", docIdUrlPart);
 
       return {
           url: docIdUrlPart,
@@ -1133,7 +1137,7 @@ public async updateDocumentSetLink(
   requestId: number,
   documentSetLink: { url: string; text: string }
 ): Promise<void> {
-  // console.log(`Updating DocumentSetLink for Request ID: ${requestId}`);
+  console.log(`Updating DocumentSetLink for Request ID: ${requestId}`);
 
   // SharePoint hyperlink field requires this specific format
   const hyperlinkValue = {
@@ -1143,11 +1147,11 @@ public async updateDocumentSetLink(
   };
 
   try {
-      // console.log("[DEBUG - SITE URL BEFORE CONCAT]:", this.context.pageContext.web.absoluteUrl);
+      console.log("[DEBUG - SITE URL BEFORE CONCAT]:", this.context.pageContext.web.absoluteUrl);
       const updateUrl = sp.web.lists
           .getByTitle('ProjectRequests')
           .items.getById(requestId).toUrl();
-      // console.log("[DEBUG - UPDATE URL (TOURL) BEFORE CONCAT]:", updateUrl);
+      console.log("[DEBUG - UPDATE URL (TOURL) BEFORE CONCAT]:", updateUrl);
 
       let fullUpdateUrl = this.context.pageContext.web.absoluteUrl + updateUrl; // ساخت URL کامل و مطلق با استفاده از siteUrl
 
@@ -1160,7 +1164,7 @@ public async updateDocumentSetLink(
           });
 
 
-      // console.log("DocumentSetLink updated successfully.");
+      console.log("DocumentSetLink updated successfully.");
 
   } catch (error) {
       console.error("Error updating DocumentSetLink:", error);

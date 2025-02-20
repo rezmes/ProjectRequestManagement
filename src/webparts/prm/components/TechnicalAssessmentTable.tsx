@@ -52,7 +52,7 @@
 //     this.projectRequestService
 //       .saveAssessments(assessments, requestId)
 //       .then((assessmentIds) => {
-//         // console.log("Assessment IDs:", assessmentIds);
+//         console.log("Assessment IDs:", assessmentIds);
 
 //         // Map assessments to pricing details using the created IDs
 //         assessments.forEach((assessment, index) => {
@@ -70,19 +70,19 @@
 //           });
 //         });
 
-//         // console.log("Pricing Details to Save:", pricingDetails);
+//         console.log("Pricing Details to Save:", pricingDetails);
 
 //         // Save pricing details
 //         return this.projectRequestService.savePricingDetails(pricingDetails);
 //       })
 //       .then(() => {
-//         // console.log("Pricing details saved successfully.");
+//         console.log("Pricing details saved successfully.");
 //         return this.projectRequestService.getPricingDetailsByRequestID(
 //           requestId
 //         );
 //       })
 //       .then((pricingDetails) => {
-//         // console.log("Fetched Pricing Details After Save:", pricingDetails);
+//         console.log("Fetched Pricing Details After Save:", pricingDetails);
 
 //         // Calculate the total estimated cost
 //         const totalEstimatedCost = pricingDetails.reduce(
@@ -90,7 +90,7 @@
 //           0
 //         );
 
-//         // console.log("Total Estimated Cost:", totalEstimatedCost);
+//         console.log("Total Estimated Cost:", totalEstimatedCost);
 
 //         // Update the ProjectRequest with the estimated cost
 //         return this.projectRequestService
@@ -110,7 +110,7 @@
 
 //   loadInventoryItems = () => {
 //     this.projectRequestService.getInventoryItems().then((items) => {
-//       // console.log("Inventory Items:", items); // Debugging
+//       console.log("Inventory Items:", items); // Debugging
 //       this.setState({ inventoryItems: items });
 //     });
 //   };
@@ -120,15 +120,15 @@
 //   //   const filteredItems = inventoryItems
 //   //     .filter((item) => categories.indexOf(item.itemCategory) > -1)
 //   //     .map((item) => ({ key: item.key, text: item.text }));
-//   //   // console.log("Filtered Items:", filteredItems); // Debugging
+//   //   console.log("Filtered Items:", filteredItems); // Debugging
 //   //   return filteredItems;
 //   // };
 //   filterInventoryItems = (categories: string[]): IDropdownOption[] => {
 //     const { inventoryItems } = this.state;
   
 //       // Debug: Log categories and inventory items
-//   // console.log("Filtering for categories:", categories);
-//   // console.log("All inventory items:", inventoryItems);
+//   console.log("Filtering for categories:", categories);
+//   console.log("All inventory items:", inventoryItems);
 
 //     // Map English category keys to their Persian equivalents
 //     const categoryMap: { [key: string]: string[] } = {
@@ -147,7 +147,7 @@
 //       validCategories.indexOf(item.itemCategory) > -1
 //     );
   
-//     // console.log("Filtered Items:", filteredItems);
+//     console.log("Filtered Items:", filteredItems);
 //     return filteredItems.map((item) => ({ key: item.key, text: item.text }));
 //   };
 
@@ -317,9 +317,10 @@ import {
   PrimaryButton,
   TextField,
   IDropdownOption,
-  ProgressIndicator, // Import ProgressIndicator
 } from "office-ui-fabric-react";
-import GenericDropdown from "./GenericDropdown";
+import { ProgressIndicator } from "office-ui-fabric-react/lib/ProgressIndicator";  // Import ProgressIndicator
+
+
 import { ITechnicalAssessmentState } from "./ITechnicalAssessmentState";
 import { ITechnicalAssessmentProps } from "./ITechnicalAssessmentProps";
 import PricingDetails from "./PricingDetails";
@@ -328,27 +329,26 @@ import styles from "./TechnicalAssessmentTable.module.scss";
 import * as strings from "PrmWebPartStrings";
 
 import ProjectRequestService, {
+  IDropdownOptionWithCategory,
   IPricingDetails,
 } from "../services/ProjectRequestService";
+import { IAssessment } from "./IAssessment";
 
-interface ITechnicalAssessmentTableProps extends ITechnicalAssessmentProps {
-  isEditMode?: boolean; // Optional prop to indicate Edit mode
-  isDisplayMode?: boolean; // Optional prop to indicate Display mode
-}
+
 
 
 class TechnicalAssessmentTable extends React.Component<
-  ITechnicalAssessmentTableProps,
+  ITechnicalAssessmentProps,
   ITechnicalAssessmentState
 > {
   private projectRequestService: ProjectRequestService;
 
-  constructor(props: ITechnicalAssessmentTableProps) {
+  constructor(props: ITechnicalAssessmentProps) {
     super(props);
-    this.projectRequestService = new ProjectRequestService(this.context);
+    this.projectRequestService = new ProjectRequestService(this.props.context);
     this.state = {
-      assessments: [],
-      inventoryItems: [],
+      assessments: [] as IAssessment[],
+      inventoryItems: [] as IDropdownOptionWithCategory[],
       isLoading: false, // Add loading state
     };
   }
@@ -447,13 +447,20 @@ class TechnicalAssessmentTable extends React.Component<
   loadInventoryItems = () => {
     this.projectRequestService.getInventoryItems().then((items) => {
 
-      this.setState({ inventoryItems: items });
+      this.setState({ inventoryItems: items || [] });
+    }).catch((error)=> {
+      console.log("Error loading inventory: ", error);
+      this.setState({inventoryItems: []});
+    
     });
   };
 
 
   filterInventoryItems = (categories: string[]): IDropdownOption[] => {
     const { inventoryItems } = this.state;
+
+      // Add null check
+  if (!inventoryItems || !Array.isArray(inventoryItems)) return [];
 
 
     const categoryMap: { [key: string]: string[] } = {
@@ -463,10 +470,14 @@ class TechnicalAssessmentTable extends React.Component<
     };
 
 
-    const validCategories = categories.reduce((acc, category) => {
-      return acc.concat(categoryMap[category] || [category]);
-    }, [] as string[]);
-
+    const validCategories = categories.reduce((acc, category) => [
+      //{ return acc.concat(categoryMap[category] || [category]);}
+      ...acc,
+      ...(categoryMap[category] || [category])
+    ], [] as string[]);
+    // return inventoryItems
+    // .filter(item => validCategories.includes(item.itemCategory))
+    // .map(item => ({key: item.key, text: item.text}));
 
     const filteredItems = inventoryItems.filter((item) =>
       validCategories.indexOf(item.itemCategory) > -1
@@ -599,7 +610,7 @@ class TechnicalAssessmentTable extends React.Component<
     const isReadOnly = isDisplayMode;
 
 
-    if (this.state.isLoading) {
+    if (isLoading) {
       return <ProgressIndicator
       label={strings.LoadingAssessments}
       description={strings.PleaseWait} />;

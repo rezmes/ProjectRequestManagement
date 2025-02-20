@@ -493,7 +493,7 @@ export default class ProjectRequestService {
       .getByTitle("ProjectRequests")
       .items.add(requestData)
       .then((result) => {
-        // console.log("Create Response:", result);
+        console.log("Create Response:", result);
         return result.data;
       })
       .catch((error) => {
@@ -561,7 +561,7 @@ public saveAssessments(
   return batch
     .execute()
     .then(() => {
-      // console.log("Assessments saved successfully");
+      console.log("Assessments saved successfully");
     })
     .catch((error) => {
       console.error("Error saving assessments", error);
@@ -584,7 +584,7 @@ public savePricingDetails(pricingDetails: IPricingDetails[]): Promise<void> {
       // Do not include TotalCost as it is a calculated column
     };
 
-    // console.log("Pricing Detail Data to Add:", data);
+    console.log("Pricing Detail Data to Add:", data);
 
     sp.web.lists
       .getByTitle("PricingDetails")
@@ -595,7 +595,7 @@ public savePricingDetails(pricingDetails: IPricingDetails[]): Promise<void> {
   return batch
     .execute()
     .then(() => {
-      // console.log("Pricing details saved successfully");
+      console.log("Pricing details saved successfully");
     })
     .catch((error) => {
       console.error("Error saving pricing details", error);
@@ -641,7 +641,7 @@ handleFinalSubmit = (): void => {
       });
     });
 
-    // console.log("Pricing Details to Save:", pricingDetails);
+    console.log("Pricing Details to Save:", pricingDetails);
 
     this.projectRequestService
       .saveAssessments(assessments, requestId)
@@ -934,7 +934,7 @@ class ProjectRequestForm extends React.Component<
               requestId,
             },
             () => {
-              // console.log("New project created with ID:", requestId);
+              console.log("New project created with ID:", requestId);
               alert(
                 "Project request created successfully! You can now add assessments."
               );
@@ -1158,7 +1158,7 @@ class TechnicalAssessmentTable extends React.Component<
       });
     });
 
-    // console.log("Pricing Details to Save:", pricingDetails);
+    console.log("Pricing Details to Save:", pricingDetails);
 
     this.projectRequestService
       .saveAssessments(assessments, requestId)
@@ -1418,11 +1418,11 @@ AND
 
 ```tsx
 handleDropdownChange = (option?: IDropdownOption): void => {
-  // console.log("Dropdown Change Event:", option); // Log the dropdown change event
+  console.log("Dropdown Change Event:", option); // Log the dropdown change event
   this.setState(
     { selectedCustomer: option ? option.key.toString() : undefined },
     () => {
-      // console.log(
+      console.log(
         "Updated selectedCustomer in state:",
         this.state.selectedCustomer
       ); // Log the updated
@@ -1910,7 +1910,7 @@ export class ParentComponent extends React.Component<
   }
 
   private handleDropdownChange = (option?: IDropdownOption): void => {
-    // console.log("Dropdown Change Event:", option);
+    console.log("Dropdown Change Event:", option);
 
     // Update the state with the selected option key
     this.setState(
@@ -1918,7 +1918,7 @@ export class ParentComponent extends React.Component<
         selectedCustomer: option ? option.key : undefined,
       },
       () => {
-        // console.log(
+        console.log(
           "Updated selectedCustomer in state:",
           this.state.selectedCustomer
         );
@@ -1989,245 +1989,967 @@ Since you are using an older version of SPFx with React 15.6.2 and TypeScript 2.
 
 <!-- ===================================================================================== -->
 
+I double checked all your suggestions, those are not the problem. Let's try again, Please close look at my codes, I am pretty sure you will find the problem. You are very inteligent and smart.
 SharePoint 2019 - On-premises
 dev.env. : `SPFx@1.4.1 ( node@8.17.0 , react@15.6.2, @pnp/sp@2.0.9, typescript@2.4.2 ,update and upgrade are not options)`
 Exercise caution regarding versioning limitations and incompatibilities.
 Be acutely aware of versioning limitations and compatibility pitfalls.
 Pay close attention to versioning limitations and compatibility issues.
 
-import * as React from "react";
-import { ComboBox, IComboBoxOption } from "office-ui-fabric-react";
 
-export interface IGenericComboBoxProps {
-  label: string;
-  options: IComboBoxOption[];
-  onChanged: (option?: IComboBoxOption, index?: number, value?: string) => void;
-  onMenuOpen: () => void;
-  disabled?: boolean;
-  allowFreeform?: boolean;
-  autoComplete?: "on" | "off";
-}
 
-export default class GenericComboBox extends React.Component<IGenericComboBoxProps, {}> {
-  public render(): React.ReactElement<IGenericComboBoxProps> {
-    const { label, options, onChanged, onMenuOpen, disabled, allowFreeform, autoComplete } = this.props;
-    return (
-      <ComboBox
-        label={label}
-        options={options}
-        onChanged={onChanged}
-        onMenuOpen={onMenuOpen}
-        disabled={disabled}
-        allowFreeform={allowFreeform}
-        autoComplete={autoComplete}
-      />
-    );
-  }
-}
 
-// GenericDropdown.tsx
+// ProjectRequestForm.tsx
 
 import * as React from "react";
-import { Dropdown, IDropdownOption } from "office-ui-fabric-react";
+import {
+  TextField,
+  PrimaryButton,
+  IDropdownOption,
+  Link,
+  Icon,
+} from "office-ui-fabric-react";
+import GenericDropdown from "./GenericDropdown";
+import { IProjectRequestFormProps } from "./IProjectRequestFormProps";
+import { IProjectRequestFormState } from "./IProjectRequestFormState";
+import ProjectRequestService from "../services/ProjectRequestService"; // ✅ مطمئن شو مسیر درسته
+import * as moment from "moment-jalaali";
+import TechnicalAssessmentTable from "./TechnicalAssessmentTable";
+console.log('TechnicalAssessmentTable:', TechnicalAssessmentTable);
+import styles from "./ProjectRequestForm.module.scss";
+import UIFabricWizard from "./UIFabricWizard";
+import ManagedMetadataPicker from "./ManagedMetadataPicker";
+import {sp} from "@pnp/sp";
+import { IAssessment, IResource } from "./IAssessment";
 
-export interface IGenericDropdownProps {
-  label: string;
-  options: IDropdownOption[];
-  selectedKey: string | number | null;
-  onChanged: (option?: IDropdownOption) => void;
-  placeHolder?: string;
-  disabled?: boolean; // Add this line
-}
+import * as strings from "PrmWebPartStrings";
 
-export class GenericDropdown extends React.Component<
-  IGenericDropdownProps,
-  {}
+class ProjectRequestForm extends React.Component<
+  IProjectRequestFormProps,
+  IProjectRequestFormState
 > {
-  
-  public render(): React.ReactElement<IGenericDropdownProps> {
-    const { label, options, selectedKey, onChanged, placeHolder, disabled } =
-      this.props;
-      // console.log("Dropdown Options:", this.props.options); // Debugging
+  private projectRequestService: ProjectRequestService;
+
+  constructor(props: IProjectRequestFormProps) {
+    super(props);
+    this.projectRequestService = new ProjectRequestService(this.props.context); // ✅ context رو پاس بده
+
+    // Check URL params for form number
+    const urlParams = new URLSearchParams(window.location.search);
+    const formNumberParam = urlParams.get('formNumber');
+
+    this.state = {
+      mode: formNumberParam ? 'display' : 'create',
+      isProjectCreated: false,
+      showProjectForm: true,
+      requestId: null,
+      selectedCustomer: null,
+      selectedCustomerName: "",
+      requestTitle: "",
+      requestDate: moment().format("jYYYY/jM/jD"),
+      estimatedDuration: 0,
+      estimatedCost: 0,
+      requestNote: "",
+      RequestStatus: "New",
+      customerOptions: [],
+      assessments: [],
+      formNumber: null,
+      documentSetLink: null,
+      projectCodeTerm: null,
+      selectedTerm: null,
+      terms: [],
+      ProjectCode1: null,
+    };
+
+    this.handleTermSelected = this.handleTermSelected.bind(this);
+    // this.handleSubmit = this.handleSubmit.bind(this);
+    this.resetForm = this.resetForm.bind(this);
+  }
+
+  // private handleSubmit(): void {
+  //   console.log("Form submitted with data:", this.state); // Log form data
+  // }
+
+  componentDidMount() {
+    this.loadCustomerOptions();
+    const urlParams = new URLSearchParams(window.location.search);
+    const formNumber = urlParams.get('formNumber');
+    
+    if (formNumber) {
+      this.loadExistingForm(parseInt(formNumber));
+    }
+  }
+
+
+  // Add load existing form method
+  loadExistingForm = async (formNumber: number) => {
+    try {
+      const data = await this.projectRequestService.getFullRequestData(formNumber);
+      
+      this.setState({
+        mode: 'display',
+        requestId: data.request.Id,
+        requestTitle: data.request.Title,
+        selectedCustomer: data.request.CustomerId,
+        // ... map all fields
+        assessments: this.mapAssessments(data.assessments),
+        documentSetLink: data.request.DocumentSetLink,
+        isProjectCreated: true
+      });
+    } catch (error) {
+      console.error("Error loading form:", error);
+    }
+  };
+
+  private mapAssessments(rawAssessments: any[]): IAssessment[] {
+    // Transform SharePoint list data into IAssessment format
+    return rawAssessments.map(assessment => ({
+      activity: assessment.Title,
+      humanResources: this.mapResources(assessment, 'HumanResource'),
+      machines: this.mapResources(assessment, 'Machine'),
+      materials: this.mapResources(assessment, 'Material')
+    }));
+  }
+  private mapResources(assessment: any, type: string): IResource[] {
+    return [{
+      item: { key: assessment[`${type}Id`], text: assessment[`${type}Title`] },
+      quantity: assessment[`${type}Quantity`],
+      pricePerUnit: assessment[`${type}PricePerUnit`]
+    }];
+  }
+
+  // Add mode toggle methods
+  enterEditMode = () => this.setState({ mode: 'edit' });
+  cancelEdit = () => this.setState({ mode: 'display' });
+
+
+
+
+
+
+  private handleTermSelected(term: { id: string; label: string }): void {
+    this.setState({ selectedTerm: term });
+    console.log("Selected Term:", term); // Log selected term
+  }
+
+
+
+
+  loadCustomerOptions() {
+    this.projectRequestService.getCustomerOptions().then((customerOptions) => {
+      this.setState({ customerOptions });
+    });
+  }
+
+  handleInputChange = (
+    newValue: string,
+    field: keyof IProjectRequestFormState
+  ): void => {
+    let parsedValue: any = newValue;
+
+    // Check if the field expects a number
+    if (field === "estimatedDuration" || field === "estimatedCost") {
+      parsedValue = parseFloat(newValue) || 0;
+    }
+
+    this.setState({ [field]: parsedValue } as Pick<
+      IProjectRequestFormState,
+      keyof IProjectRequestFormState
+    >);
+  };
+
+  handleDropdownChange = (option?: IDropdownOption): void => {
+    this.setState({
+      selectedCustomer: option ? option.key : null,
+      selectedCustomerName: option ? option.text : "",
+    });
+  };
+
+  calculateEstimatedCost = async () => {
+    const { requestId } = this.state; // Assuming requestId is stored in the state
+
+    if (!requestId) {
+      console.error("RequestID is not available.");
+      return;
+    }
+
+    try {
+      // Fetch all PricingDetails for this RequestID
+      const pricingDetails =
+        await this.projectRequestService.getPricingDetailsByRequestID(
+          requestId
+        );
+
+      // Sum up the TotalCost values
+      const estimatedCost = pricingDetails.reduce((sum, item) => {
+        return sum + (item.TotalCost || 0); // Ensure TotalCost is treated as a number
+      }, 0);
+
+      console.log("Calculated Estimated Cost:", estimatedCost);
+
+      // Update the state with the calculated cost
+      this.setState({ estimatedCost });
+
+      // Optionally, save the calculated cost to the ProjectRequests list
+      await this.projectRequestService.updateProjectRequestEstimatedCost(
+        requestId,
+        estimatedCost
+      );
+    } catch (error) {
+      console.error("Error calculating estimated cost:", error);
+    }
+  };
+
+  handleCreateProjectRequest = (): void => {
+    const {
+      requestTitle,
+      selectedCustomer,
+      requestDate,
+      estimatedDuration,
+      estimatedCost,
+      requestNote,
+      RequestStatus,
+      ProjectCode1,
+    } = this.state;
+
+    // Step 1: Get the next form number
+    this.projectRequestService
+      .getNextFormNumber()
+      .then((formNumber) => {
+        console.log("Next Form Number:", formNumber);
+        const requestDateISO = moment(requestDate, "jYYYY/jM/jD").toISOString();
+        console.log("requestDate:", requestDate); // Check the initial value
+        console.log("requestDateISO:", requestDateISO); // Check the converted ISO string
+        console.log("Type of requestDateISO:", typeof requestDateISO); // Should be "string"
+        // Step 2: Prepare the request data
+        const requestData = {
+          Title: requestTitle.trim(),
+          CustomerId: selectedCustomer || null,
+          RequestDate: requestDateISO,
+          EstimatedDuration: estimatedDuration,
+          EstimatedCost: estimatedCost,
+          Description1: requestNote,
+          RequestStatus: RequestStatus.trim(),
+          FormNumber: formNumber,
+          ProjectCode1: ProjectCode1 ? ProjectCode1.id: null,
+        };
+
+        // Step 3: Create the project request
+        return this.projectRequestService.createProjectRequest(requestData);
+      })
+      .then((response) => {
+        if (response && response.requestId) {
+          console.log("New project created with ID:", response.requestId);
+
+          // Update state to include documentSetLink for rendering
+          this.setState(
+            {
+              isProjectCreated: true,
+              requestId: response.requestId,
+              formNumber: response.FormNumber, // if needed
+              documentSetLink: response.documentSetLink,
+            },
+            () => {
+              alert("Project request created successfully!");
+            }
+          );
+        } else {
+          throw new Error(
+            "Error creating project request. Response was invalid."
+          );
+        }
+      })
+      .catch((error) => {
+        console.error("Error creating project request or Document Set:", error);
+        console.warn(
+          "There was an error creating your project request or its associated Document Set. Please check the console for details."
+        );
+        if (error instanceof Error) {
+          console.error("Error message:", error.message);
+        }
+      });
+  };
+
+  // // Handler when a term is selected
+  // handleTermSelected = (term) => {
+  //   this.setState({ projectCodeTerm: term });
+  //   // Additional logic to handle the selected term can be added here
+  // };
+  // private handleProjectCodeSelected(term: { id: string; label: string }): void {
+  //   // Handle the selected term
+  // }
+  resetForm = (): void => {
+    this.setState({
+      isProjectCreated: false,
+      requestId: null,
+      selectedCustomer: null,
+      selectedCustomerName: "",
+      requestTitle: "",
+      requestDate: moment().format("jYYYY/jM/jD"),
+      estimatedDuration: 0,
+      estimatedCost: 0,
+      requestNote: "",
+      RequestStatus: "New",
+
+      // Reset any other state variables as needed
+    });
+  };
+
+ // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  private renderCreateMode() {
+
+    const {
+      isProjectCreated,
+      requestId,
+      selectedCustomer,
+      selectedCustomerName,
+      requestTitle,
+      requestDate,
+      estimatedDuration,
+      estimatedCost,
+      requestNote,
+      customerOptions,
+      formNumber,
+      documentSetLink,
+
+    } = this.state;
+
+    const locale =
+      this.props.context.pageContext.cultureInfo.currentCultureName;
+    const containerClass = locale === "fa-IR" ? "rtlContainer" : "ltrContainer";
     return (
-      <Dropdown
-        label={label}
-        options={options}
-        selectedKey={selectedKey}
-        onChanged={onChanged}
-        placeHolder={placeHolder}
-        disabled={disabled} // Add this prop
-      />
+      <div className={`${containerClass} ${styles.projectRequestForm}`}>
+        <UIFabricWizard />
+        <h2 className={styles.header}>
+          {isProjectCreated
+            ? strings.AddAssessments
+            : strings.CreateProjectRequest}
+        </h2>
+
+        {isProjectCreated && (
+          <div>
+            <h3>{strings.ProjectInformation}</h3>
+            <p>
+              <strong>{strings.ProjectID}:</strong> {requestId}
+            </p>
+            <p>
+              <strong>{strings.FormNumber}:</strong> {formNumber}
+            </p>
+            <p>
+              <strong>{strings.Title}:</strong> {requestTitle}
+            </p>
+            <p>
+              <strong>{strings.CustomerName}:</strong> {selectedCustomerName}
+            </p>
+            <p>
+              <strong>{strings.RequestDate}:</strong> {requestDate}
+            </p>
+            <p>{strings.RequestNote}:</p> {requestNote}
+          </div>
+        )}
+
+        {isProjectCreated && (
+          <div>
+            {/* Document Set Link */}
+            {documentSetLink && (
+              <div className={styles.docSetLink}>
+                <Icon iconName="OpenFolderHorizontal" />
+                <Link href={documentSetLink.url} target="_blank">
+                  {documentSetLink.text}
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Project Request Form */}
+        <TextField
+          label={strings.RequestTitle}
+          value={requestTitle}
+          onChanged={(newValue) =>
+            this.handleInputChange(newValue || "", "requestTitle")
+          }
+          readOnly={isProjectCreated}
+        />
+
+
+        <ManagedMetadataPicker
+          label={strings.ProjectCodeLabel} // e.g., "Project Code"
+          onTermSelected={this.handleTermSelected}
+          context={this.props.context}
+          placeHolder="Select Project Code"
+          disabled={isProjectCreated}
+        />
+        <GenericDropdown
+          label={strings.Customer}
+          options={customerOptions}
+          selectedKey={selectedCustomer || []}
+          onChanged={this.handleDropdownChange}
+          placeHolder={strings.SelectCustomer}
+          disabled={isProjectCreated}
+        />
+        <TextField
+          label={strings.RequestDate}
+          value={requestDate}
+          onChanged={(newValue) =>
+            this.handleInputChange(newValue || "", "requestDate")
+          }
+          readOnly={isProjectCreated}
+        />
+        <TextField
+          label={strings.EstimatedDuration}
+          value={estimatedDuration.toString()}
+          onChanged={(newValue) =>
+            this.setState({ estimatedDuration: parseInt(newValue) || 0 })
+          }
+          type="number"
+          readOnly={isProjectCreated}
+        />
+        <TextField
+          label={strings.EstimatedCost}
+          value={estimatedCost.toString()}
+          onChanged={(newValue) =>
+            this.setState({ estimatedCost: parseInt(newValue) || 0 })
+          }
+          type="number"
+          readOnly={isProjectCreated}
+        />
+        <TextField
+          label={strings.RequestNote}
+          value={requestNote}
+          onChanged={(newValue) =>
+            this.handleInputChange(newValue || "", "requestNote")
+          }
+          multiline
+          rows={4}
+          readOnly={isProjectCreated}
+        />
+
+        {/* Create Button */}
+        <div className={styles.buttonGroup}>
+          {!isProjectCreated && (
+            <PrimaryButton
+              text={strings.Create}
+              onClick={this.handleCreateProjectRequest}
+            />
+          )}
+          {/* Cancel Button */}
+          <div>
+            <PrimaryButton text={strings.Cancel} onClick={this.resetForm} />
+          </div>
+        </div>
+        {/* Technical Assessment Table */}
+        {isProjectCreated && requestId && (
+          <TechnicalAssessmentTable
+            projectRequestService={this.projectRequestService}
+            requestId={requestId}
+            resetForm={this.resetForm}
+            context={this.props.context}
+          />
+        )}
+
+
+      </div>
+    );
+
+  }
+
+  private renderDisplayMode() {
+    const { requestTitle, selectedCustomerName, requestDate } = this.state;
+    
+    return (
+      <div>
+        <div className={(styles as any).viewModeControls}>
+          <PrimaryButton text={strings.Edit} onClick={this.enterEditMode} />
+          <PrimaryButton text={strings.Delete} onClick={this.handleDelete} />
+        </div>
+
+        <TextField
+          label={strings.RequestTitle}
+          value={requestTitle}
+          readOnly
+        />
+
+        <TextField
+          label={strings.Customer}
+          value={selectedCustomerName}
+          readOnly
+        />
+
+        <TextField
+          label={strings.RequestDate}
+          value={requestDate}
+          readOnly
+        />
+
+        {/* Add other read-only fields */}
+      </div>
     );
   }
-}
+  private renderEditMode() {
+    return (
+      <div>
+        {/* Reuse create mode fields but make editable */}
+        <TextField
+          label={strings.RequestTitle}
+          value={this.state.requestTitle}
+          onChanged={(val) => this.handleInputChange(val, 'requestTitle')}
+        />
 
-export default GenericDropdown;
+        <div className={(styles as any).editModeControls}>
+          <PrimaryButton text={strings.Save} onClick={this.handleUpdate} />
+          <PrimaryButton text={strings.Cancel} onClick={this.cancelEdit} />
+        </div>
+      </div>
+    );
+  }
 
-// IAssessment.ts
-import { IDropdownOption } from "office-ui-fabric-react";
 
-export interface IResource {
-  item: IDropdownOption;
-  quantity: number;
-  pricePerUnit: number;
-}
+  // Add update handler
+  handleUpdate = async () => {
+    const { requestId} = this.state;
+      const {
+        estimatedDuration,
+        estimatedCost,
+        requestNote,
+        RequestStatus,
+        ProjectCode1,
+      } = this.state;
+    
+    const updateData = {
+      Title: this.state.requestTitle,
+      CustomerId: this.state.selectedCustomer,
+      // ... other fields
+      EstimatedDuration: estimatedDuration,
+      EstimatedCost: estimatedCost,
+      Description1: requestNote,
+      RequestStatus: RequestStatus.trim(),
+      ProjectCode1: ProjectCode1 ? ProjectCode1.id: null,
+    };
 
-export interface IAssessment {
-  activity: string;
-  humanResources: IResource[];
-  machines: IResource[];
-  materials: IResource[];
-}
+    try {
+      await this.projectRequestService.updateProjectRequest(requestId!, updateData);
+      this.setState({ mode: 'display' });
+    } catch (error) {
+      console.error("Error updating request:", error);
+    }
+  };
 
-import { WebPartContext } from '@microsoft/sp-webpart-base';
-
-export interface IDocSetProps {
-    context: WebPartContext;
-}
-import { Guid } from '@microsoft/sp-core-library';
-import { SPHttpClient } from '@microsoft/sp-http';
-
-import { WebPartContext } from '@microsoft/sp-webpart-base';
-
-export interface IProjectRequestFormProps {
-  context: WebPartContext;
-  spHttpClient: SPHttpClient;
-  siteUrl: string;
-  termSetId: string;
-}
-
-// IProjectRequestFormState.ts
-import { IDropdownOption } from 'office-ui-fabric-react';
-import { IAssessment } from './IAssessment';
-
-export interface IProjectRequestFormState {
-  // Flags
-  isProjectCreated: boolean;
-  showProjectForm: boolean;
-
-  // Project Request Information
-  requestId: number | null;
-  requestTitle: string;
-  requestDate: string;
-  estimatedDuration: number;
-  estimatedCost: number;
-  requestNote: string;
-  RequestStatus: string;
-
-  // Customer Information
-  selectedCustomer: string | number | null;
-  selectedCustomerName: string;
-  customerOptions: IDropdownOption[];
-  
-  // PojectCode1 Information
-  ProjectCode1: {id:string; label: string} | null;
-  selectedTerm: { id: string; label: string } | null;
-  projectCodeTerm: { id: string; label: string } | null;
-  terms: { id: string; label: string }[];
-
-  // Assessments
-  assessments: IAssessment[];
-  formNumber: Number | null;
-
-  // Document Set Link
-  documentSetLink?: {
-    url: string;
-    text: string;
+  // Add delete handler
+  handleDelete = async () => {
+    if (!confirm("Are you sure you want to delete this request?")) return;
+    
+    try {
+      await this.projectRequestService.deleteProjectRequest(this.state.requestId!);
+      this.resetForm();
+    } catch (error) {
+      console.error("Error deleting request:", error);
+    }
   };
 
 
 
+
+ // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  // Modify render method
+  render() {
+    const { mode } = this.state;
+    
+    return (
+      <div className={styles.projectRequestForm}>
+        {mode === 'create' && this.renderCreateMode()}
+        {mode === 'display' && this.renderDisplayMode()}
+        {mode === 'edit' && this.renderEditMode()}
+      </div>
+    );
+    
+    }
+
+
 }
-// ITechnicalAssessmentProps.ts
-import { Guid } from "@microsoft/sp-core-library";
-import ProjectRequestService from "../services/ProjectRequestService";
 
-export interface ITechnicalAssessmentProps {
-  projectRequestService: ProjectRequestService;
-  requestId: number;
-  resetForm: () => void; // Make this required
 
-}
+export default ProjectRequestForm;
 
-// IAssessment.ts
-import { IDropdownOption } from "office-ui-fabric-react";
 
-// ITechnicalAssessmentState.ts
-import { IAssessment } from './IAssessment';
-import { IDropdownOptionWithCategory } from "../services/ProjectRequestService";
 
-export interface ITechnicalAssessmentState {
-  assessments: IAssessment[];
-  inventoryItems: IDropdownOptionWithCategory[];
-}
+
+// TechnicalAssessmentTable.tsx
 import * as React from "react";
-import GenericComboBox from "./GenericComboBox";
-import { IComboBoxOption } from "office-ui-fabric-react";
-import ProjectRequestService from "../services/ProjectRequestService";
-import { WebPartContext } from "@microsoft/sp-webpart-base";
+import {
+  PrimaryButton,
+  TextField,
+  IDropdownOption,
+  ProgressIndicator, // Import ProgressIndicator
+} from "office-ui-fabric-react";
+import GenericDropdown from "./GenericDropdown";
+import { ITechnicalAssessmentState } from "./ITechnicalAssessmentState";
+import { ITechnicalAssessmentProps } from "./ITechnicalAssessmentProps";
+import PricingDetails from "./PricingDetails";
+import styles from "./TechnicalAssessmentTable.module.scss";
 
-export interface IManagedMetadataPickerProps {
-  label: string;
-  onTermSelected: (term: { id: string; label: string }) => void;
-  disabled?: boolean;
-  context: WebPartContext;
-  placeHolder?: string; // Note: if your ComboBox version doesn't support placeholder, ignore it.
-}
+import * as strings from "PrmWebPartStrings";
 
-export interface IManagedMetadataPickerState {
-  options: IComboBoxOption[];
-}
+import ProjectRequestService, {
+  IDropdownOptionWithCategory,
+  IPricingDetails,
+} from "../services/ProjectRequestService";
+import { IAssessment } from "./IAssessment";
 
-export default class ManagedMetadataPicker extends React.Component<IManagedMetadataPickerProps, IManagedMetadataPickerState> {
+
+
+
+class TechnicalAssessmentTable extends React.Component<
+  ITechnicalAssessmentProps,
+  ITechnicalAssessmentState
+> {
   private projectRequestService: ProjectRequestService;
 
-  constructor(props: IManagedMetadataPickerProps) {
+  constructor(props: ITechnicalAssessmentProps) {
     super(props);
     this.projectRequestService = new ProjectRequestService(this.props.context);
     this.state = {
-      options: []
+      assessments: [] as IAssessment[],
+      inventoryItems: [] as IDropdownOptionWithCategory[],
+      isLoading: false, // Add loading state
     };
-    this._onMenuOpen = this._onMenuOpen.bind(this);
-    this._onChanged = this._onChanged.bind(this);
   }
 
-  private _onMenuOpen(): void {
-    // Fetch taxonomy terms using the service method
-    this.projectRequestService.getTaxonomyTerms('5863383a-85c5-4fbd-8114-11ef83bf9175')
-      .then((terms) => {
-        const options: IComboBoxOption[] = terms.map(term => ({
-          key: term.id,
-          text: term.label
-        }));
-        this.setState({ options });
-      })
-      .catch(error => {
-        console.error("Error fetching taxonomy terms", error);
-        this.setState({ options: [] });
-      });
-  }
-
-  private _onChanged(option?: IComboBoxOption, index?: number, value?: string): void {
-    if (option && this.props.onTermSelected) {
-      this.props.onTermSelected({ id: option.key as string, label: option.text });
+  componentDidMount() {
+    this.loadInventoryItems();
+    if (this.props.requestId && (this.props.isEditMode || this.props.isDisplayMode)) {
+      this.loadAssessments(this.props.requestId);
     }
   }
 
-  public render(): React.ReactElement<IManagedMetadataPickerProps> {
+  private async loadAssessments(requestId: number) {
+    this.setState({ isLoading: true });
+    try {
+      const assessmentsData = await this.projectRequestService.getAssessmentsByRequestId(requestId);
+      if (assessmentsData && assessmentsData.length > 0) {
+        this.setState({ assessments: assessmentsData });
+      } else {
+        // If no assessments are found, initialize with one empty assessment
+        this.addAssessment(); // Initialize with one empty assessment if none exist
+      }
+    } catch (error) {
+      console.error("Error loading assessments:", error);
+      alert("Failed to load assessments.");
+    } finally {
+      this.setState({ isLoading: false });
+    }
+  }
+
+
+  handleFinalSubmit = (): void => {
+    const { assessments } = this.state;
+    const { requestId, resetForm } = this.props;
+
+    if (!assessments || assessments.length === 0) {
+      alert("Please add at least one assessment before submitting.");
+      return;
+    }
+
+    const pricingDetails: IPricingDetails[] = [];
+
+
+    this.projectRequestService
+      .saveAssessments(assessments, requestId)
+      .then((assessmentIds) => {
+
+
+        assessments.forEach((assessment, index) => {
+          ["humanResources", "machines", "materials"].forEach((field) => {
+            if (Array.isArray(assessment[field])) {
+              assessment[field].forEach((item: any) => {
+                pricingDetails.push({
+                  RequestID: requestId,
+                  UnitPrice: parseFloat(item.pricePerUnit),
+                  Quantity: parseInt(item.quantity),
+                  AssessmentItemID: assessmentIds[index],
+                });
+              });
+            }
+          });
+        });
+
+
+        return this.projectRequestService.savePricingDetails(pricingDetails);
+      })
+      .then(() => {
+
+        return this.projectRequestService.getPricingDetailsByRequestID(
+          requestId
+        );
+      })
+      .then((pricingDetails) => {
+
+
+        const totalEstimatedCost = pricingDetails.reduce(
+          (sum, detail) => sum + detail.TotalCost,
+          0
+        );
+
+
+        return this.projectRequestService
+          .updateProjectRequestEstimatedCost(requestId, totalEstimatedCost)
+          .then(() => {
+            alert("Assessments and pricing details saved successfully!");
+            resetForm();
+          });
+      })
+      .catch((error) => {
+        console.error("Error saving assessments and pricing details:", error);
+        alert(
+          "Error saving assessments and pricing details. Please check the console for details."
+        );
+      });
+  };
+
+  loadInventoryItems = () => {
+    this.projectRequestService.getInventoryItems().then((items) => {
+
+      this.setState({ inventoryItems: items || [] });
+    }).catch((error)=> {
+      console.log("Error loading inventory: ", error);
+      this.setState({inventoryItems: []});
+    
+    });
+  };
+
+
+  filterInventoryItems = (categories: string[]): IDropdownOption[] => {
+    const { inventoryItems } = this.state;
+
+      // Add null check
+  if (!inventoryItems || !Array.isArray(inventoryItems)) return [];
+
+
+    const categoryMap: { [key: string]: string[] } = {
+      HumanResource: [strings.HumanResource,"نیروی انسانی"],
+      Machine: [strings.Machine, "ماشین آلات"],
+      Material: [strings.Material,"ابزار","محصول","مواد اولیه" ]
+    };
+
+
+    const validCategories = categories.reduce((acc, category) => [
+      //{ return acc.concat(categoryMap[category] || [category]);}
+      ...acc,
+      ...(categoryMap[category] || [category])
+    ], [] as string[]);
+    // return inventoryItems
+    // .filter(item => validCategories.includes(item.itemCategory))
+    // .map(item => ({key: item.key, text: item.text}));
+
+    const filteredItems = inventoryItems.filter((item) =>
+      validCategories.indexOf(item.itemCategory) > -1
+    );
+
+
+    return filteredItems.map((item) => ({ key: item.key, text: item.text }));
+  };
+
+
+
+  handleInputChange = (
+    newValue: string,
+    nestedField: string,
+    index: number,
+    partIndex?: number,
+    field?: string
+  ): void => {
+    this.setState((prevState) => {
+      const assessments = [...prevState.assessments];
+
+      if (partIndex !== undefined && field) {
+        const items = [...(assessments[index][field] || [])];
+        const updatedItem = { ...items[partIndex] };
+
+        updatedItem[nestedField] = newValue;
+
+        items[partIndex] = updatedItem;
+        assessments[index][field] = items;
+      } else {
+        assessments[index] = { ...assessments[index], [nestedField]: newValue };
+      }
+
+      return { assessments };
+    });
+  };
+
+  handleDropdownChange = (
+    field: string,
+    option: IDropdownOption,
+    index: number,
+    partIndex: number
+  ): void => {
+    this.setState((prevState) => {
+      const assessments = [...prevState.assessments];
+      if (!assessments[index][field]) {
+        assessments[index][field] = []; // Initialize if undefined
+      }
+      if (!assessments[index][field][partIndex]) {
+        assessments[index][field][partIndex] = {}; // Initialize if undefined
+      }
+      if (!assessments[index][field][partIndex].item) {
+        assessments[index][field][partIndex].item = {}; // Initialize if undefined
+      }
+      assessments[index][field][partIndex].item = option;
+      return { assessments };
+    });
+  };
+
+
+  addRow = (field: string, index: number) => {
+    this.setState((prevState) => {
+      const assessments = [...prevState.assessments];
+
+      if (!Array.isArray(assessments[index][field])) {
+        assessments[index][field] = [];
+      }
+
+      assessments[index][field].push({
+        item: { key: "", text: "" },
+        quantity: 0,
+        pricePerUnit: 0,
+      });
+
+      return { assessments };
+    });
+  };
+
+  removeRow = (field: string, index: number, partIndex: number) => {
+    this.setState((prevState) => {
+      const assessments = [...prevState.assessments];
+      assessments[index][field].splice(partIndex, 1);
+      return { assessments };
+    });
+  };
+
+  addAssessment = () => {
+    this.setState((prevState) => ({
+      assessments: [
+        ...prevState.assessments,
+        {
+          activity: "",
+          humanResources: [],
+          machines: [],
+          materials: [],
+        },
+      ],
+    }), () => {
+      // After adding a new assessment, if it's a display mode, re-render to show the empty assessment
+      if (this.props.isDisplayMode) {
+        this.forceUpdate(); // Force re-render to display the added empty assessment
+      }
+    });
+  };
+
+
+  renderTable = (
+    label: string,
+    field: string,
+    options: IDropdownOption[],
+    assessment: any,
+    index: number
+  ) => (
+    <PricingDetails
+      label={label}
+      field={field}
+      options={options}
+      assessment={assessment}
+      index={index}
+      handleDropdownChange={this.handleDropdownChange}
+      handleInputChange={this.handleInputChange}
+      addRow={this.addRow}
+      removeRow={this.removeRow}
+      disabled={this.props.isDisplayMode} // Disable controls in Display mode
+    />
+  );
+
+  render() {
+    const { assessments, isLoading } = this.state;
+    const { isDisplayMode, isEditMode } = this.props;
+    const isReadOnly = isDisplayMode;
+
+
+    if (this.state.isLoading) {
+      return <ProgressIndicator
+      label={strings.LoadingAssessments}
+      description={strings.PleaseWait} />;
+    }
+
+
     return (
-      <GenericComboBox
-        label={this.props.label}
-        options={this.state.options}
-        onChanged={this._onChanged}
-        onMenuOpen={this._onMenuOpen}
-        disabled={this.props.disabled}
-        allowFreeform={true}
-        autoComplete="on"
-      />
+      <div className={styles.assessmentContainer}>
+        <h3 className={styles.assessmentHeading}>
+          {strings.TechnicalAssessments}
+        </h3>
+        {assessments.map((assessment, index) => (
+          <div key={index}>
+            <TextField
+              label={`${strings.Activity} ${index + 1}`}
+              value={assessment.activity || ''} // Ensure value is not undefined
+              onChanged={(newValue: string) =>
+                this.handleInputChange(newValue, "activity", index)
+              }
+              readOnly={isReadOnly} // Make Activity TextField read-only in Display mode
+            />
+
+            {this.renderTable(
+              strings.HumanResource,
+              "humanResources",
+              this.filterInventoryItems([strings.HumanResource]),
+              assessment,
+              index
+            )}
+            {this.renderTable(
+              strings.Machine,
+              "machines",
+              this.filterInventoryItems([strings.Machine]),
+              assessment,
+              index
+            )}
+            {this.renderTable(
+              strings.Material,
+              "materials",
+              this.filterInventoryItems([strings.Material]),
+              assessment,
+              index
+            )}
+
+            <hr />
+          </div>
+        ))}
+        {/* Conditionally render "Add Assessment" and "Final Submit" buttons based on mode */}
+        {!(isDisplayMode) && (
+          <>
+            <PrimaryButton
+              className={styles.addAssessmentButton}
+              text={strings.AddAssessment}
+              onClick={this.addAssessment}
+              disabled={isReadOnly}
+            />
+            <PrimaryButton
+              className={styles.finalSubmitButton}
+              text={strings.FinalSubmit}
+              onClick={this.handleFinalSubmit}
+              disabled={isReadOnly}
+              style={{ marginLeft: '10px' }}
+            />
+          </>
+        )}
+      </div>
     );
   }
 }
 
+export default TechnicalAssessmentTable;
+
+
+// PricingDetails.tsx
 import * as React from "react";
 import {
   TextField,
@@ -2238,12 +2960,13 @@ import GenericDropdown from "./GenericDropdown";
 import * as strings from "PrmWebPartStrings";
 import styles from "./TechnicalAssessmentTable.module.scss";
 
-interface IPricingDetailsProps {
+interface IPricingDetailsProps { // Corrected interface
   label: string;
   field: string;
   options: IDropdownOption[];
   assessment: any;
   index: number;
+
   handleDropdownChange: (
     field: string,
     option: IDropdownOption,
@@ -2259,7 +2982,10 @@ interface IPricingDetailsProps {
   ) => void;
   addRow: (field: string, index: number) => void;
   removeRow: (field: string, index: number, partIndex: number) => void;
+  disabled?: boolean; // Add this line to IPricingDetailsProps
 }
+
+// ... rest of PricingDetails.tsx
 
 
 
@@ -2276,7 +3002,7 @@ class PricingDetails extends React.Component<IPricingDetailsProps> {
       removeRow,
       label,
     } = this.props;
-    // console.log(`Options for ${label}:`, options); // Debugging
+    console.log(`Options for ${label}:`, options); // Debugging
     return (
       <table className="technicalAssessmentTable">
         <tbody>
@@ -2295,7 +3021,7 @@ class PricingDetails extends React.Component<IPricingDetailsProps> {
                   <td className="resourceColumn">
                     <GenericDropdown
                       label={`${label} ${partIndex + 1}`}
-                      options={options}
+                      options={options || []}
                       selectedKey={item.item ? item.item.key : undefined}
                       onChanged={(option) =>
                         handleDropdownChange(field, option!, index, partIndex)
@@ -2376,772 +3102,8 @@ class PricingDetails extends React.Component<IPricingDetailsProps> {
 }
 
 export default PricingDetails;
-// ProjectRequestForm.tsx
 
-import * as React from "react";
-import {
-  TextField,
-  PrimaryButton,
-  IDropdownOption,
-  Link,
-  Icon,
-} from "office-ui-fabric-react";
-import GenericDropdown from "./GenericDropdown";
-import { IProjectRequestFormProps } from "./IProjectRequestFormProps";
-import { IProjectRequestFormState } from "./IProjectRequestFormState";
-import ProjectRequestService from "../services/ProjectRequestService"; // ✅ مطمئن شو مسیر درسته
-import * as moment from "moment-jalaali";
-import TechnicalAssessmentTable from "./TechnicalAssessmentTable";
-import styles from "./ProjectRequestForm.module.scss";
-import UIFabricWizard from "./UIFabricWizard";
-import ManagedMetadataPicker from "./ManagedMetadataPicker";
 
-import * as strings from "PrmWebPartStrings";
-
-class ProjectRequestForm extends React.Component<
-  IProjectRequestFormProps,
-  IProjectRequestFormState
-> {
-  private projectRequestService: ProjectRequestService;
-
-  constructor(props: IProjectRequestFormProps) {
-    super(props);
-    this.projectRequestService = new ProjectRequestService(this.props.context); // ✅ context رو پاس بده
-    this.state = {
-      isProjectCreated: false,
-      showProjectForm: true,
-      requestId: null,
-      selectedCustomer: null,
-      selectedCustomerName: "",
-      requestTitle: "",
-      requestDate: moment().format("jYYYY/jM/jD"),
-      estimatedDuration: 0,
-      estimatedCost: 0,
-      requestNote: "",
-      RequestStatus: "New",
-      customerOptions: [],
-      assessments: [],
-      formNumber: null,
-      documentSetLink: null,
-      projectCodeTerm: null,
-      selectedTerm: null,
-      terms: [],
-      ProjectCode1: null,
-    };
-
-    this.handleTermSelected = this.handleTermSelected.bind(this);
-    // this.handleSubmit = this.handleSubmit.bind(this);
-    this.resetForm = this.resetForm.bind(this);
-  }
-
-  // private handleSubmit(): void {
-  //   // console.log("Form submitted with data:", this.state); // Log form data
-  // }
-
-  componentDidMount() {
-    this.loadCustomerOptions();
-  }
-
-  private handleTermSelected(term: { id: string; label: string }): void {
-    this.setState({ selectedTerm: term });
-    // console.log("Selected Term:", term); // Log selected term
-  }
-
-
-
-
-  loadCustomerOptions() {
-    this.projectRequestService.getCustomerOptions().then((customerOptions) => {
-      this.setState({ customerOptions });
-    });
-  }
-
-  handleInputChange = (
-    newValue: string,
-    field: keyof IProjectRequestFormState
-  ): void => {
-    let parsedValue: any = newValue;
-
-    // Check if the field expects a number
-    if (field === "estimatedDuration" || field === "estimatedCost") {
-      parsedValue = parseFloat(newValue) || 0;
-    }
-
-    this.setState({ [field]: parsedValue } as Pick<
-      IProjectRequestFormState,
-      keyof IProjectRequestFormState
-    >);
-  };
-
-  handleDropdownChange = (option?: IDropdownOption): void => {
-    this.setState({
-      selectedCustomer: option ? option.key : null,
-      selectedCustomerName: option ? option.text : "",
-    });
-  };
-
-  calculateEstimatedCost = async () => {
-    const { requestId } = this.state; // Assuming requestId is stored in the state
-
-    if (!requestId) {
-      console.error("RequestID is not available.");
-      return;
-    }
-
-    try {
-      // Fetch all PricingDetails for this RequestID
-      const pricingDetails =
-        await this.projectRequestService.getPricingDetailsByRequestID(
-          requestId
-        );
-
-      // Sum up the TotalCost values
-      const estimatedCost = pricingDetails.reduce((sum, item) => {
-        return sum + (item.TotalCost || 0); // Ensure TotalCost is treated as a number
-      }, 0);
-
-      // console.log("Calculated Estimated Cost:", estimatedCost);
-
-      // Update the state with the calculated cost
-      this.setState({ estimatedCost });
-
-      // Optionally, save the calculated cost to the ProjectRequests list
-      await this.projectRequestService.updateProjectRequestEstimatedCost(
-        requestId,
-        estimatedCost
-      );
-    } catch (error) {
-      console.error("Error calculating estimated cost:", error);
-    }
-  };
-
-  handleCreateProjectRequest = (): void => {
-    const {
-      requestTitle,
-      selectedCustomer,
-      requestDate,
-      estimatedDuration,
-      estimatedCost,
-      requestNote,
-      RequestStatus,
-      ProjectCode1,
-    } = this.state;
-
-    // Step 1: Get the next form number
-    this.projectRequestService
-      .getNextFormNumber()
-      .then((formNumber) => {
-        // console.log("Next Form Number:", formNumber);
-        const requestDateISO = moment(requestDate, "jYYYY/jM/jD").toISOString();
-        // console.log("requestDate:", requestDate); // Check the initial value
-        // console.log("requestDateISO:", requestDateISO); // Check the converted ISO string
-        // console.log("Type of requestDateISO:", typeof requestDateISO); // Should be "string"
-        // Step 2: Prepare the request data
-        const requestData = {
-          Title: requestTitle.trim(),
-          CustomerId: selectedCustomer || null,
-          RequestDate: requestDateISO,
-          EstimatedDuration: estimatedDuration,
-          EstimatedCost: estimatedCost,
-          Description1: requestNote,
-          RequestStatus: RequestStatus.trim(),
-          FormNumber: formNumber,
-          ProjectCode1: ProjectCode1 ? ProjectCode1.id: null,
-        };
-
-        // Step 3: Create the project request
-        return this.projectRequestService.createProjectRequest(requestData);
-      })
-      .then((response) => {
-        if (response && response.requestId) {
-          // console.log("New project created with ID:", response.requestId);
-
-          // Update state to include documentSetLink for rendering
-          this.setState(
-            {
-              isProjectCreated: true,
-              requestId: response.requestId,
-              formNumber: response.FormNumber, // if needed
-              documentSetLink: response.documentSetLink,
-            },
-            () => {
-              alert("Project request created successfully!");
-            }
-          );
-        } else {
-          throw new Error(
-            "Error creating project request. Response was invalid."
-          );
-        }
-      })
-      .catch((error) => {
-        console.error("Error creating project request or Document Set:", error);
-        console.warn(
-          "There was an error creating your project request or its associated Document Set. Please check the console for details."
-        );
-        if (error instanceof Error) {
-          console.error("Error message:", error.message);
-        }
-      });
-  };
-
-  // // Handler when a term is selected
-  // handleTermSelected = (term) => {
-  //   this.setState({ projectCodeTerm: term });
-  //   // Additional logic to handle the selected term can be added here
-  // };
-  private handleProjectCodeSelected(term: { id: string; label: string }): void {
-    // Handle the selected term
-  }
-  resetForm = (): void => {
-    this.setState({
-      isProjectCreated: false,
-      requestId: null,
-      selectedCustomer: null,
-      selectedCustomerName: "",
-      requestTitle: "",
-      requestDate: moment().format("jYYYY/jM/jD"),
-      estimatedDuration: 0,
-      estimatedCost: 0,
-      requestNote: "",
-      RequestStatus: "New",
-
-      // Reset any other state variables as needed
-    });
-  };
-
-  render() {
-    const {
-      isProjectCreated,
-      requestId,
-      selectedCustomer,
-      selectedCustomerName,
-      requestTitle,
-      requestDate,
-      estimatedDuration,
-      estimatedCost,
-      requestNote,
-      customerOptions,
-      formNumber,
-      documentSetLink,
-    } = this.state;
-
-    const locale =
-      this.props.context.pageContext.cultureInfo.currentCultureName;
-    const containerClass = locale === "fa-IR" ? "rtlContainer" : "ltrContainer";
-
-    return (
-      <div className={`${containerClass} ${styles.projectRequestForm}`}>
-        <UIFabricWizard />
-        <h2 className={styles.header}>
-          {isProjectCreated
-            ? strings.AddAssessments
-            : strings.CreateProjectRequest}
-        </h2>
-
-        {isProjectCreated && (
-          <div>
-            <h3>{strings.ProjectInformation}</h3>
-            <p>
-              <strong>{strings.ProjectID}:</strong> {requestId}
-            </p>
-            <p>
-              <strong>{strings.FormNumber}:</strong> {formNumber}
-            </p>
-            <p>
-              <strong>{strings.Title}:</strong> {requestTitle}
-            </p>
-            <p>
-              <strong>{strings.CustomerName}:</strong> {selectedCustomerName}
-            </p>
-            <p>
-              <strong>{strings.RequestDate}:</strong> {requestDate}
-            </p>
-            <p>{strings.RequestNote}:</p> {requestNote}
-          </div>
-        )}
-
-        {isProjectCreated && (
-          <div>
-            {/* Document Set Link */}
-            {documentSetLink && (
-              <div className={styles.docSetLink}>
-                <Icon iconName="OpenFolderHorizontal" />
-                <Link href={documentSetLink.url} target="_blank">
-                  {documentSetLink.text}
-                </Link>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Project Request Form */}
-        <TextField
-          label={strings.RequestTitle}
-          value={requestTitle}
-          onChanged={(newValue) =>
-            this.handleInputChange(newValue || "", "requestTitle")
-          }
-          readOnly={isProjectCreated}
-        />
-
-
-        <ManagedMetadataPicker
-          label={strings.ProjectCodeLabel} // e.g., "Project Code"
-          onTermSelected={this.handleTermSelected}
-          context={this.props.context}
-          placeHolder="Select Project Code"
-          disabled={isProjectCreated}
-        />
-        <GenericDropdown
-          label={strings.Customer}
-          options={customerOptions}
-          selectedKey={selectedCustomer}
-          onChanged={this.handleDropdownChange}
-          placeHolder={strings.SelectCustomer}
-          disabled={isProjectCreated}
-        />
-        <TextField
-          label={strings.RequestDate}
-          value={requestDate}
-          onChanged={(newValue) =>
-            this.handleInputChange(newValue || "", "requestDate")
-          }
-          readOnly={isProjectCreated}
-        />
-        <TextField
-          label={strings.EstimatedDuration}
-          value={estimatedDuration.toString()}
-          onChanged={(newValue) =>
-            this.setState({ estimatedDuration: parseInt(newValue) || 0 })
-          }
-          type="number"
-          readOnly={isProjectCreated}
-        />
-        <TextField
-          label={strings.EstimatedCost}
-          value={estimatedCost.toString()}
-          onChanged={(newValue) =>
-            this.setState({ estimatedCost: parseInt(newValue) || 0 })
-          }
-          type="number"
-          readOnly={isProjectCreated}
-        />
-        <TextField
-          label={strings.RequestNote}
-          value={requestNote}
-          onChanged={(newValue) =>
-            this.handleInputChange(newValue || "", "requestNote")
-          }
-          multiline
-          rows={4}
-          readOnly={isProjectCreated}
-        />
-
-        {/* Create Button */}
-        <div className={styles.buttonGroup}>
-          {!isProjectCreated && (
-            <PrimaryButton
-              text={strings.Create}
-              onClick={this.handleCreateProjectRequest}
-            />
-          )}
-          {/* Cancel Button */}
-          <div>
-            <PrimaryButton text={strings.Cancel} onClick={this.resetForm} />
-          </div>
-        </div>
-        {/* Technical Assessment Table */}
-        {isProjectCreated && requestId && (
-          <TechnicalAssessmentTable
-            projectRequestService={this.projectRequestService}
-            requestId={requestId}
-            resetForm={this.resetForm}
-          />
-        )}
-
-
-      </div>
-    );
-  }
-}
-
-export default ProjectRequestForm;
-
-// TechnicalAssessmentTable.tsx
-
-import * as React from "react";
-import {
-  PrimaryButton,
-  TextField,
-  IDropdownOption,
-} from "office-ui-fabric-react";
-import GenericDropdown from "./GenericDropdown";
-import { ITechnicalAssessmentState } from "./ITechnicalAssessmentState";
-import { ITechnicalAssessmentProps } from "./ITechnicalAssessmentProps";
-import PricingDetails from "./PricingDetails";
-import styles from "./TechnicalAssessmentTable.module.scss";
-
-import * as strings from "PrmWebPartStrings";
-
-import ProjectRequestService, {
-  IPricingDetails,
-} from "../services/ProjectRequestService";
-
-class TechnicalAssessmentTable extends React.Component<
-  ITechnicalAssessmentProps,
-  ITechnicalAssessmentState
-> {
-  private projectRequestService: ProjectRequestService;
-
-  constructor(props: ITechnicalAssessmentProps) {
-    super(props);
-    this.projectRequestService = new ProjectRequestService(this.context);
-    this.state = {
-      assessments: [],
-      inventoryItems: [],
-    };
-  }
-
-  componentDidMount() {
-    this.loadInventoryItems();
-  }
-
-  handleFinalSubmit = (): void => {
-    const { assessments } = this.state;
-    const { requestId, resetForm } = this.props;
-
-    if (!assessments || assessments.length === 0) {
-      alert("Please add at least one assessment before submitting.");
-      return;
-    }
-
-    const pricingDetails: IPricingDetails[] = [];
-
-    // Save assessments and get their IDs
-    this.projectRequestService
-      .saveAssessments(assessments, requestId)
-      .then((assessmentIds) => {
-        // console.log("Assessment IDs:", assessmentIds);
-
-        // Map assessments to pricing details using the created IDs
-        assessments.forEach((assessment, index) => {
-          ["humanResources", "machines", "materials"].forEach((field) => {
-            if (Array.isArray(assessment[field])) {
-              assessment[field].forEach((item: any) => {
-                pricingDetails.push({
-                  RequestID: requestId,
-                  UnitPrice: parseFloat(item.pricePerUnit),
-                  Quantity: parseInt(item.quantity),
-                  AssessmentItemID: assessmentIds[index],
-                });
-              });
-            }
-          });
-        });
-
-        // console.log("Pricing Details to Save:", pricingDetails);
-
-        // Save pricing details
-        return this.projectRequestService.savePricingDetails(pricingDetails);
-      })
-      .then(() => {
-        // console.log("Pricing details saved successfully.");
-        return this.projectRequestService.getPricingDetailsByRequestID(
-          requestId
-        );
-      })
-      .then((pricingDetails) => {
-        // console.log("Fetched Pricing Details After Save:", pricingDetails);
-
-        // Calculate the total estimated cost
-        const totalEstimatedCost = pricingDetails.reduce(
-          (sum, detail) => sum + detail.TotalCost,
-          0
-        );
-
-        // console.log("Total Estimated Cost:", totalEstimatedCost);
-
-        // Update the ProjectRequest with the estimated cost
-        return this.projectRequestService
-          .updateProjectRequestEstimatedCost(requestId, totalEstimatedCost)
-          .then(() => {
-            alert("Assessments and pricing details saved successfully!");
-            resetForm();
-          });
-      })
-      .catch((error) => {
-        console.error("Error saving assessments and pricing details:", error);
-        alert(
-          "Error saving assessments and pricing details. Please check the console for details."
-        );
-      });
-  };
-
-  loadInventoryItems = () => {
-    this.projectRequestService.getInventoryItems().then((items) => {
-      // console.log("Inventory Items:", items); // Debugging
-      this.setState({ inventoryItems: items });
-    });
-  };
-  
-  // filterInventoryItems = (categories: string[]): IDropdownOption[] => {
-  //   const { inventoryItems } = this.state;
-  //   const filteredItems = inventoryItems
-  //     .filter((item) => categories.indexOf(item.itemCategory) > -1)
-  //     .map((item) => ({ key: item.key, text: item.text }));
-  //   // console.log("Filtered Items:", filteredItems); // Debugging
-  //   return filteredItems;
-  // };
-  filterInventoryItems = (categories: string[]): IDropdownOption[] => {
-    const { inventoryItems } = this.state;
-  
-      // Debug: Log categories and inventory items
-  // console.log("Filtering for categories:", categories);
-  // console.log("All inventory items:", inventoryItems);
-
-    // Map English category keys to their Persian equivalents
-    const categoryMap: { [key: string]: string[] } = {
-      HumanResource: [strings.HumanResource,"نیروی انسانی"], // English & Persian
-      Machine: [strings.Machine, "ماشین آلات"], 
-      Material: [strings.Material,"ابزار","محصول","مواد اولیه" ]
-    };
-  
-    // Get all valid category names for the requested categories
-    const validCategories = categories.reduce((acc, category) => {
-      return acc.concat(categoryMap[category] || [category]);
-    }, [] as string[]);
-  
-    // Filter items using indexOf for SPFx 1.4.1 compatibility
-    const filteredItems = inventoryItems.filter((item) => 
-      validCategories.indexOf(item.itemCategory) > -1
-    );
-  
-    // console.log("Filtered Items:", filteredItems);
-    return filteredItems.map((item) => ({ key: item.key, text: item.text }));
-  };
-
-  
-  handleInputChange = (
-    newValue: string,
-    nestedField: string,
-    index: number,
-    partIndex?: number,
-    field?: string
-  ): void => {
-    this.setState((prevState) => {
-      const assessments = [...prevState.assessments];
-
-      if (partIndex !== undefined && field) {
-        const items = [...(assessments[index][field] || [])];
-        const updatedItem = { ...items[partIndex] };
-
-        updatedItem[nestedField] = newValue;
-
-        items[partIndex] = updatedItem;
-        assessments[index][field] = items;
-      } else {
-        assessments[index] = { ...assessments[index], [nestedField]: newValue };
-      }
-
-      return { assessments };
-    });
-  };
-
-  handleDropdownChange = (
-    field: string,
-    option: IDropdownOption,
-    index: number,
-    partIndex: number
-  ): void => {
-    this.setState((prevState) => {
-      const assessments = [...prevState.assessments];
-      assessments[index][field][partIndex].item = option;
-      return { assessments };
-    });
-  };
-
-  addRow = (field: string, index: number) => {
-    this.setState((prevState) => {
-      const assessments = [...prevState.assessments];
-
-      if (!Array.isArray(assessments[index][field])) {
-        assessments[index][field] = [];
-      }
-
-      assessments[index][field].push({
-        item: { key: "", text: "" },
-        quantity: 0,
-        pricePerUnit: 0,
-      });
-
-      return { assessments };
-    });
-  };
-
-  removeRow = (field: string, index: number, partIndex: number) => {
-    this.setState((prevState) => {
-      const assessments = [...prevState.assessments];
-      assessments[index][field].splice(partIndex, 1);
-      return { assessments };
-    });
-  };
-
-  addAssessment = () => {
-    this.setState((prevState) => ({
-      assessments: [
-        ...prevState.assessments,
-        {
-          activity: "",
-          humanResources: [],
-          machines: [],
-          materials: [],
-        },
-      ],
-    }));
-  };
-
-  renderTable = (
-    label: string,
-    field: string,
-    options: IDropdownOption[],
-    assessment: any,
-    index: number
-  ) => (
-    <PricingDetails
-      label={label}
-      field={field}
-      options={options}
-      assessment={assessment}
-      index={index}
-      handleDropdownChange={this.handleDropdownChange}
-      handleInputChange={this.handleInputChange}
-      addRow={this.addRow}
-      removeRow={this.removeRow}
-    />
-  );
-
-  render() {
-    const { assessments } = this.state;
-
-    return (
-      <div className={styles.assessmentContainer}>
-        <h3 className={styles.assessmentHeading}>
-          {strings.TechnicalAssessments}
-        </h3>
-        {assessments.map((assessment, index) => (
-          <div key={index}>
-            <TextField
-              label={`${strings.Activity} ${index + 1}`}
-              value={assessment.activity}
-              onChanged={(newValue: string) =>
-                this.handleInputChange(newValue, "activity", index)
-              }
-            />
-
-            {this.renderTable(
-              strings.HumanResource,
-              "humanResources",
-              this.filterInventoryItems([strings.HumanResource]),
-              assessment,
-              index
-            )}
-            {this.renderTable(
-              strings.Machine,
-              "machines",
-              this.filterInventoryItems([strings.Machine]),
-              assessment,
-              index
-            )}
-            {this.renderTable(
-              strings.Material,
-              "materials",
-              this.filterInventoryItems([strings.Material]),
-              assessment,
-              index
-            )}
-
-            <hr />
-          </div>
-        ))}
-        <PrimaryButton
-          className={styles.addAssessmentButton}
-          text={strings.AddAssessment}
-          onClick={this.addAssessment}
-        />
-        <PrimaryButton
-          className={styles.finalSubmitButton}
-          text={strings.FinalSubmit}
-          onClick={this.handleFinalSubmit}
-        />
-      </div>
-    );
-  }
-}
-
-export default TechnicalAssessmentTable;
-import * as React from "react";
-import { PrimaryButton, ProgressIndicator } from "office-ui-fabric-react";
-import styles from "./UIFabricWizard.module.scss";
-
-interface IUIFabricWizardState {
-  currentStep: number;
-}
-
-export default class UIFabricWizard extends React.Component<
-  {},
-  IUIFabricWizardState
-> {
-  constructor(props: {}) {
-    super(props);
-    this.state = { currentStep: 1 };
-  }
-
-  private _goToNextStep = (): void => {
-    this.setState({ currentStep: 2 });
-  };
-
-  private _goToPreviousStep = (): void => {
-    this.setState({ currentStep: 1 });
-  };
-
-  public render(): React.ReactElement<{}> {
-    const { currentStep } = this.state;
-    return (
-      <div>
-        <div className={styles.progressContainer}>
-          <ProgressIndicator
-            label={`Step ${currentStep} of 2`}
-            description={
-              currentStep === 1 ? "Create Project Request" : "Add Assessments"
-            }
-          />
-        </div>
-
-        {currentStep === 1 && (
-          <div>
-            {/* Render your Project Request Form components here */}
-            <PrimaryButton text="Next" onClick={this._goToNextStep} />
-          </div>
-        )}
-
-        {currentStep === 2 && (
-          <div>
-            {/* Render your Technical Assessments components here */}
-            <div>
-              <PrimaryButton text="Back" onClick={this._goToPreviousStep} />
-              {/* <PrimaryButton
-                text="Submit"
-                onClick={() => alert("Final submission")}
-                style={{ marginLeft: 10 }}
-              /> */}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-}
 
 // ProjectRequestService.ts
 
@@ -3169,6 +3131,10 @@ export interface IDropdownOptionWithCategory {
   itemCategory: string;
 }
 
+export interface IDropdownOptionWithCategory extends IDropdownOption {
+  itemCategory: string;
+}
+
 export interface IPricingDetails {
   RequestID: number;
   UnitPrice: number;
@@ -3184,6 +3150,36 @@ export default class ProjectRequestService {
   constructor(context:any) {
   this.context = context;
 }
+
+
+public async getFullRequestData(formNumber: number): Promise<any> {
+  try {
+    // Get main request
+    const request = await sp.web.lists.getByTitle("ProjectRequests")
+      .items.filter(`FormNumber eq ${formNumber}`)
+      .get();
+
+    if (!request.length) throw new Error("Request not found");
+    
+    // Get related data
+    const assessments = await sp.web.lists.getByTitle("TechnicalAssessments")
+      .items.filter(`RequestIDId eq ${request[0].Id}`)
+      .get();
+
+    const pricingDetails = await this.getPricingDetailsByRequestID(request[0].Id);
+
+    return {
+      request: request[0],
+      assessments,
+      pricingDetails
+    };
+  } catch (error) {
+    console.error("Error fetching full request data:", error);
+    throw error;
+  }
+}
+
+
 
 
 
@@ -3209,7 +3205,7 @@ export default class ProjectRequestService {
     `;
 
     try {
-      // console.log('Fetching terms with Term Set ID:', termSetId);
+      console.log('Fetching terms with Term Set ID:', termSetId);
       const response = await this.context.spHttpClient.post(
         endpoint,
         SPHttpClient.configurations.v1,
@@ -3223,7 +3219,7 @@ export default class ProjectRequestService {
       );
 
       const responseText = await response.text();
-      // console.log('Response Text:', responseText);
+      console.log('Response Text:', responseText);
 
       const parser = new DOMParser();
       const xmlDoc: Document = parser.parseFromString(responseText, 'text/xml');
@@ -3246,7 +3242,7 @@ export default class ProjectRequestService {
         }
       });
 
-      // console.log('Fetched Terms:', terms);
+      console.log('Fetched Terms:', terms);
 
       if (searchText) {
         return terms.filter(term => term.label.indexOf(searchText) >= 0);
@@ -3301,6 +3297,10 @@ public async getTaxonomyTerms(termSetId: string): Promise<{ id: string; label: s
     return [];
   }
 }
+
+
+
+
 
 
 
@@ -3376,7 +3376,7 @@ public createProjectRequest(requestData: any): Promise<any> {
     .getByTitle("ProjectRequests")
     .items.add(requestData)
     .then(async (result) => {
-      // console.log("Raw API Response:", result);
+      console.log("Raw API Response:", result);
       const requestId = result.data.Id;
       if (!requestId) {
           throw new Error("Error: requestId is undefined!");
@@ -3395,7 +3395,18 @@ public createProjectRequest(requestData: any): Promise<any> {
       throw error;
     });
 }
+// Update ProjectRequestService.ts with CRUD operations
+public async updateProjectRequest(requestId: number, updateData: any): Promise<void> {
+  await sp.web.lists.getByTitle("ProjectRequests")
+    .items.getById(requestId)
+    .update(updateData);
+}
 
+public async deleteProjectRequest(requestId: number): Promise<void> {
+  await sp.web.lists.getByTitle("ProjectRequests")
+    .items.getById(requestId)
+    .delete();
+}
 
   public async getFormDigest(): Promise<string> {
     try {
@@ -3447,6 +3458,37 @@ public createProjectRequest(requestData: any): Promise<any> {
       .getByTitle("TechnicalAssessments")
       .items.add(assessmentData);
   }
+
+  // In ProjectRequestService.ts
+public async getAssessmentsByRequestId(requestId: number): Promise<IAssessment[]> {
+  try {
+    const assessments = await sp.web.lists
+      .getByTitle("TechnicalAssessments")
+      .items.filter(`RequestIDId eq ${requestId}`)
+      .get();
+
+    return assessments.map(assessment => ({
+      activity: assessment.Title,
+      humanResources: this.mapResources(assessment, 'HumanResource'),
+      machines: this.mapResources(assessment, 'Machine'),
+      materials: this.mapResources(assessment, 'Material')
+    }));
+  } catch (error) {
+    console.error("Error fetching assessments:", error);
+    return [];
+  }
+}
+
+private mapResources(assessment: any, type: string): IResource[] {
+  return [{
+    item: { 
+      key: assessment[`${type}Id`] || "", 
+      text: assessment[`${type}Title`] || "" 
+    },
+    quantity: assessment[`${type}Quantity`] || 0,
+    pricePerUnit: assessment[`${type}PricePerUnit`] || 0
+  }];
+}
 
   public saveAssessments(
   assessments: IAssessment[],
@@ -3501,19 +3543,19 @@ public createProjectRequest(requestData: any): Promise<any> {
   }
 
 public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
-  // console.log("Fetching Pricing Details for RequestID:", requestId);
+  console.log("Fetching Pricing Details for RequestID:", requestId);
   return sp.web.lists
     .getByTitle("PricingDetails")
     .items.filter(`RequestIDId eq ${requestId}`)
     .select("Id", "UnitPrice", "Quantity", "AssessmentItemIDId")
     .get()
     .then(items => {
-      // console.log("Raw Fetched Items:", items);
+      console.log("Raw Fetched Items:", items);
       const calculatedItems = items.map(item => ({
         ...item,
         TotalCost: item.UnitPrice * item.Quantity
       }));
-      // console.log("Calculated Items (with TotalCost):", calculatedItems);
+      console.log("Calculated Items (with TotalCost):", calculatedItems);
       return calculatedItems;
     })
     .catch(error => {
@@ -3528,7 +3570,7 @@ public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
     .items.getById(requestId)
     .update({ EstimatedCost: estimatedCost }) // Update the EstimatedCost field
     .then(() => {
-      // console.log("Estimated cost updated successfully.");
+      console.log("Estimated cost updated successfully.");
     })
     .catch((error) => {
       console.error("Error updating estimated cost:", error);
@@ -3548,7 +3590,7 @@ public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
         TotalCost: detail.UnitPrice * detail.Quantity // Add TotalCost here
       };
 
-      // console.log("Pricing Detail Data to Add:", data);
+      console.log("Pricing Detail Data to Add:", data);
 
       sp.web.lists
         .getByTitle("PricingDetails")
@@ -3559,7 +3601,7 @@ public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
     return batch
       .execute()
       .then(() => {
-        // console.log("Pricing details saved successfully");
+        console.log("Pricing details saved successfully");
       })
       .catch((error) => {
         console.error("Error saving pricing details", error);
@@ -3579,7 +3621,7 @@ public async createDocumentSet(documentSetName: string): Promise<{ url: string; 
       const siteUrl = this.context.pageContext.web.absoluteUrl;
       const endpoint = `${siteUrl}/_vti_bin/listdata.svc/${libraryName}`;
 
-      // console.log("DEBUG: siteUrl from pageContext:", this.context.pageContext.web.absoluteUrl);
+      console.log("DEBUG: siteUrl from pageContext:", this.context.pageContext.web.absoluteUrl);
 
       // ✅ Use getFormDigest() instead of making a direct API call
       const requestDigest = await this.getFormDigest();
@@ -3614,9 +3656,9 @@ public async createDocumentSet(documentSetName: string): Promise<{ url: string; 
       }
 
       const result = await response.json();
-      // console.log("[DOCSET CREATION SUCCESS] API Response:", result); // ✅  این  خط  قبلاً  بود
+      console.log("[DOCSET CREATION SUCCESS] API Response:", result); // ✅  این  خط  قبلاً  بود
 
-      // console.log("Full response from createDocumentSet:", response); // ✅ خط جدید - اضافه کردن این خط برای بررسی پاسخ کامل سرور
+      console.log("Full response from createDocumentSet:", response); // ✅ خط جدید - اضافه کردن این خط برای بررسی پاسخ کامل سرور
 
 
       if (!result.d || !result.d["شناسهسند"]) {
@@ -3624,10 +3666,10 @@ public async createDocumentSet(documentSetName: string): Promise<{ url: string; 
       }
 
       const docIdFullUrl = result.d["شناسهسند"];
-      // console.log("Raw شناسهسند:", docIdFullUrl);
+      console.log("Raw شناسهسند:", docIdFullUrl);
 
       const docIdUrlPart = docIdFullUrl.split(',')[0];
-      // console.log("Extracted Document Set URL:", docIdUrlPart);
+      console.log("Extracted Document Set URL:", docIdUrlPart);
 
       return {
           url: docIdUrlPart,
@@ -3646,7 +3688,7 @@ public async updateDocumentSetLink(
   requestId: number,
   documentSetLink: { url: string; text: string }
 ): Promise<void> {
-  // console.log(`Updating DocumentSetLink for Request ID: ${requestId}`);
+  console.log(`Updating DocumentSetLink for Request ID: ${requestId}`);
 
   // SharePoint hyperlink field requires this specific format
   const hyperlinkValue = {
@@ -3656,11 +3698,11 @@ public async updateDocumentSetLink(
   };
 
   try {
-      // console.log("[DEBUG - SITE URL BEFORE CONCAT]:", this.context.pageContext.web.absoluteUrl);
+      console.log("[DEBUG - SITE URL BEFORE CONCAT]:", this.context.pageContext.web.absoluteUrl);
       const updateUrl = sp.web.lists
           .getByTitle('ProjectRequests')
           .items.getById(requestId).toUrl();
-      // console.log("[DEBUG - UPDATE URL (TOURL) BEFORE CONCAT]:", updateUrl);
+      console.log("[DEBUG - UPDATE URL (TOURL) BEFORE CONCAT]:", updateUrl);
 
       let fullUpdateUrl = this.context.pageContext.web.absoluteUrl + updateUrl; // ساخت URL کامل و مطلق با استفاده از siteUrl
 
@@ -3673,7 +3715,7 @@ public async updateDocumentSetLink(
           });
 
 
-      // console.log("DocumentSetLink updated successfully.");
+      console.log("DocumentSetLink updated successfully.");
 
   } catch (error) {
       console.error("Error updating DocumentSetLink:", error);
@@ -3681,7 +3723,184 @@ public async updateDocumentSetLink(
   }
 }
 
+}
 
+
+
+// IAssessment.ts
+import { IDropdownOption } from "office-ui-fabric-react";
+
+export interface IResource {
+  item: IDropdownOption;
+  quantity: number;
+  pricePerUnit: number;
+}
+
+export interface IAssessment {
+  activity: string;
+  humanResources: IResource[];
+  machines: IResource[];
+  materials: IResource[];
+}
+
+
+import { WebPartContext } from '@microsoft/sp-webpart-base';
+import { SPHttpClient } from '@microsoft/sp-http';
+
+export type FormMode = 'Create' | 'Display' | 'Edit';
+
+export interface IProjectRequestFormProps {
+  context: WebPartContext;
+  spHttpClient: SPHttpClient;
+  siteUrl: string;
+  termSetId: string;
+  mode: FormMode; // Add form mode prop
+  itemId?: number; // Optional item ID for Edit and Display modes
+}
+
+
+// IProjectRequestFormState.ts
+
+import { IDropdownOption } from 'office-ui-fabric-react';
+import { IAssessment } from './IAssessment';
+
+
+export interface IProjectRequestFormState {
+
+    // Add mode state
+    mode: 'create' | 'edit' | 'display';
+    // Add existing document set link
+    existingDocumentSetLink?: string;
+
+  // Flags
+  isProjectCreated: boolean;
+  showProjectForm: boolean;
+
+  // Project Request Information
+  requestId: number | null;
+  requestTitle: string;
+  requestDate: string;
+  estimatedDuration: number;
+  estimatedCost: number;
+  requestNote: string;
+  RequestStatus: string;
+
+  // Customer Information
+  selectedCustomer: string | number | null;
+  selectedCustomerName: string;
+  customerOptions: IDropdownOption[];
+  
+  // PojectCode1 Information
+  ProjectCode1: {id:string; label: string} | null;
+  selectedTerm: { id: string; label: string } | null;
+  projectCodeTerm: { id: string; label: string } | null;
+  terms: { id: string; label: string }[];
+
+  // Assessments
+  assessments: IAssessment[];
+  formNumber: Number | null;
+
+  // Document Set Link
+  documentSetLink?: {
+    url: string;
+    text: string;
+  };
+
+
+
+}
+
+import * as React from "react";
+import GenericComboBox from "./GenericComboBox";
+import { IComboBoxOption } from "office-ui-fabric-react";
+import ProjectRequestService from "../services/ProjectRequestService";
+import { WebPartContext } from "@microsoft/sp-webpart-base";
+
+export interface IManagedMetadataPickerProps {
+  label: string;
+  onTermSelected: (term: { id: string; label: string }) => void;
+  disabled?: boolean;
+  context: WebPartContext;
+  placeHolder?: string; // Note: if your ComboBox version doesn't support placeholder, ignore it.
+}
+
+export interface IManagedMetadataPickerState {
+  options: IComboBoxOption[];
+}
+
+export default class ManagedMetadataPicker extends React.Component<IManagedMetadataPickerProps, IManagedMetadataPickerState> {
+  private projectRequestService: ProjectRequestService;
+
+  constructor(props: IManagedMetadataPickerProps) {
+    super(props);
+    this.projectRequestService = new ProjectRequestService(this.props.context);
+    this.state = {
+      options: []
+    };
+    this._onMenuOpen = this._onMenuOpen.bind(this);
+    this._onChanged = this._onChanged.bind(this);
+  }
+
+  private _onMenuOpen(): void {
+    // Fetch taxonomy terms using the service method
+    this.projectRequestService.getTaxonomyTerms('5863383a-85c5-4fbd-8114-11ef83bf9175')
+      .then((terms) => {
+        const options: IComboBoxOption[] = terms.map(term => ({
+          key: term.id,
+          text: term.label
+        }));
+        this.setState({ options });
+      })
+      .catch(error => {
+        console.error("Error fetching taxonomy terms", error);
+        this.setState({ options: [] });
+      });
+  }
+
+  private _onChanged(option?: IComboBoxOption, index?: number, value?: string): void {
+    if (option && this.props.onTermSelected) {
+      this.props.onTermSelected({ id: option.key as string, label: option.text });
+    }
+  }
+
+  public render(): React.ReactElement<IManagedMetadataPickerProps> {
+    return (
+      <GenericComboBox
+        label={this.props.label}
+        options={this.state.options}
+        onChanged={this._onChanged}
+        onMenuOpen={this._onMenuOpen}
+        disabled={this.props.disabled}
+        allowFreeform={true}
+        autoComplete="on"
+      />
+    );
+  }
+}
+
+// ITechnicalAssessmentProps.ts
+import { Guid } from "@microsoft/sp-core-library";
+import { WebPartContext } from "@microsoft/sp-webpart-base";
+import ProjectRequestService from "../services/ProjectRequestService";
+
+export interface ITechnicalAssessmentProps {
+  projectRequestService: ProjectRequestService;
+  requestId: number;
+  context: WebPartContext; // Add if missing
+  resetForm: () => void; // Make this required
+  isEditMode?: boolean; // Optional prop to indicate Edit mode
+  isDisplayMode?: boolean; // Optional prop to indicate Display mode
+
+}
+
+// ITechnicalAssessmentState.ts
+import { IAssessment } from './IAssessment';
+import { IDropdownOptionWithCategory } from "../services/ProjectRequestService";
+
+export interface ITechnicalAssessmentState {
+  assessments: IAssessment[];
+  inventoryItems: IDropdownOptionWithCategory[];
+  isLoading: boolean;
 }
 
 
@@ -3693,11 +3912,13 @@ import { IPropertyPaneConfiguration, PropertyPaneTextField, BaseClientSideWebPar
 import * as strings from 'PrmWebPartStrings';
 import ProjectRequestForm from './components/ProjectRequestForm';
 import { sp } from "@pnp/sp";
-import { IProjectRequestFormProps } from './components/IProjectRequestFormProps';
+import { IProjectRequestFormProps, FormMode } from './components/IProjectRequestFormProps';
 
 
 export interface IPrmWebPartProps {
   description: string;
+  formMode: FormMode; // Add formMode property
+  itemId: string; // Add itemId property
 }
 
 export default class PrmWebPart extends BaseClientSideWebPart<IPrmWebPartProps> {
@@ -3711,12 +3932,14 @@ export default class PrmWebPart extends BaseClientSideWebPart<IPrmWebPartProps> 
   }
 
   public render(): void {
+    const itemId = this.properties.itemId ? parseInt(this.properties.itemId, 10) : undefined;
     const element: React.ReactElement<IProjectRequestFormProps> = React.createElement(ProjectRequestForm, {
       spHttpClient: this.context.spHttpClient,
       siteUrl: this.context.pageContext.web.absoluteUrl,
-
-termSetId: '5863383a-85c5-4fbd-8114-11ef83bf9175',
+      termSetId: '5863383a-85c5-4fbd-8114-11ef83bf9175',
       context: this.context,
+      mode: this.properties.formMode || 'Create', // Default to 'Create' mode if not set
+      itemId: itemId, // Pass itemId if available
     });
 
     ReactDom.render(element, this.domElement);
@@ -3739,6 +3962,12 @@ termSetId: '5863383a-85c5-4fbd-8114-11ef83bf9175',
               groupFields: [
                 PropertyPaneTextField('description', {
                   label: strings.DescriptionFieldLabel
+                }),
+                PropertyPaneTextField('formMode', {
+                  label: 'Form Mode (Create/Display/Edit)'
+                }),
+                PropertyPaneTextField('itemId', {
+                  label: 'Item ID (for Edit/Display)'
                 })
               ]
             }
@@ -3757,6 +3986,308 @@ Be acutely aware of versioning limitations and compatibility pitfalls.
 Pay close attention to versioning limitations and compatibility issues.
 
 
-CHALLENGE: We need three mode of this form: Create(current form), Display and Edit. We should add two other view of this form too (Display and Edit)
 
 
+
+
+
+
+
+
+
+ It happend when I modified my code to make it work in three modes (create, display and edit). before I do that, it was working on create mode. I can't find the problem, the only point that I have noticed is that I have repeating sections and repeating tables. In Create mode, there were an key/index helping to create new rows and sections, I don't know if I could mangage it correctly in this code to fetch them to display and edit, or not. Can you tell me where is the problem? 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Error: 
+TechnicalAssessmentTable: ƒ TechnicalAssessmentTable(props) {
+        var _this = _super.call(this, props) || this;
+        _this.handleFinalSubmit = function () {
+            var assessments = _this.state.assessments;
+        …
+GenericDropdown.tsx:23 Dropdown Options: []
+GenericDropdown.tsx:23 Dropdown Options: (3) [{…}, {…}, {…}]
+net.ts:66 Fetch finished loading: GET "http://portal/sites/mech/_api/web/lists/getByTitle('Customer')/items".
+FetchClient.fetch @ net.ts:66
+retry @ sphttpclient.ts:122
+(anonymous) @ sphttpclient.ts:144
+SPHttpClient.fetchRaw @ sphttpclient.ts:142
+(anonymous) @ sphttpclient.ts:82
+step @ tslib.es6.js:102
+(anonymous) @ tslib.es6.js:83
+(anonymous) @ tslib.es6.js:76
+__awaiter @ tslib.es6.js:72
+SPHttpClient.fetch @ sphttpclient.ts:40
+(anonymous) @ pipeline.ts:216
+PipelineMethods.send @ pipeline.ts:193
+descriptor.value @ pipeline.ts:105
+next @ pipeline.ts:56
+(anonymous) @ pipeline.ts:105
+Promise.then
+descriptor.value @ pipeline.ts:105
+next @ pipeline.ts:56
+(anonymous) @ pipeline.ts:105
+Promise.then
+descriptor.value @ pipeline.ts:105
+next @ pipeline.ts:56
+pipe @ pipeline.ts:71
+(anonymous) @ pipeline-binder.ts:39
+(anonymous) @ operations.ts:31
+step @ tslib.es6.js:102
+(anonymous) @ tslib.es6.js:83
+fulfilled @ tslib.es6.js:73
+Promise.then
+step @ tslib.es6.js:75
+(anonymous) @ tslib.es6.js:76
+__awaiter @ tslib.es6.js:72
+(anonymous) @ operations.ts:16
+spGet @ operations.ts:53
+_SharePointQueryable.get @ sharepointqueryable.ts:117
+ProjectRequestService.getCustomerOptions @ ProjectRequestService.ts:805
+ProjectRequestForm.loadCustomerOptions @ ProjectRequestForm.tsx:138
+ProjectRequestForm.componentDidMount @ ProjectRequestForm.tsx:73
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+close @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+closeAll @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+perform @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+s @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+perform @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+batchedUpdates @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+i @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+_renderNewRootComponent @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+_renderSubtreeIntoContainer @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+render @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+PrmWebPart.render @ PrmWebPart.ts:103
+t @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:577
+Promise.then
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:577
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:577
+Promise.then
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:577
+Promise.then
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:577
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:577
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:577
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:577
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:577
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:577
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:577
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:577
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:577
+Promise.then
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:577
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:577
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:397
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+close @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+closeAll @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+perform @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+s @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+perform @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+batchedUpdates @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+i @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+_renderNewRootComponent @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+_renderSubtreeIntoContainer @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+render @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:397
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:397
+t @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:105
+Promise.then
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:105
+Promise.then
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:105
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+close @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+closeAll @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+perform @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+s @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+perform @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+batchedUpdates @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+i @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+_renderNewRootComponent @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+_renderSubtreeIntoContainer @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+render @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:105
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:1081
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:1081
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:1081
+Promise.then
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:1081
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:1081
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:1081
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:928
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:928
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:928
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:928
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:928
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:928
+Promise.then
+(anonymous) @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:928
+startSpfx @ workbench.aspx:44
+(anonymous) @ workbench.aspx:52
+(anonymous) @ workbench.aspx:69
+ProjectRequestForm.tsx:218 Next Form Number: 192
+net.ts:66 Fetch finished loading: GET "http://portal/sites/mech/_api/web/lists/getByTitle('ProjectRequests')/items?$orderby=FormNumber%20desc&$top=1".
+FetchClient.fetch @ net.ts:66
+retry @ sphttpclient.ts:122
+(anonymous) @ sphttpclient.ts:144
+SPHttpClient.fetchRaw @ sphttpclient.ts:142
+(anonymous) @ sphttpclient.ts:82
+step @ tslib.es6.js:102
+(anonymous) @ tslib.es6.js:83
+(anonymous) @ tslib.es6.js:76
+__awaiter @ tslib.es6.js:72
+SPHttpClient.fetch @ sphttpclient.ts:40
+(anonymous) @ pipeline.ts:216
+PipelineMethods.send @ pipeline.ts:193
+descriptor.value @ pipeline.ts:105
+next @ pipeline.ts:56
+(anonymous) @ pipeline.ts:105
+Promise.then
+descriptor.value @ pipeline.ts:105
+next @ pipeline.ts:56
+(anonymous) @ pipeline.ts:105
+Promise.then
+descriptor.value @ pipeline.ts:105
+next @ pipeline.ts:56
+pipe @ pipeline.ts:71
+(anonymous) @ pipeline-binder.ts:39
+(anonymous) @ operations.ts:31
+step @ tslib.es6.js:102
+(anonymous) @ tslib.es6.js:83
+fulfilled @ tslib.es6.js:73
+Promise.then
+step @ tslib.es6.js:75
+(anonymous) @ tslib.es6.js:76
+__awaiter @ tslib.es6.js:72
+(anonymous) @ operations.ts:16
+spGet @ operations.ts:53
+_SharePointQueryable.get @ sharepointqueryable.ts:117
+ProjectRequestService.getNextFormNumber @ ProjectRequestService.ts:812
+ProjectRequestForm._this.handleCreateProjectRequest @ ProjectRequestForm.tsx:216
+r @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+a @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+s @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+f @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+m @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+r @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+processEventQueue @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+r @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+handleTopLevel @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+i @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+perform @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+batchedUpdates @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+i @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+dispatchEvent @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+ProjectRequestForm.tsx:220 requestDate: 1403/12/2
+ProjectRequestForm.tsx:221 requestDateISO: 2025-02-19T20:30:00.000Z
+ProjectRequestForm.tsx:222 Type of requestDateISO: string
+ProjectRequestService.ts:828 Raw API Response: {data: {…}, item: Proxy(Function)}
+ProjectRequestService.ts:1073 DEBUG: siteUrl from pageContext: http://portal/sites/mech
+ProjectRequestService.ts:1108 [DOCSET CREATION SUCCESS] API Response: {d: {…}}
+ProjectRequestService.ts:1110 Full response from createDocumentSet: t {nativeResponse: Response}
+ProjectRequestService.ts:1118 Raw شناسهسند: http://portal/sites/mech/_layouts/15/DocIdRedir.aspx?ID=4AP6VFVSNH4T-1472479882-175, 4AP6VFVSNH4T-1472479882-175
+ProjectRequestService.ts:1121 Extracted Document Set URL: http://portal/sites/mech/_layouts/15/DocIdRedir.aspx?ID=4AP6VFVSNH4T-1472479882-175
+ProjectRequestService.ts:1140 Updating DocumentSetLink for Request ID: 344
+ProjectRequestService.ts:1150 [DEBUG - SITE URL BEFORE CONCAT]: http://portal/sites/mech
+ProjectRequestService.ts:1154 [DEBUG - UPDATE URL (TOURL) BEFORE CONCAT]: _api/web/lists/getByTitle('ProjectRequests')/items(344)
+ProjectRequestService.ts:1167 DocumentSetLink updated successfully.
+ProjectRequestForm.tsx:241 New project created with ID: 344
+GenericDropdown.tsx:23 Dropdown Options: (3) [{…}, {…}, {…}]
+ProjectRequestForm.tsx:262  Error creating project request or Document Set: Invariant Violation: Minified React error #130; visit http://facebook.github.io/react/docs/error-decoder.html?invariant=130&args[]=undefined&args[]=%20Check%20the%20render%20method%20of%20%60TechnicalAssessmentTable%60. for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at r (http://portal/_layouts/15/next/spclient/fa-ir/sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214:9439)
+    at i (http://portal/_layouts/15/next/spclient/fa-ir/sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228:50392)
+    at r (http://portal/_layouts/15/next/spclient/fa-ir/sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228:49194)
+    at o (http://portal/_layouts/15/next/spclient/fa-ir/sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228:60340)
+    at o (http://portal/_layouts/15/next/spclient/fa-ir/sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228:60462)
+    at i (http://portal/_layouts/15/next/spclient/fa-ir/sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228:60872)
+    at Object.instantiateChildren (http://portal/_layouts/15/next/spclient/fa-ir/sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228:49354)
+    at m._reconcilerInstantiateChildren (http://portal/_layouts/15/next/spclient/fa-ir/sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228:46762)
+    at m.mountChildren (http://portal/_layouts/15/next/spclient/fa-ir/sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228:46969)
+    at m._createInitialChildren (http://portal/_layouts/15/next/spclient/fa-ir/sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228:19485)
+(anonymous) @ ProjectRequestForm.tsx:262
+Promise.catch
+ProjectRequestForm._this.handleCreateProjectRequest @ ProjectRequestForm.tsx:261
+r @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+a @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+s @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+f @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+m @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+r @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+processEventQueue @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+r @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+handleTopLevel @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+i @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+perform @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+batchedUpdates @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+i @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+dispatchEvent @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+ProjectRequestForm.tsx:263  There was an error creating your project request or its associated Document Set. Please check the console for details.
+(anonymous) @ ProjectRequestForm.tsx:263
+Promise.catch
+ProjectRequestForm._this.handleCreateProjectRequest @ ProjectRequestForm.tsx:261
+r @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+a @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+s @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+f @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+m @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+r @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+processEventQueue @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+r @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+handleTopLevel @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+i @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+perform @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+batchedUpdates @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+i @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+dispatchEvent @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+ProjectRequestForm.tsx:267  Error message: Minified React error #130; visit http://facebook.github.io/react/docs/error-decoder.html?invariant=130&args[]=undefined&args[]=%20Check%20the%20render%20method%20of%20%60TechnicalAssessmentTable%60. for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+(anonymous) @ ProjectRequestForm.tsx:267
+Promise.catch
+ProjectRequestForm._this.handleCreateProjectRequest @ ProjectRequestForm.tsx:261
+r @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+a @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+s @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+f @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+m @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+r @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+processEventQueue @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+r @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+handleTopLevel @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+i @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+perform @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+batchedUpdates @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+i @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:214
+dispatchEvent @ sp-webpart-workbench-assembly.js?uniqueId=p5q8s:228
+net.ts:66 Fetch failed loading: POST "http://portal/sites/mech/_api/web/lists/getByTitle('ProjectRequests')/items(344)"

@@ -1,3 +1,4 @@
+// src\webparts\prm\components\GenericComboBox.tsx
 import * as React from "react";
 import { ComboBox, IComboBoxOption } from "office-ui-fabric-react";
 
@@ -11,9 +12,20 @@ export interface IGenericComboBoxProps {
   autoComplete?: "on" | "off";
 }
 
-export default class GenericComboBox extends React.Component<IGenericComboBoxProps, {}> {
+export default class GenericComboBox extends React.Component<
+  IGenericComboBoxProps,
+  {}
+> {
   public render(): React.ReactElement<IGenericComboBoxProps> {
-    const { label, options, onChanged, onMenuOpen, disabled, allowFreeform, autoComplete } = this.props;
+    const {
+      label,
+      options,
+      onChanged,
+      onMenuOpen,
+      disabled,
+      allowFreeform,
+      autoComplete,
+    } = this.props;
     return (
       <ComboBox
         label={label}

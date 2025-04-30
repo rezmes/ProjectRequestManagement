@@ -1,4 +1,4 @@
-import { Guid } from '@microsoft/sp-core-library';
+// src\webparts\prm\components\IProjectRequestFormProps.ts
 import { SPHttpClient } from '@microsoft/sp-http';
 
 import { WebPartContext } from '@microsoft/sp-webpart-base';

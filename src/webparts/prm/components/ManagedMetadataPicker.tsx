@@ -1,3 +1,4 @@
+// src\webparts\prm\components\ManagedMetadataPicker.tsx
 import * as React from "react";
 import GenericComboBox from "./GenericComboBox";
 import { IComboBoxOption } from "office-ui-fabric-react";
@@ -16,14 +17,17 @@ export interface IManagedMetadataPickerState {
   options: IComboBoxOption[];
 }
 
-export default class ManagedMetadataPicker extends React.Component<IManagedMetadataPickerProps, IManagedMetadataPickerState> {
+export default class ManagedMetadataPicker extends React.Component<
+  IManagedMetadataPickerProps,
+  IManagedMetadataPickerState
+> {
   private projectRequestService: ProjectRequestService;
 
   constructor(props: IManagedMetadataPickerProps) {
     super(props);
     this.projectRequestService = new ProjectRequestService(this.props.context);
     this.state = {
-      options: []
+      options: [],
     };
     this._onMenuOpen = this._onMenuOpen.bind(this);
     this._onChanged = this._onChanged.bind(this);
@@ -31,23 +35,31 @@ export default class ManagedMetadataPicker extends React.Component<IManagedMetad
 
   private _onMenuOpen(): void {
     // Fetch taxonomy terms using the service method
-    this.projectRequestService.getTaxonomyTerms('5863383a-85c5-4fbd-8114-11ef83bf9175')
+    this.projectRequestService
+      .getTaxonomyTerms("5863383a-85c5-4fbd-8114-11ef83bf9175")
       .then((terms) => {
-        const options: IComboBoxOption[] = terms.map(term => ({
+        const options: IComboBoxOption[] = terms.map((term) => ({
           key: term.id,
-          text: term.label
+          text: term.label,
         }));
         this.setState({ options });
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error fetching taxonomy terms", error);
         this.setState({ options: [] });
       });
   }
 
-  private _onChanged(option?: IComboBoxOption, index?: number, value?: string): void {
+  private _onChanged(
+    option?: IComboBoxOption,
+    index?: number,
+    value?: string
+  ): void {
     if (option && this.props.onTermSelected) {
-      this.props.onTermSelected({ id: option.key as string, label: option.text });
+      this.props.onTermSelected({
+        id: option.key as string,
+        label: option.text,
+      });
     }
   }
 

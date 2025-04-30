@@ -1,7 +1,4 @@
-// IAssessment.ts
-import { IDropdownOption } from "office-ui-fabric-react";
-
-// ITechnicalAssessmentState.ts
+// src\webparts\prm\components\ITechnicalAssessmentState.ts
 import { IAssessment } from './IAssessment';
 import { IDropdownOptionWithCategory } from "../services/ProjectRequestService";
 

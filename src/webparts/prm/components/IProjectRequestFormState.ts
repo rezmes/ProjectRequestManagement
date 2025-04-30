@@ -1,4 +1,4 @@
-// IProjectRequestFormState.ts
+// src\webparts\prm\components\IProjectRequestFormState.ts
 import { IDropdownOption } from 'office-ui-fabric-react';
 import { IAssessment } from './IAssessment';
 
@@ -20,7 +20,7 @@ export interface IProjectRequestFormState {
   selectedCustomer: string | number | null;
   selectedCustomerName: string;
   customerOptions: IDropdownOption[];
-  
+
   // PojectCode1 Information
   ProjectCode1: {id:string; label: string} | null;
   selectedTerm: { id: string; label: string } | null;

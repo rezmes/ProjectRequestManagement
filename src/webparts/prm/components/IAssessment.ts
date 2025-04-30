@@ -1,4 +1,4 @@
-// IAssessment.ts
+// src\webparts\prm\components\IAssessment.ts
 import { IDropdownOption } from "office-ui-fabric-react";
 
 export interface IResource {

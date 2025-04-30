@@ -1,3 +1,4 @@
+// src\webparts\prm\components\UIFabricWizard.tsx
 import * as React from "react";
 import { PrimaryButton, ProgressIndicator } from "office-ui-fabric-react";
 import styles from "./UIFabricWizard.module.scss";
@@ -48,11 +49,6 @@ export default class UIFabricWizard extends React.Component<
             {/* Render your Technical Assessments components here */}
             <div>
               <PrimaryButton text="Back" onClick={this._goToPreviousStep} />
-              {/* <PrimaryButton
-                text="Submit"
-                onClick={() => alert("Final submission")}
-                style={{ marginLeft: 10 }}
-              /> */}
             </div>
           </div>
         )}

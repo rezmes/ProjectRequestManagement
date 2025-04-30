@@ -1,5 +1,4 @@
-// ITechnicalAssessmentProps.ts
-import { Guid } from "@microsoft/sp-core-library";
+// src\webparts\prm\components\ITechnicalAssessmentProps.ts
 import ProjectRequestService from "../services/ProjectRequestService";
 
 export interface ITechnicalAssessmentProps {

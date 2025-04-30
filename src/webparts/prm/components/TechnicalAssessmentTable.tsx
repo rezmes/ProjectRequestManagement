@@ -1,4 +1,4 @@
-// TechnicalAssessmentTable.tsx
+// src\webparts\prm\components\TechnicalAssessmentTable.tsx
 
 import * as React from "react";
 import {
@@ -6,7 +6,7 @@ import {
   TextField,
   IDropdownOption,
 } from "office-ui-fabric-react";
-import GenericDropdown from "./GenericDropdown";
+
 import { ITechnicalAssessmentState } from "./ITechnicalAssessmentState";
 import { ITechnicalAssessmentProps } from "./ITechnicalAssessmentProps";
 import PricingDetails from "./PricingDetails";
@@ -114,44 +114,35 @@ class TechnicalAssessmentTable extends React.Component<
       this.setState({ inventoryItems: items });
     });
   };
-  
-  // filterInventoryItems = (categories: string[]): IDropdownOption[] => {
-  //   const { inventoryItems } = this.state;
-  //   const filteredItems = inventoryItems
-  //     .filter((item) => categories.indexOf(item.itemCategory) > -1)
-  //     .map((item) => ({ key: item.key, text: item.text }));
-  //   console.log("Filtered Items:", filteredItems); // Debugging
-  //   return filteredItems;
-  // };
+
   filterInventoryItems = (categories: string[]): IDropdownOption[] => {
     const { inventoryItems } = this.state;
-  
-      // Debug: Log categories and inventory items
-  console.log("Filtering for categories:", categories);
-  console.log("All inventory items:", inventoryItems);
+
+    // Debug: Log categories and inventory items
+    console.log("Filtering for categories:", categories);
+    console.log("All inventory items:", inventoryItems);
 
     // Map English category keys to their Persian equivalents
     const categoryMap: { [key: string]: string[] } = {
-      HumanResource: [strings.HumanResource,"نیروی انسانی"], // English & Persian
-      Machine: [strings.Machine, "ماشین آلات"], 
-      Material: [strings.Material,"ابزار","محصول","مواد اولیه" ]
+      HumanResource: [strings.HumanResource, "نیروی انسانی"], // English & Persian
+      Machine: [strings.Machine, "ماشین آلات"],
+      Material: [strings.Material, "ابزار", "محصول", "مواد اولیه"],
     };
-  
+
     // Get all valid category names for the requested categories
     const validCategories = categories.reduce((acc, category) => {
       return acc.concat(categoryMap[category] || [category]);
     }, [] as string[]);
-  
+
     // Filter items using indexOf for SPFx 1.4.1 compatibility
-    const filteredItems = inventoryItems.filter((item) => 
-      validCategories.indexOf(item.itemCategory) > -1
+    const filteredItems = inventoryItems.filter(
+      (item) => validCategories.indexOf(item.itemCategory) > -1
     );
-  
+
     console.log("Filtered Items:", filteredItems);
     return filteredItems.map((item) => ({ key: item.key, text: item.text }));
   };
 
-  
   handleInputChange = (
     newValue: string,
     nestedField: string,

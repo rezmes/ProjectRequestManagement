@@ -1,4 +1,4 @@
-// GenericDropdown.tsx
+// src\webparts\prm\components\GenericDropdown.tsx
 
 import * as React from "react";
 import { Dropdown, IDropdownOption } from "office-ui-fabric-react";
@@ -16,11 +16,10 @@ export class GenericDropdown extends React.Component<
   IGenericDropdownProps,
   {}
 > {
-  
   public render(): React.ReactElement<IGenericDropdownProps> {
     const { label, options, selectedKey, onChanged, placeHolder, disabled } =
       this.props;
-      console.log("Dropdown Options:", this.props.options); // Debugging
+    console.log("Dropdown Options:", this.props.options); // Debugging
     return (
       <Dropdown
         label={label}

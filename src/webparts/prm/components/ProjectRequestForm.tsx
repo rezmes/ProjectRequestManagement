@@ -1,4 +1,4 @@
-// ProjectRequestForm.tsx
+// src\webparts\prm\components\ProjectRequestForm.tsx
 
 import * as React from "react";
 import {
@@ -52,13 +52,9 @@ class ProjectRequestForm extends React.Component<
     };
 
     this.handleTermSelected = this.handleTermSelected.bind(this);
-    // this.handleSubmit = this.handleSubmit.bind(this);
+
     this.resetForm = this.resetForm.bind(this);
   }
-
-  // private handleSubmit(): void {
-  //   console.log("Form submitted with data:", this.state); // Log form data
-  // }
 
   componentDidMount() {
     this.loadCustomerOptions();
@@ -68,9 +64,6 @@ class ProjectRequestForm extends React.Component<
     this.setState({ selectedTerm: term });
     console.log("Selected Term:", term); // Log selected term
   }
-
-
-
 
   loadCustomerOptions() {
     this.projectRequestService.getCustomerOptions().then((customerOptions) => {
@@ -168,7 +161,7 @@ class ProjectRequestForm extends React.Component<
           Description1: requestNote,
           RequestStatus: RequestStatus.trim(),
           FormNumber: formNumber,
-          ProjectCode1: ProjectCode1 ? ProjectCode1.id: null,
+          ProjectCode1: ProjectCode1 ? ProjectCode1.id : null,
         };
 
         // Step 3: Create the project request
@@ -207,14 +200,6 @@ class ProjectRequestForm extends React.Component<
       });
   };
 
-  // // Handler when a term is selected
-  // handleTermSelected = (term) => {
-  //   this.setState({ projectCodeTerm: term });
-  //   // Additional logic to handle the selected term can be added here
-  // };
-  private handleProjectCodeSelected(term: { id: string; label: string }): void {
-    // Handle the selected term
-  }
   resetForm = (): void => {
     this.setState({
       isProjectCreated: false,
@@ -307,7 +292,6 @@ class ProjectRequestForm extends React.Component<
           readOnly={isProjectCreated}
         />
 
-
         <ManagedMetadataPicker
           label={strings.ProjectCodeLabel} // e.g., "Project Code"
           onTermSelected={this.handleTermSelected}
@@ -381,8 +365,6 @@ class ProjectRequestForm extends React.Component<
             resetForm={this.resetForm}
           />
         )}
-
-
       </div>
     );
   }

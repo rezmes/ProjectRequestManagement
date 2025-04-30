@@ -1,5 +1,4 @@
-// ProjectRequestService.ts
-
+// src\webparts\prm\services\ProjectRequestService.ts
 
 import { sp } from "@pnp/sp";
 import "@pnp/sp/webs";
@@ -13,9 +12,6 @@ import { IAssessment, IResource } from "../components/IAssessment";
 import { IDropdownOption } from "office-ui-fabric-react";
 
 import { SPHttpClient, SPHttpClientResponse, ISPHttpClientOptions, IHttpClientOptions, HttpClientResponse, HttpClient } from '@microsoft/sp-http';
-
-
-
 
 // Define an interface for inventory items with category
 export interface IDropdownOptionWithCategory {
@@ -39,9 +35,6 @@ export default class ProjectRequestService {
   constructor(context:any) {
   this.context = context;
 }
-
-
-
   public async getTermsByTermSetId(termSetId: string, searchText: string = ""): Promise<{ id: string; label: string }[]> {
     const endpoint = `${this.context.pageContext.web.absoluteUrl}/_vti_bin/TaxonomyClientService.asmx`;
 
@@ -113,7 +106,6 @@ export default class ProjectRequestService {
     }
   }
 
-
 public async getTermsByFieldInternalName(fieldInternalName: string, searchText: string = ""): Promise<{ id: string; label: string }[]> {
   const endpoint = `${this.context.pageContext.web.absoluteUrl}/_api/web/fields/getbyinternalnameortitle('${fieldInternalName}')`;
   const response = await this.context.spHttpClient.get(
@@ -129,12 +121,9 @@ public async getTermsByFieldInternalName(fieldInternalName: string, searchText: 
   return this.getTermsByTermSetId(fieldData.TaxonomyField.SspId, searchText);
 }
 
-
-
 public async getTaxonomyTerms(termSetId: string): Promise<{ id: string; label: string }[]> {
 
-  
-  const endpoint = `${this.context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TaxonomyHiddenList')/items?` + 
+  const endpoint = `${this.context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('TaxonomyHiddenList')/items?` +
     `$select=Path,Id&` +
     `$filter=IdForTermSet eq `+ `'` + termSetId + `'`;
 
@@ -156,13 +145,6 @@ public async getTaxonomyTerms(termSetId: string): Promise<{ id: string; label: s
     return [];
   }
 }
-
-
-
-
-
-
-
 
 
 // Update the updateProjectCode method for SharePoint 2019 compatibility
@@ -206,9 +188,6 @@ public async updateProjectCode(listTitle: string, itemId: number, termLabel: str
     throw new Error(`Update failed: ${response.statusText}`);
   }
 }
-
-
-
   public getCustomerOptions(): Promise<IDropdownOption[]> {
     return sp.web.lists
       .getByTitle("Customer")
@@ -227,8 +206,6 @@ public async updateProjectCode(listTitle: string, itemId: number, termLabel: str
         return items[0].FormNumber + 1;
       });
     }
-
-
 
 public createProjectRequest(requestData: any): Promise<any> {
   return sp.web.lists
@@ -426,11 +403,6 @@ public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
       });
   }
 
-
-
-
-
-
 public async createDocumentSet(documentSetName: string): Promise<{ url: string; text: string } | null> {
   try {
       const libraryName = "RelatedDocuments";
@@ -458,8 +430,6 @@ public async createDocumentSet(documentSetName: string): Promise<{ url: string; 
           Title: documentSetName,
           Path: libraryName
       });
-
-
 
       const response: SPHttpClientResponse = await this.context.spHttpClient.post(
           endpoint,
@@ -540,7 +510,5 @@ public async updateDocumentSetLink(
   }
 }
 
-
 }
-
 

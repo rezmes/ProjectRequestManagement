@@ -333,6 +333,9 @@ import ProjectRequestService, {
   IPricingDetails,
 } from "../services/ProjectRequestService";
 import { IAssessment } from "./IAssessment";
+import { IResource } from "./IAssessment";
+
+import  {ResourceRow}  from "./ResourceRow";
 
 
 
@@ -342,6 +345,8 @@ class TechnicalAssessmentTable extends React.Component<
   ITechnicalAssessmentState
 > {
   private projectRequestService: ProjectRequestService;
+    // Add unique key generator
+  private rowKeyCounter = 0;
 
   constructor(props: ITechnicalAssessmentProps) {
     super(props);
@@ -355,28 +360,88 @@ class TechnicalAssessmentTable extends React.Component<
 
   componentDidMount() {
     this.loadInventoryItems();
+    console.log(`[DEBUG] TechnicalAssessmentTable props:`, this.props);
     if (this.props.requestId && (this.props.isEditMode || this.props.isDisplayMode)) {
-      this.loadAssessments(this.props.requestId);
+            // Add delay to ensure DOM stability
+      setTimeout(() => this.loadAssessments(this.props.requestId), 1000);
+      // this.loadAssessments(this.props.requestId);
+      console.log(`[DEBUG] Calling loadAssessments from componentDidMount() with requestId: ${this.props.requestId}`);
     }
   }
 
+  // private async loadAssessments(requestId: number) {
+  //   this.setState({ isLoading: true });
+  //   try {
+  //     const assessmentsData = await this.projectRequestService.getAssessmentsByRequestId(requestId);
+  //     if (assessmentsData && assessmentsData.length > 0) {
+  //       this.setState({ assessments: assessmentsData });
+  //     } else {
+  //       // If no assessments are found, initialize with one empty assessment
+  //       this.addAssessment(); // Initialize with one empty assessment if none exist
+  //     }
+  //   } catch (error) {
+  //     console.error("Error loading assessments:", error);
+  //     alert("Failed to load assessments.");
+  //   } finally {
+  //     this.setState({ isLoading: false });
+  //   }
+  // }
+
   private async loadAssessments(requestId: number) {
+    console.log(`[DEBUG] loadAssessments called with requestId: ${requestId}`);
     this.setState({ isLoading: true });
     try {
       const assessmentsData = await this.projectRequestService.getAssessmentsByRequestId(requestId);
-      if (assessmentsData && assessmentsData.length > 0) {
-        this.setState({ assessments: assessmentsData });
+      console.log(`[DEBUG] API Response:`, assessmentsData);
+      if (assessmentsData.length > 0) {
+        // Add unique keys to assessments
+        const keyedAssessments = assessmentsData.map((a, index) => ({
+          ...a,
+          _key: a._key || `assessment - ${index} - ${Date.now()}` 
+          // `assessment-${this.rowKeyCounter++}`
+          
+        }));
+        console.log(`[DEBUG] Processed Assessments:`, keyedAssessments);
+        this.setState({ assessments: keyedAssessments });
       } else {
-        // If no assessments are found, initialize with one empty assessment
-        this.addAssessment(); // Initialize with one empty assessment if none exist
+        console.log(`[DEBUG] No assessments found, adding a new one.`);
+        this.addAssessment();
       }
     } catch (error) {
       console.error("Error loading assessments:", error);
-      alert("Failed to load assessments.");
+      this.setState({ assessments: [] });
     } finally {
       this.setState({ isLoading: false });
     }
   }
+
+  addAssessment = () => {
+    this.setState(prevState => ({
+      assessments: [
+        ...prevState.assessments,
+        {
+          _key: `new-assessment-${Date.now()}`, // Unique key
+          activity: "",
+          humanResources: [],
+          machines: [],
+          materials: []
+          // humanResources: this.initResourceArray(),
+          // machines: this.initResourceArray(),
+          // materials: this.initResourceArray()
+        }
+      ]
+    }));
+  };
+
+// In TechnicalAssessmentTable.tsx
+private initResourceArray(): IResource[] {
+  return [{
+    _key: `resource-${Date.now()}-${Math.random()}`, // Add _key
+    item: { key: "", text: "" },
+    quantity: 0,
+    pricePerUnit: 0
+  }];
+}
 
 
   handleFinalSubmit = (): void => {
@@ -563,24 +628,24 @@ class TechnicalAssessmentTable extends React.Component<
     });
   };
 
-  addAssessment = () => {
-    this.setState((prevState) => ({
-      assessments: [
-        ...prevState.assessments,
-        {
-          activity: "",
-          humanResources: [],
-          machines: [],
-          materials: [],
-        },
-      ],
-    }), () => {
-      // After adding a new assessment, if it's a display mode, re-render to show the empty assessment
-      if (this.props.isDisplayMode) {
-        this.forceUpdate(); // Force re-render to display the added empty assessment
-      }
-    });
-  };
+  // addAssessment = () => {
+  //   this.setState((prevState) => ({
+  //     assessments: [
+  //       ...prevState.assessments,
+  //       {
+  //         activity: "",
+  //         humanResources: [],
+  //         machines: [],
+  //         materials: [],
+  //       },
+  //     ],
+  //   }), () => {
+  //     // After adding a new assessment, if it's a display mode, re-render to show the empty assessment
+  //     if (this.props.isDisplayMode) {
+  //       this.forceUpdate(); // Force re-render to display the added empty assessment
+  //     }
+  //   });
+  // };
 
 
   renderTable = (
@@ -606,7 +671,7 @@ class TechnicalAssessmentTable extends React.Component<
 
   render() {
     const { assessments, isLoading } = this.state;
-    const { isDisplayMode, isEditMode } = this.props;
+    const { isDisplayMode } = this.props;
     const isReadOnly = isDisplayMode;
 
 
@@ -619,7 +684,7 @@ class TechnicalAssessmentTable extends React.Component<
 
     return (
       <div className={styles.assessmentContainer}>
-        <h3 className={styles.assessmentHeading}>
+        {/* <h3 className={styles.assessmentHeading}>
           {strings.TechnicalAssessments}
         </h3>
         {assessments.map((assessment, index) => (
@@ -639,18 +704,34 @@ class TechnicalAssessmentTable extends React.Component<
               this.filterInventoryItems([strings.HumanResource]),
               assessment,
               index
-            )}
-            {this.renderTable(
-              strings.Machine,
-              "machines",
-              this.filterInventoryItems([strings.Machine]),
+            )} */}
+        <h3 className={styles.assessmentHeading}>
+          {strings.TechnicalAssessments}
+        </h3>
+        {assessments.length > 0 && assessments.map((assessment, index) => (
+          <div key={assessment._key}> {/* Use unique key */}
+            <TextField
+              label={`${strings.Activity} ${index + 1}`}
+              value={assessment.activity || ''}
+              readOnly={isDisplayMode}
+            />
+            {/* Add resource tables with proper keys */}
+            {this.renderResourceTable(
+              strings.HumanResource,
+              "humanResources",
               assessment,
               index
             )}
-            {this.renderTable(
+
+            {this.renderResourceTable(
+              strings.Machine,
+              "machines",
+              assessment,
+              index
+            )}
+            {this.renderResourceTable(
               strings.Material,
               "materials",
-              this.filterInventoryItems([strings.Material]),
               assessment,
               index
             )}
@@ -659,7 +740,7 @@ class TechnicalAssessmentTable extends React.Component<
           </div>
         ))}
         {/* Conditionally render "Add Assessment" and "Final Submit" buttons based on mode */}
-        {!(isDisplayMode) && (
+        {/* {!(isDisplayMode) && (
           <>
             <PrimaryButton
               className={styles.addAssessmentButton}
@@ -675,10 +756,82 @@ class TechnicalAssessmentTable extends React.Component<
               style={{ marginLeft: '10px' }}
             />
           </>
-        )}
+        )} */}
       </div>
     );
   }
+
+  //  private renderResourceTable(
+  //   label: string,
+  //   field: keyof IAssessment,
+  //   assessment: IAssessment,
+  //   index: number
+  // ) {
+  //   const resources = assessment[field] || [];
+  //   return (
+  //     <PricingDetails
+  //       key={`${assessment._key}-${field}`}
+  //       label={label}
+  //       field={field}
+  //       options={this.filterInventoryItems([label])}
+  //       assessment={assessment}
+  //       index={index} handleDropdownChange={function (field: string, option: IDropdownOption, index: number, partIndex: number): void {
+  //         throw new Error("Function not implemented.");
+  //       } } handleInputChange={function (newValue: string, nestedField: string, index: number, partIndex?: number, field?: string): void {
+  //         throw new Error("Function not implemented.");
+  //       } } addRow={function (field: string, index: number): void {
+  //         throw new Error("Function not implemented.");
+  //       } } removeRow={function (field: string, index: number, partIndex: number): void {
+  //         throw new Error("Function not implemented.");
+  //       } }        // ... other props
+  //     >
+  //       {resources.map((resource, resIndex) => (
+  //         <ResourceRow
+  //           key={resource._key} // Unique key
+  //           resource={resource}
+  //           // ... other props
+  //         />
+  //       ))}
+  //     </PricingDetails>
+  //   );
+  // }
+  private renderResourceTable(
+    label: string,
+    field: keyof IAssessment,
+    assessment: IAssessment,
+    index: number
+  ) {
+  // Add type assertion
+  const resources = assessment[field] as IResource[];
+  
+
+  
+    return (
+      <PricingDetails
+        key={`${assessment._key}-${field}`} // Use bracket notation to avoid TypeScript error
+        label={label}
+        field={field}
+        options={this.filterInventoryItems([label])}
+        assessment={assessment}
+        index={index} handleDropdownChange={function (field: string, option: IDropdownOption, index: number, partIndex: number): void {
+          throw new Error("Function not implemented.");
+        } } handleInputChange={function (newValue: string, nestedField: string, index: number, partIndex?: number, field?: string): void {
+          throw new Error("Function not implemented.");
+        } } addRow={function (field: string, index: number): void {
+          throw new Error("Function not implemented.");
+        } } removeRow={function (field: string, index: number, partIndex: number): void {
+          throw new Error("Function not implemented.");
+        } }        >
+      {resources.map((resource, resIndex) => (
+        <ResourceRow
+          key={resource._key}
+          resource={resource}
+        />
+        ))}
+      </PricingDetails>
+    );
+  }
+
 }
 
 export default TechnicalAssessmentTable;

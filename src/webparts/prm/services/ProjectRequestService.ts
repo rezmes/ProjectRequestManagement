@@ -908,36 +908,75 @@ public async deleteProjectRequest(requestId: number): Promise<void> {
       .items.add(assessmentData);
   }
 
+//   // In ProjectRequestService.ts
+// public async getAssessmentsByRequestId(requestId: number): Promise<IAssessment[]> {
+//   try {
+//     const assessments = await sp.web.lists
+//       .getByTitle("TechnicalAssessments")
+//       .items.filter(`RequestIDId eq ${requestId}`)
+//       .get();
+
+//     return assessments.map(assessment => ({
+//       activity: assessment.Title || "",
+//       humanResources: this.mapResources(assessment, 'HumanResource') || [],
+//       machines: this.mapResources(assessment, 'Machine') || [],
+//       materials: this.mapResources(assessment, 'Material') || [],
+//     }));
+//   } catch (error) {
+//     console.error("Error fetching assessments:", error);
+//     return [];
+//   }
+// }
+
+
   // In ProjectRequestService.ts
-public async getAssessmentsByRequestId(requestId: number): Promise<IAssessment[]> {
-  try {
-    const assessments = await sp.web.lists
-      .getByTitle("TechnicalAssessments")
+  public async getAssessmentsByRequestId(requestId: number): Promise<IAssessment[]> {
+    console.log("🔄 Fetching assessments for request ID:", requestId);
+  
+
+    try {
+      const rawAssessments = await sp.web.lists.getByTitle("TechnicalAssessments")
       .items.filter(`RequestIDId eq ${requestId}`)
       .get();
 
-    return assessments.map(assessment => ({
-      activity: assessment.Title || "",
-      humanResources: this.mapResources(assessment, 'HumanResource') || [],
-      machines: this.mapResources(assessment, 'Machine') || [],
-      materials: this.mapResources(assessment, 'Material') || [],
-    }));
-  } catch (error) {
-    console.error("Error fetching assessments:", error);
-    return [];
+      console.log("📥 Raw Assessment Data:", JSON.stringify(rawAssessments, null, 2));
+  
+      return rawAssessments.map(assessment => ({
+        _key: `assessment-${assessment.Id}`, // Use SharePoint ID when available
+        activity: assessment.Title || '',
+        humanResources: this.validateResources(assessment, 'HumanResource'),
+        machines: this.validateResources(assessment, 'Machine'),
+        materials: this.validateResources(assessment, 'Material'),
+      }));
+    } catch (error) {
+      console.error("💥 Assessment Fetch Error:", {
+        error: error.message,
+        stack: error.stack,
+        requestId: requestId
+      });
+      return [];
+    }
   }
-}
+  private validateResources(assessment: any, type: string): IResource[] {
+    const resources = assessment[`${type}s`] || []; // Handle both singular/plural
+    return resources.map((res: any) => ({
+      _key: `res-${res.Id || Date.now()}`,
+      item: { key: res.Id || '', text: res.Title || '' },
+      quantity: Number(res.Quantity) || 0,
+      pricePerUnit: Number(res.PricePerUnit) || 0
+    }));
+  }
 
-private mapResources(assessment: any, type: string): IResource[] {
-  return [{
-    item: { 
-      key: assessment[`${type}Id`] || "", 
-      text: assessment[`${type}Title`] || "" 
-    },
-    quantity: assessment[`${type}Quantity`] || 0,
-    pricePerUnit: assessment[`${type}PricePerUnit`] || 0
-  }];
-}
+// private mapResources(assessment: any, type: string): IResource[] {
+//   return [{
+//     item: { 
+//       key: assessment[`${type}Id`] || "", 
+//       text: assessment[`${type}Title`] || "" 
+//     },
+//     quantity: assessment[`${type}Quantity`] || 0,
+//     pricePerUnit: assessment[`${type}PricePerUnit`] || 0
+//   }];
+// }
 
   public saveAssessments(
   assessments: IAssessment[],
@@ -1171,6 +1210,79 @@ public async updateDocumentSetLink(
       throw error;
   }
 }
+
+
+
+// public async updateDocumentSetLink(
+//   requestId: number,
+//   documentSetLink: { url: string; text: string }
+// ): Promise<void> {
+//   console.log(`Updating DocumentSetLink for Request ID: ${requestId}`);
+
+//   const hyperlinkValue = {
+//     __metadata: { type: "SP.FieldUrlValue" },
+//     Url: documentSetLink.url,
+//     Description: documentSetLink.text
+//   };
+
+//   try {
+//     const list = await sp.web.lists.getByTitle("ProjectRequests");
+//     const item = await list.items.getById(requestId).select("ListItemEntityTypeFullName").get();
+    
+//     const body = JSON.stringify({
+//       __metadata: { type: item.ListItemEntityTypeFullName },
+//       DocumentSetLink: hyperlinkValue
+//     });
+
+//     const response = await this.context.spHttpClient.post(
+//       `${this.context.pageContext.web.absoluteUrl}/_api/web/lists/getByTitle('ProjectRequests')/items(${requestId})`,
+//       SPHttpClient.configurations.v1,
+//       {
+//         headers: {
+//           "Accept": "application/json;odata=verbose",
+//           "Content-Type": "application/json;odata=verbose",
+//           "X-HTTP-Method": "MERGE",
+//           "IF-MATCH": "*"
+//         },
+//         body: body
+//       }
+//     );
+
+//     if (!response.ok) {
+//       const errorText = await response.text();
+//       throw new Error(`HTTP ${response.status}: ${errorText}`);
+//     }
+
+//     console.log("DocumentSetLink updated successfully (HTTP 204 expected)");
+    
+//   } catch (error) {
+//     console.error("❗ updateDocumentSetLink Error Details:", {
+//       Message: error.message,
+//       Stack: error.stack,
+//       Response: error.response ? await error.response.text() : null
+//     });
+//     throw error;
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }
 

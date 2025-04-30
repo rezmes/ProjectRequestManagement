@@ -22,6 +22,7 @@ import ManagedMetadataPicker from "./ManagedMetadataPicker";
 import { IAssessment, IResource } from "./IAssessment";
 
 import * as strings from "PrmWebPartStrings";
+import ErrorBoundary from "./ErrorBoundary";
 
 class ProjectRequestForm extends React.Component<
   IProjectRequestFormProps,
@@ -74,8 +75,11 @@ class ProjectRequestForm extends React.Component<
     const urlParams = new URLSearchParams(window.location.search);
     const formNumber = urlParams.get('formNumber');
     
+
+    console.log(`[DEBUG] ProjectRequestForm componentDidMount() - formNumber: ${formNumber}`);
     if (formNumber) {
       this.loadExistingForm(parseInt(formNumber));
+      // console.log(`[DEBUG] Calling loadAssessments from componentDidMount()`);
     }
   }
 
@@ -102,7 +106,8 @@ class ProjectRequestForm extends React.Component<
 
   private mapAssessments(rawAssessments: any[]): IAssessment[] {
     // Transform SharePoint list data into IAssessment format
-    return rawAssessments.map(assessment => ({
+    return rawAssessments.map((assessment, index) => ({
+      _key: `assessment-${index}-${Date.now()}`,  // Ensure _key is generated
       activity: assessment.Title,
       humanResources: this.mapResources(assessment, 'HumanResource') || [],
       machines: this.mapResources(assessment, 'Machine') || [],
@@ -113,7 +118,8 @@ class ProjectRequestForm extends React.Component<
     return [{
       item: { key: assessment[`${type}Id`], text: assessment[`${type}Title`] },
       quantity: assessment[`${type}Quantity`],
-      pricePerUnit: assessment[`${type}PricePerUnit`]
+      pricePerUnit: assessment[`${type}PricePerUnit`],
+      _key: ""
     }];
   }
 
@@ -294,6 +300,11 @@ class ProjectRequestForm extends React.Component<
     });
   };
 
+
+
+
+
+
  // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   private renderCreateMode() {
@@ -317,6 +328,7 @@ class ProjectRequestForm extends React.Component<
     const locale =
       this.props.context.pageContext.cultureInfo.currentCultureName;
     const containerClass = locale === "fa-IR" ? "rtlContainer" : "ltrContainer";
+    if (this.state.mode !== 'create') return null; // Strict mode check
     return (
       <div className={`${containerClass} ${styles.projectRequestForm}`}>
         <UIFabricWizard />
@@ -440,12 +452,14 @@ class ProjectRequestForm extends React.Component<
         </div>
         {/* Technical Assessment Table */}
         {isProjectCreated && requestId && (
+          <ErrorBoundary>
           <TechnicalAssessmentTable
             projectRequestService={this.projectRequestService}
             requestId={requestId}
             resetForm={this.resetForm}
             context={this.props.context}
           />
+</ErrorBoundary>
         )}
 
 

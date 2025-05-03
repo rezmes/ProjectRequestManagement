@@ -3,6 +3,7 @@
 import BaseService from "./BaseService";
 import { SPHttpClient, SPHttpClientResponse } from "@microsoft/sp-http";
 import { LISTS } from "../utils/constants";
+import { sp } from "@pnp/sp";
 
 export interface IDocSetLink { url: string; text: string; }
 

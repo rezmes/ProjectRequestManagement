@@ -4,7 +4,7 @@ import * as ReactDom from 'react-dom';
 import { Version } from '@microsoft/sp-core-library';
 import { IPropertyPaneConfiguration, PropertyPaneTextField, BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 import * as strings from 'PrmWebPartStrings';
-import ProjectRequestForm from './components/ProjectRequestForm';
+import ProjectRequestForm from './components/forms/ProjectRequestsForm/ProjectRequestForm';
 import { sp } from "@pnp/sp";
 import { IProjectRequestFormProps } from './components/IProjectRequestFormProps';
 
@@ -17,12 +17,13 @@ export default class PrmWebPart extends BaseClientSideWebPart<IPrmWebPartProps> 
 
 
   protected onInit(): Promise<void> {
+    window["prmCtx"] = this.context;   // convenience for deep children
     sp.setup({
       spfxContext: this.context
     });
     return super.onInit();
   }
-
+// Removed invalid class member declaration. The element creation is handled in the render() method below.
   public render(): void {
     const element: React.ReactElement<IProjectRequestFormProps> = React.createElement(ProjectRequestForm, {
       spHttpClient: this.context.spHttpClient,

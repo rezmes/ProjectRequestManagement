@@ -1,7 +1,7 @@
 // //O3
 // services/TaxonomyService.ts
 import BaseService from "./BaseService";
-import { ITaxonomyTerm } from "../models/ITaxonomyTerm";
+import { ITaxonomyTerm } from "../modules/ITaxonomyTerm";
 import { SPHttpClient } from "@microsoft/sp-http";
 
 export default class TaxonomyService extends BaseService {

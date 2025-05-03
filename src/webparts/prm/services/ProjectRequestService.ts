@@ -3,8 +3,15 @@
 import BaseService from "./BaseService";
 import DocumentSetService, { IDocSetLink } from "./DocumentSetService";
 import { LISTS } from "../utils/constants";
-import { IProjectRequest } from "../models/IProjectRequest";
+import { IProjectRequest } from "../modules/IProjectRequest";
 import {sp} from '@pnp/sp'
+export interface IDropdownOptionWithCategory {
+  key: string|number;
+  text: string;
+  itemCategory: string;
+}
+
+// … keep existing class …
 
 export default class ProjectRequestService extends BaseService {
 
@@ -13,6 +20,7 @@ export default class ProjectRequestService extends BaseService {
     super(ctx);
     this.docService = new DocumentSetService(ctx);
   }
+
 
   public async getNextFormNumber(): Promise<number> {
     const items = await sp.web.lists.getByTitle(LISTS.ProjectRequests)
@@ -46,4 +54,13 @@ export default class ProjectRequestService extends BaseService {
     const total   = details.reduce((s,i)=>s + (i.TotalCost||0),0);
     await this.updateEstimatedCost(requestId,total);
   }
+  // ProjectRequestService.ts (at bottom)
+public getCustomerOptions() { return sp.web.lists.getByTitle("Customer").items.get()
+  .then(d=>d.map(i=>({key:i.Id,text:i.Title}))); }
+
+public getPricingDetailsByRequestID(id:number){ /* old implementation… */ }
+public updateProjectRequestEstimatedCost(id:number,cost:number){ /* … */ }
+public savePricingDetails(details:IPricingDetails[]){ /* … */ }
+public saveAssessments = undefined; // lives in TechnicalAssessmentService, update callers!
+
 }

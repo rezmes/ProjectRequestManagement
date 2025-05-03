@@ -10,7 +10,7 @@ import {
   Link,
   Icon,
 } from "office-ui-fabric-react";
-import GenericDropdown from "./../../GenericDropdown";
+import GenericDropdown from "../../../controls/GenericDropdown";
 import { IProjectRequestFormProps } from "./../../IProjectRequestFormProps";
 import { IProjectRequestFormState } from "./../../IProjectRequestFormState";
 import ProjectRequestService from "./../../../services/ProjectRequestService"; // ✅ مطمئن شو مسیر درسته

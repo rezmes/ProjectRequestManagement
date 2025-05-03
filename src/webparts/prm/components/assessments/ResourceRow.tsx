@@ -1,29 +1,44 @@
-// O3
-// components/assessments/ResourceRow.tsx
-export default class ResourceRow extends React.Component<IProps, {}> {
-  public render() {
-    const { item, onQty, onPrice, onRemove } = this.props;
-    const total = item.quantity * item.pricePerUnit;
+import * as React from "react";
+import { TextField, IconButton } from "office-ui-fabric-react";
+import GenericDropdown from "../../controls/GenericDropdown";
+import { IResourceRowProps } from "./IResourceRow";
+
+export default class ResourceRow extends React.Component<
+  IResourceRowProps,
+  {}
+> {
+  public render(): JSX.Element {
+    const { row, total } = this.props;
     return (
       <tr>
-        <td className="resourceColumn">{this.props.children}</td>
+        <td className="resourceColumn">
+          <GenericDropdown
+            label=""
+            options={[]} // options come via children
+            selectedKey={row.item.key}
+            onChanged={this.props.onItem}
+          />
+        </td>
         <td>
           <TextField
-            value={item.quantity + ""}
-            onChanged={onQty}
+            value={row.quantity + ""}
+            onChanged={this.props.onQty}
             type="number"
           />
         </td>
         <td>
           <TextField
-            value={item.pricePerUnit + ""}
-            onChanged={onPrice}
+            value={row.pricePerUnit + ""}
+            onChanged={this.props.onPrice}
             type="number"
           />
         </td>
         <td>{total}</td>
         <td>
-          <IconButton iconProps={{ iconName: "Delete" }} onClick={onRemove} />
+          <IconButton
+            iconProps={{ iconName: "Delete" }}
+            onClick={this.props.onRemove}
+          />
         </td>
       </tr>
     );

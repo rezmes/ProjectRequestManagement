@@ -1,6 +1,6 @@
 // src\webparts\prm\components\ManagedMetadataPicker.tsx
 import * as React from "react";
-import GenericComboBox from "./GenericComboBox";
+import GenericComboBox from "../controls/GenericComboBox";
 import { IComboBoxOption } from "office-ui-fabric-react";
 import ProjectRequestService from "../services/ProjectRequestService";
 import { WebPartContext } from "@microsoft/sp-webpart-base";

@@ -1,24 +1,21 @@
-// src\webparts\prm\components\ProjectRequestForm.tsx
-
+// src/webparts/prm/components/ProjectRequestForm.tsx (modified)
 import * as React from "react";
 import {
-  TextField,
   PrimaryButton,
+  DefaultButton,
   IDropdownOption,
-  Link,
-  Icon,
 } from "office-ui-fabric-react";
-import GenericDropdown from "./GenericDropdown";
-import { IProjectRequestFormProps } from "./IProjectRequestFormProps";
+import { IProjectRequestFormProps, FormMode } from "./IProjectRequestFormProps";
 import { IProjectRequestFormState } from "./IProjectRequestFormState";
-import ProjectRequestService from "../services/ProjectRequestService"; // ✅ مطمئن شو مسیر درسته
+import ProjectRequestService from "../services/ProjectRequestService";
 import * as moment from "moment-jalaali";
 import TechnicalAssessmentTable from "./TechnicalAssessmentTable";
 import styles from "./ProjectRequestForm.module.scss";
-import UIFabricWizard from "./UIFabricWizard";
-import ManagedMetadataPicker from "./ManagedMetadataPicker";
-
 import * as strings from "PrmWebPartStrings";
+import ProjectInformation from "./ProjectInformation";
+import ProjectRequestFormFields from "./ProjectRequestFormFields";
+import StepIndicator from "./StepIndicator";
+import { sp } from "@pnp/sp";
 
 class ProjectRequestForm extends React.Component<
   IProjectRequestFormProps,
@@ -28,11 +25,11 @@ class ProjectRequestForm extends React.Component<
 
   constructor(props: IProjectRequestFormProps) {
     super(props);
-    this.projectRequestService = new ProjectRequestService(this.props.context); // ✅ context رو پاس بده
+    this.projectRequestService = new ProjectRequestService(this.props.context);
     this.state = {
-      isProjectCreated: false,
+      isProjectCreated: props.mode !== FormMode.Create,
       showProjectForm: true,
-      requestId: null,
+      requestId: props.itemId || null,
       selectedCustomer: null,
       selectedCustomerName: "",
       requestTitle: "",
@@ -49,20 +46,87 @@ class ProjectRequestForm extends React.Component<
       selectedTerm: null,
       terms: [],
       ProjectCode1: null,
+      isLoading: props.mode !== FormMode.Create,
     };
 
     this.handleTermSelected = this.handleTermSelected.bind(this);
-
     this.resetForm = this.resetForm.bind(this);
   }
 
   componentDidMount() {
     this.loadCustomerOptions();
+
+    // If in Edit or View mode, load the existing item
+    if (this.props.mode !== FormMode.Create && this.props.itemId) {
+      this.loadExistingItem(this.props.itemId);
+    }
+  }
+
+  private loadExistingItem(itemId: number): void {
+    this.setState({ isLoading: true });
+
+    // Get the project request details
+    sp.web.lists
+      .getByTitle("ProjectRequests")
+      .items.getById(itemId)
+      .select(
+        "Id,Title,CustomerId,Customer/Title,RequestDate,EstimatedDuration,EstimatedCost,Description1,RequestStatus,FormNumber,DocumentSetLink,ProjectCode1/Label,ProjectCode1/TermGuid"
+      )
+      .expand("Customer,ProjectCode1")
+      .get()
+      .then((item) => {
+        console.log("Loaded item:", item);
+
+        // Format the date from ISO to Jalali
+        const requestDate = item.RequestDate
+          ? moment(item.RequestDate).format("jYYYY/jM/jD")
+          : moment().format("jYYYY/jM/jD");
+
+        // Parse the DocumentSetLink field
+        let documentSetLink = null;
+        if (item.DocumentSetLink) {
+          documentSetLink = {
+            url: item.DocumentSetLink.Url,
+            text: item.DocumentSetLink.Description,
+          };
+        }
+
+        // Parse the ProjectCode1 field
+        let projectCodeTerm = null;
+        if (item.ProjectCode1) {
+          projectCodeTerm = {
+            id: item.ProjectCode1.TermGuid,
+            label: item.ProjectCode1.Label,
+          };
+        }
+
+        this.setState({
+          requestId: item.Id,
+          selectedCustomer: item.CustomerId,
+          selectedCustomerName: item.Customer ? item.Customer.Title : "",
+          requestTitle: item.Title || "",
+          requestDate: requestDate,
+          estimatedDuration: item.EstimatedDuration || 0,
+          estimatedCost: item.EstimatedCost || 0,
+          requestNote: item.Description1 || "",
+          RequestStatus: item.RequestStatus || "New",
+          formNumber: item.FormNumber,
+          documentSetLink: documentSetLink,
+          ProjectCode1: projectCodeTerm,
+          selectedTerm: projectCodeTerm,
+          isLoading: false,
+        });
+      })
+      .catch((error) => {
+        console.error("Error loading project request:", error);
+        this.setState({ isLoading: false });
+        alert(strings.ErrorLoadingProjectRequest);
+      });
   }
 
   private handleTermSelected(term: { id: string; label: string }): void {
-    this.setState({ selectedTerm: term });
-    console.log("Selected Term:", term); // Log selected term
+    this.setState({ selectedTerm: term, ProjectCode1: term });
+    console.log("Selected Term:", term);
   }
 
   loadCustomerOptions() {
@@ -75,6 +139,11 @@ class ProjectRequestForm extends React.Component<
     newValue: string,
     field: keyof IProjectRequestFormState
   ): void => {
+    // Don't update state in View mode
+    if (this.props.mode === FormMode.View) {
+      return;
+    }
+
     let parsedValue: any = newValue;
 
     // Check if the field expects a number
@@ -89,47 +158,18 @@ class ProjectRequestForm extends React.Component<
   };
 
   handleDropdownChange = (option?: IDropdownOption): void => {
+    // Don't update state in View mode
+    if (this.props.mode === FormMode.View) {
+      return;
+    }
+
     this.setState({
       selectedCustomer: option ? option.key : null,
       selectedCustomerName: option ? option.text : "",
     });
   };
 
-  calculateEstimatedCost = async () => {
-    const { requestId } = this.state; // Assuming requestId is stored in the state
-
-    if (!requestId) {
-      console.error("RequestID is not available.");
-      return;
-    }
-
-    try {
-      // Fetch all PricingDetails for this RequestID
-      const pricingDetails =
-        await this.projectRequestService.getPricingDetailsByRequestID(
-          requestId
-        );
-
-      // Sum up the TotalCost values
-      const estimatedCost = pricingDetails.reduce((sum, item) => {
-        return sum + (item.TotalCost || 0); // Ensure TotalCost is treated as a number
-      }, 0);
-
-      console.log("Calculated Estimated Cost:", estimatedCost);
-
-      // Update the state with the calculated cost
-      this.setState({ estimatedCost });
-
-      // Optionally, save the calculated cost to the ProjectRequests list
-      await this.projectRequestService.updateProjectRequestEstimatedCost(
-        requestId,
-        estimatedCost
-      );
-    } catch (error) {
-      console.error("Error calculating estimated cost:", error);
-    }
-  };
-
+  // src/webparts/prm/components/ProjectRequestForm.tsx
   handleCreateProjectRequest = (): void => {
     const {
       requestTitle,
@@ -142,83 +182,164 @@ class ProjectRequestForm extends React.Component<
       ProjectCode1,
     } = this.state;
 
-    // Step 1: Get the next form number
-    this.projectRequestService
-      .getNextFormNumber()
+    // Validate required fields
+    if (!requestTitle.trim()) {
+      alert(strings.RequestTitleRequired);
+      return;
+    }
+
+    if (!selectedCustomer) {
+      alert(strings.CustomerRequired);
+      return;
+    }
+
+    // Step 1: Get the next form number (only for Create mode)
+    const getFormNumberPromise =
+      this.props.mode === FormMode.Create
+        ? this.projectRequestService.getNextFormNumber()
+        : Promise.resolve(this.state.formNumber);
+
+    getFormNumberPromise
       .then((formNumber) => {
-        console.log("Next Form Number:", formNumber);
+        console.log("Form Number:", formNumber);
         const requestDateISO = moment(requestDate, "jYYYY/jM/jD").toISOString();
-        console.log("requestDate:", requestDate); // Check the initial value
-        console.log("requestDateISO:", requestDateISO); // Check the converted ISO string
-        console.log("Type of requestDateISO:", typeof requestDateISO); // Should be "string"
+
         // Step 2: Prepare the request data
-        const requestData = {
+        // Use a more flexible type with index signature
+        const requestData: { [key: string]: any } = {
           Title: requestTitle.trim(),
-          CustomerId: selectedCustomer || null,
+          CustomerId: selectedCustomer,
           RequestDate: requestDateISO,
           EstimatedDuration: estimatedDuration,
           EstimatedCost: estimatedCost,
           Description1: requestNote,
           RequestStatus: RequestStatus.trim(),
           FormNumber: formNumber,
-          ProjectCode1: ProjectCode1 ? ProjectCode1.id : null,
         };
 
-        // Step 3: Create the project request
-        return this.projectRequestService.createProjectRequest(requestData);
+        console.log("Request data being sent:", requestData);
+
+        // Step 3: Create or update the project request
+        if (this.props.mode === FormMode.Create) {
+          return this.projectRequestService
+            .createProjectRequest(requestData)
+            .then(async (response) => {
+              // If we have a ProjectCode1 value, update it separately using the updateProjectCode method
+              if (
+                ProjectCode1 &&
+                ProjectCode1.id &&
+                ProjectCode1.label &&
+                response.requestId
+              ) {
+                await this.projectRequestService.updateProjectCode(
+                  "ProjectRequests",
+                  response.requestId,
+                  ProjectCode1.label,
+                  ProjectCode1.id
+                );
+              }
+              return response;
+            });
+        } else {
+          // For Edit mode, update the existing item
+          return this.projectRequestService
+            .updateProjectRequest(this.state.requestId, requestData)
+            .then(async (response) => {
+              // If we have a ProjectCode1 value, update it separately
+              if (
+                ProjectCode1 &&
+                ProjectCode1.id &&
+                ProjectCode1.label &&
+                this.state.requestId
+              ) {
+                await this.projectRequestService.updateProjectCode(
+                  "ProjectRequests",
+                  this.state.requestId,
+                  ProjectCode1.label,
+                  ProjectCode1.id
+                );
+              }
+              return response;
+            });
+        }
       })
       .then((response) => {
-        if (response && response.requestId) {
-          console.log("New project created with ID:", response.requestId);
+        if (response && (response.requestId || response.success)) {
+          const requestId = response.requestId || this.state.requestId;
+          console.log(
+            "Project " +
+              (this.props.mode === FormMode.Create ? "created" : "updated") +
+              " with ID:",
+            requestId
+          );
 
           // Update state to include documentSetLink for rendering
           this.setState(
             {
               isProjectCreated: true,
-              requestId: response.requestId,
-              formNumber: response.FormNumber, // if needed
-              documentSetLink: response.documentSetLink,
+              requestId: requestId,
+              formNumber: response.FormNumber || this.state.formNumber,
+              documentSetLink:
+                response.documentSetLink || this.state.documentSetLink,
             },
             () => {
-              alert("Project request created successfully!");
+              alert(
+                this.props.mode === FormMode.Create
+                  ? strings.ProjectRequestCreatedSuccessfully
+                  : strings.ProjectRequestUpdatedSuccessfully
+              );
             }
           );
         } else {
           throw new Error(
-            "Error creating project request. Response was invalid."
+            "Error " +
+              (this.props.mode === FormMode.Create ? "creating" : "updating") +
+              " project request. Response was invalid."
           );
         }
       })
       .catch((error) => {
-        console.error("Error creating project request or Document Set:", error);
-        console.warn(
-          "There was an error creating your project request or its associated Document Set. Please check the console for details."
+        console.error(
+          "Error " +
+            (this.props.mode === FormMode.Create ? "creating" : "updating") +
+            " project request:",
+          error
         );
-        if (error instanceof Error) {
-          console.error("Error message:", error.message);
-        }
+        alert(
+          this.props.mode === FormMode.Create
+            ? strings.ErrorCreatingProjectRequest
+            : strings.ErrorUpdatingProjectRequest
+        );
       });
   };
 
   resetForm = (): void => {
-    this.setState({
-      isProjectCreated: false,
-      requestId: null,
-      selectedCustomer: null,
-      selectedCustomerName: "",
-      requestTitle: "",
-      requestDate: moment().format("jYYYY/jM/jD"),
-      estimatedDuration: 0,
-      estimatedCost: 0,
-      requestNote: "",
-      RequestStatus: "New",
-
-      // Reset any other state variables as needed
-    });
+    if (this.props.mode === FormMode.Create) {
+      this.setState({
+        isProjectCreated: false,
+        requestId: null,
+        selectedCustomer: null,
+        selectedCustomerName: "",
+        requestTitle: "",
+        requestDate: moment().format("jYYYY/jM/jD"),
+        estimatedDuration: 0,
+        estimatedCost: 0,
+        requestNote: "",
+        RequestStatus: "New",
+        documentSetLink: null,
+        projectCodeTerm: null,
+        selectedTerm: null,
+        ProjectCode1: null,
+      });
+    } else if (this.props.mode === FormMode.Edit && this.props.itemId) {
+      // Reload the original item data
+      this.loadExistingItem(this.props.itemId);
+    }
   };
 
   render() {
     const {
+      isLoading,
       isProjectCreated,
       requestId,
       selectedCustomer,
@@ -233,136 +354,116 @@ class ProjectRequestForm extends React.Component<
       documentSetLink,
     } = this.state;
 
+    const { mode } = this.props;
+    const isViewMode = mode === FormMode.View;
+    const isEditMode = mode === FormMode.Edit;
+    const isCreateMode = mode === FormMode.Create;
+
     const locale =
       this.props.context.pageContext.cultureInfo.currentCultureName;
     const containerClass = locale === "fa-IR" ? "rtlContainer" : "ltrContainer";
 
+    if (isLoading) {
+      return <div className={styles.loading}>Loading...</div>;
+    }
+
     return (
       <div className={`${containerClass} ${styles.projectRequestForm}`}>
-        <UIFabricWizard />
+        {!isViewMode && (
+          <StepIndicator
+            currentStep={isProjectCreated ? 2 : 1}
+            totalSteps={2}
+            stepLabels={[
+              isCreateMode
+                ? strings.CreateProjectRequest
+                : strings.EditProjectRequest,
+              strings.AddAssessments,
+            ]}
+          />
+        )}
+
         <h2 className={styles.header}>
-          {isProjectCreated
+          {isViewMode
+            ? strings.ViewProjectRequest
+            : isProjectCreated
             ? strings.AddAssessments
-            : strings.CreateProjectRequest}
+            : isCreateMode
+            ? strings.CreateProjectRequest
+            : strings.EditProjectRequest}
         </h2>
 
-        {isProjectCreated && (
-          <div>
-            <h3>{strings.ProjectInformation}</h3>
-            <p>
-              <strong>{strings.ProjectID}:</strong> {requestId}
-            </p>
-            <p>
-              <strong>{strings.FormNumber}:</strong> {formNumber}
-            </p>
-            <p>
-              <strong>{strings.Title}:</strong> {requestTitle}
-            </p>
-            <p>
-              <strong>{strings.CustomerName}:</strong> {selectedCustomerName}
-            </p>
-            <p>
-              <strong>{strings.RequestDate}:</strong> {requestDate}
-            </p>
-            <p>{strings.RequestNote}:</p> {requestNote}
-          </div>
+        {(isProjectCreated || isViewMode) && (
+          <ProjectInformation
+            requestId={requestId}
+            formNumber={formNumber}
+            requestTitle={requestTitle}
+            selectedCustomerName={selectedCustomerName}
+            requestDate={requestDate}
+            requestNote={requestNote}
+            documentSetLink={documentSetLink}
+          />
         )}
 
-        {isProjectCreated && (
-          <div>
-            {/* Document Set Link */}
-            {documentSetLink && (
-              <div className={styles.docSetLink}>
-                <Icon iconName="OpenFolderHorizontal" />
-                <Link href={documentSetLink.url} target="_blank">
-                  {documentSetLink.text}
-                </Link>
-              </div>
-            )}
-          </div>
+        {!isProjectCreated && !isViewMode && (
+          <ProjectRequestFormFields
+            requestTitle={requestTitle}
+            selectedCustomer={selectedCustomer}
+            requestDate={requestDate}
+            estimatedDuration={estimatedDuration}
+            estimatedCost={estimatedCost}
+            requestNote={requestNote}
+            customerOptions={customerOptions}
+            onInputChange={this.handleInputChange}
+            onDropdownChange={this.handleDropdownChange}
+            onTermSelected={this.handleTermSelected}
+            context={this.props.context}
+            isReadOnly={isViewMode}
+          />
         )}
 
-        {/* Project Request Form */}
-        <TextField
-          label={strings.RequestTitle}
-          value={requestTitle}
-          onChanged={(newValue) =>
-            this.handleInputChange(newValue || "", "requestTitle")
-          }
-          readOnly={isProjectCreated}
-        />
+        {isViewMode && (
+          <ProjectRequestFormFields
+            requestTitle={requestTitle}
+            selectedCustomer={selectedCustomer}
+            requestDate={requestDate}
+            estimatedDuration={estimatedDuration}
+            estimatedCost={estimatedCost}
+            requestNote={requestNote}
+            customerOptions={customerOptions}
+            onInputChange={this.handleInputChange}
+            onDropdownChange={this.handleDropdownChange}
+            onTermSelected={this.handleTermSelected}
+            context={this.props.context}
+            isReadOnly={true}
+          />
+        )}
 
-        <ManagedMetadataPicker
-          label={strings.ProjectCodeLabel} // e.g., "Project Code"
-          onTermSelected={this.handleTermSelected}
-          context={this.props.context}
-          placeHolder="Select Project Code"
-          disabled={isProjectCreated}
-        />
-        <GenericDropdown
-          label={strings.Customer}
-          options={customerOptions}
-          selectedKey={selectedCustomer}
-          onChanged={this.handleDropdownChange}
-          placeHolder={strings.SelectCustomer}
-          disabled={isProjectCreated}
-        />
-        <TextField
-          label={strings.RequestDate}
-          value={requestDate}
-          onChanged={(newValue) =>
-            this.handleInputChange(newValue || "", "requestDate")
-          }
-          readOnly={isProjectCreated}
-        />
-        <TextField
-          label={strings.EstimatedDuration}
-          value={estimatedDuration.toString()}
-          onChanged={(newValue) =>
-            this.setState({ estimatedDuration: parseInt(newValue) || 0 })
-          }
-          type="number"
-          readOnly={isProjectCreated}
-        />
-        <TextField
-          label={strings.EstimatedCost}
-          value={estimatedCost.toString()}
-          onChanged={(newValue) =>
-            this.setState({ estimatedCost: parseInt(newValue) || 0 })
-          }
-          type="number"
-          readOnly={isProjectCreated}
-        />
-        <TextField
-          label={strings.RequestNote}
-          value={requestNote}
-          onChanged={(newValue) =>
-            this.handleInputChange(newValue || "", "requestNote")
-          }
-          multiline
-          rows={4}
-          readOnly={isProjectCreated}
-        />
-
-        {/* Create Button */}
         <div className={styles.buttonGroup}>
-          {!isProjectCreated && (
+          {!isProjectCreated && !isViewMode && (
             <PrimaryButton
-              text={strings.Create}
+              text={isCreateMode ? strings.Create : strings.Update}
               onClick={this.handleCreateProjectRequest}
             />
           )}
-          {/* Cancel Button */}
-          <div>
-            <PrimaryButton text={strings.Cancel} onClick={this.resetForm} />
-          </div>
+
+          {!isViewMode && (
+            <DefaultButton text={strings.Cancel} onClick={this.resetForm} />
+          )}
+
+          {isViewMode && (
+            <DefaultButton
+              text={strings.Back}
+              onClick={() => window.history.back()}
+            />
+          )}
         </div>
-        {/* Technical Assessment Table */}
-        {isProjectCreated && requestId && (
+
+        {(isProjectCreated || isViewMode) && requestId && (
           <TechnicalAssessmentTable
             projectRequestService={this.projectRequestService}
             requestId={requestId}
             resetForm={this.resetForm}
+            isReadOnly={isViewMode}
           />
         )}
       </div>

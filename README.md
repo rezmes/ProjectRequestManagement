@@ -159,11 +159,11 @@ Management: Full control over all lists.
    Implement workflows to automate notifications, approvals, and status updates.
    Ensure workflows correctly link list items and documents using the Current Item ID.
 
-<!-- Installing some packages -->
+## Installing some packages
 
-<!-- `npm install office-ui-fabric-react@5.134.0 moment@2.24.0 moment-jalaali@0.8.3` -->
+ `npm install moment@2.24.0 moment-jalaali@0.8.3`
 
-uninstalled
+
 
 <!-- Start Implementation -->
 

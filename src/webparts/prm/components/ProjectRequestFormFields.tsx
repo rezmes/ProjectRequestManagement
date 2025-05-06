@@ -1,4 +1,4 @@
-// src/webparts/prm/components/ProjectRequestFormFields.tsx
+// src/webparts/prm/components/ProjectRequestFormFields.tsx (corrected)
 import * as React from "react";
 import { TextField, IDropdownOption } from "office-ui-fabric-react";
 import GenericDropdown from "./GenericDropdown";
@@ -41,69 +41,112 @@ export class ProjectRequestFormFields extends React.Component<
       isReadOnly,
     } = this.props;
 
+    // Find the selected customer text using a traditional loop
+    let selectedCustomerText = "";
+    for (let i = 0; i < customerOptions.length; i++) {
+      if (customerOptions[i].key === selectedCustomer) {
+        selectedCustomerText = customerOptions[i].text;
+        break;
+      }
+    }
+
     return (
       <div>
-        <TextField
-          label={strings.RequestTitle}
-          value={requestTitle}
-          onChanged={(newValue) =>
-            onInputChange(newValue || "", "requestTitle")
-          }
-          readOnly={isReadOnly}
-        />
+        {isReadOnly ? (
+          <div>
+            <p>
+              <strong>{strings.RequestTitle}:</strong> {requestTitle}
+            </p>
+            <p>
+              <strong>{strings.Customer}:</strong> {selectedCustomerText}
+            </p>
+            <p>
+              <strong>{strings.RequestDate}:</strong> {requestDate}
+            </p>
+            <p>
+              <strong>{strings.EstimatedDuration}:</strong> {estimatedDuration}
+            </p>
+            <p>
+              <strong>{strings.EstimatedCost}:</strong> {estimatedCost}
+            </p>
+            <p>
+              <strong>{strings.RequestNote}:</strong> {requestNote}
+            </p>
+          </div>
+        ) : (
+          <div>
+            <TextField
+              label={strings.RequestTitle}
+              value={requestTitle}
+              onChanged={(newValue) =>
+                onInputChange(newValue || "", "requestTitle")
+              }
+              readOnly={isReadOnly}
+              disabled={isReadOnly}
+            />
 
-        <ManagedMetadataPicker
-          label={strings.ProjectCodeLabel}
-          onTermSelected={onTermSelected}
-          context={context}
-          placeHolder="Select Project Code"
-          disabled={isReadOnly}
-        />
+            <ManagedMetadataPicker
+              label={strings.ProjectCodeLabel}
+              onTermSelected={onTermSelected}
+              context={context}
+              placeHolder="Select Project Code"
+              disabled={isReadOnly}
+            />
 
-        <GenericDropdown
-          label={strings.Customer}
-          options={customerOptions}
-          selectedKey={selectedCustomer}
-          onChanged={onDropdownChange}
-          placeHolder={strings.SelectCustomer}
-          disabled={isReadOnly}
-        />
+            <GenericDropdown
+              label={strings.Customer}
+              options={customerOptions}
+              selectedKey={selectedCustomer}
+              onChanged={onDropdownChange}
+              placeHolder={strings.SelectCustomer}
+              disabled={isReadOnly}
+            />
 
-        <TextField
-          label={strings.RequestDate}
-          value={requestDate}
-          onChanged={(newValue) => onInputChange(newValue || "", "requestDate")}
-          readOnly={isReadOnly}
-        />
+            <TextField
+              label={strings.RequestDate}
+              value={requestDate}
+              onChanged={(newValue) =>
+                onInputChange(newValue || "", "requestDate")
+              }
+              readOnly={isReadOnly}
+              disabled={isReadOnly}
+            />
 
-        <TextField
-          label={strings.EstimatedDuration}
-          value={estimatedDuration.toString()}
-          onChanged={(newValue) =>
-            onInputChange(newValue || "0", "estimatedDuration")
-          }
-          type="number"
-          readOnly={isReadOnly}
-        />
+            <TextField
+              label={strings.EstimatedDuration}
+              value={estimatedDuration.toString()}
+              onChanged={(newValue) =>
+                onInputChange(newValue || "0", "estimatedDuration")
+              }
+              type="number"
+              readOnly={isReadOnly}
+              disabled={isReadOnly}
+            />
 
-        <TextField
-          label={strings.EstimatedCost}
-          value={estimatedCost.toString()}
-          onChanged={(newValue) =>
-            onInputChange(newValue || "0", "estimatedCost")
-          }
-          type="number"
-          readOnly={isReadOnly}
-        />
+            <TextField
+              label={strings.EstimatedCost}
+              value={estimatedCost.toString()}
+              onChanged={(newValue) =>
+                onInputChange(newValue || "0", "estimatedCost")
+              }
+              type="number"
+              readOnly={isReadOnly}
+              disabled={isReadOnly}
+            />
 
-        <TextField
-          label={strings.RequestNote}
-          value={requestNote}
-          onChanged={(newValue) => onInputChange(newValue || "", "requestNote")}
-          multiline
-          rows={4}
-          readOnly={isReadOnly}
-        />
+            <TextField
+              label={strings.RequestNote}
+              value={requestNote}
+              onChanged={(newValue) =>
+                onInputChange(newValue || "", "requestNote")
+              }
+              multiline
+              rows={4}
+              readOnly={isReadOnly}
+              disabled={isReadOnly}
+            />
+          </div>
+        )}
       </div>
     );
   }

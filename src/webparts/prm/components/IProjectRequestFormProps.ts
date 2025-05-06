@@ -1,11 +1,14 @@
-// src\webparts\prm\components\IProjectRequestFormProps.ts
-import { SPHttpClient } from '@microsoft/sp-http';
+// src/webparts/prm/components/IProjectRequestFormProps.ts
+import { WebPartContext } from "@microsoft/sp-webpart-base";
 
-import { WebPartContext } from '@microsoft/sp-webpart-base';
+export enum FormMode {
+  Create = "Create",
+  Edit = "Edit",
+  View = "View"
+}
 
 export interface IProjectRequestFormProps {
   context: WebPartContext;
-  spHttpClient: SPHttpClient;
-  siteUrl: string;
-  termSetId: string;
+  mode: FormMode;
+  itemId?: number; // Optional for Edit and View modes
 }

@@ -109,3 +109,53 @@
   gap: 10px;
   margin-top: 10px;
 }
+// src/webparts/prm/components/TechnicalAssessmentTable.module.scss (add)
+.readOnlyTable {
+  margin-bottom: 20px;
+
+  h4 {
+    margin-bottom: 10px;
+    font-size: 16px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+
+  th {
+    background-color: #f2f2f2;
+    font-weight: 600;
+  }
+}
+
+.loading {
+  padding: 20px;
+  text-align: center;
+  font-size: 16px;
+}
+.assessmentItem {
+  /* Add your desired styles here */
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+
+
+
+/* Add your styles here */
+
+.assessmentDivider {
+  margin: 16px 0;
+  border: none;
+  border-top: 1px solid #e1e1e1;
+}

@@ -84,34 +84,60 @@ export default class ProjectRequestService extends BaseService {
       });
   }
 
-  public createProjectRequest(requestData: any): Promise<any> {
-    return sp.web.lists
-      .getByTitle("ProjectRequests")
-      .items.add(requestData)
-      .then(async (result) => {
-        console.log("Raw API Response:", result);
-        const requestId = result.data.Id;
-        if (!requestId) {
-          throw new Error("Error: requestId is undefined!");
-        }
-        const documentSetName = `Request-${requestId}`;
-        const documentSetLink = await this.createDocumentSet(documentSetName);
-        if (!documentSetLink) {
-          throw new Error("Document Set creation failed. No valid link returned.");
-        }
-        await this.updateDocumentSetLink(requestId, documentSetLink);
-        return {
-          success: true,
-          requestId,
-          documentSetLink,
-          FormNumber: result.data.FormNumber
-        };
-      })
-      .catch((error) => {
-        console.error("Project request creation failed:", error);
-        throw error;
-      });
+// src/webparts/prm/services/ProjectRequestService.ts
+// Fix for the createProjectRequest method
+
+public createProjectRequest(requestData: any): Promise<any> {
+  // The issue is likely with how ProjectCode1 is being handled
+  // Let's ensure it's properly formatted for a taxonomy field
+
+  // Check if ProjectCode1 is a primitive value (string/number) and convert it to proper format
+  if (requestData.ProjectCode1 && typeof requestData.ProjectCode1 === 'string') {
+    // If it's a string (termId), convert to proper taxonomy format
+    requestData.ProjectCode1 = {
+      __metadata: { type: "SP.Taxonomy.TaxonomyFieldValue" },
+      TermGuid: requestData.ProjectCode1,
+      WssId: -1
+    };
+  } else if (requestData.ProjectCode1 && typeof requestData.ProjectCode1 === 'object' && requestData.ProjectCode1.id) {
+    // If it's an object with id property, use that as TermGuid
+    requestData.ProjectCode1 = {
+      __metadata: { type: "SP.Taxonomy.TaxonomyFieldValue" },
+      TermGuid: requestData.ProjectCode1.id,
+      WssId: -1
+    };
   }
+
+  console.log("Formatted request data:", JSON.stringify(requestData, null, 2));
+
+  return sp.web.lists
+    .getByTitle("ProjectRequests")
+    .items.add(requestData)
+    .then(async (result) => {
+      console.log("Raw API Response:", result);
+      const requestId = result.data.Id;
+      if (!requestId) {
+        throw new Error("Error: requestId is undefined!");
+      }
+      const documentSetName = `Request-${requestId}`;
+      const documentSetLink = await this.createDocumentSet(documentSetName);
+      if (!documentSetLink) {
+        throw new Error("Document Set creation failed. No valid link returned.");
+      }
+      await this.updateDocumentSetLink(requestId, documentSetLink);
+      return {
+        success: true,
+        requestId,
+        documentSetLink,
+        FormNumber: result.data.FormNumber
+      };
+    })
+    .catch((error) => {
+      console.error("Project request creation failed:", error);
+      throw error;
+    });
+}
+
 
   public getInventoryItems(): Promise<IDropdownOptionWithCategory[]> {
     return sp.web.lists
@@ -250,4 +276,22 @@ export default class ProjectRequestService extends BaseService {
         throw error;
       });
   }
+  // Add to src/webparts/prm/services/ProjectRequestService.ts
+public updateProjectRequest(requestId: number, requestData: any): Promise<any> {
+  return sp.web.lists
+    .getByTitle("ProjectRequests")
+    .items.getById(requestId)
+    .update(requestData)
+    .then(() => {
+      return {
+        success: true,
+        requestId: requestId
+      };
+    })
+    .catch((error) => {
+      console.error("Project request update failed:", error);
+      throw error;
+    });
+}
+
 }

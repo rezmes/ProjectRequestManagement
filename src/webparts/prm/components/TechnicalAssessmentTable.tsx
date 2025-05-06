@@ -13,10 +13,11 @@ import PricingDetails from "./PricingDetails";
 import styles from "./TechnicalAssessmentTable.module.scss";
 
 import * as strings from "PrmWebPartStrings";
-
+import { sp } from "@pnp/sp";
 import ProjectRequestService, {
   IPricingDetails,
 } from "../services/ProjectRequestService";
+import { ResourceTable } from "./ResourceTable";
 
 class TechnicalAssessmentTable extends React.Component<
   ITechnicalAssessmentProps,
@@ -242,59 +243,230 @@ class TechnicalAssessmentTable extends React.Component<
     />
   );
 
+  // src/webparts/prm/components/TechnicalAssessmentTable.tsx (corrected)
+  loadExistingAssessments = () => {
+    const { requestId } = this.props;
+
+    // First get the technical assessments
+    sp.web.lists
+      .getByTitle("TechnicalAssessments")
+      .items.filter(`RequestIDId eq ${requestId}`)
+      .select(
+        "Id,Title,HumanResourceId,HumanResourceQuantity,HumanResourcePricePerUnit,MachineId,MachineQuantity,MachinePricePerUnit,MaterialId,MaterialQuantity,MaterialPricePerUnit"
+      )
+      .get()
+      .then((assessmentItems) => {
+        console.log("Loaded assessment items:", assessmentItems);
+
+        if (assessmentItems.length === 0) {
+          return;
+        }
+
+        // Group assessments by activity (Title)
+        const groupedAssessments = {};
+        assessmentItems.forEach((item) => {
+          if (!groupedAssessments[item.Title]) {
+            groupedAssessments[item.Title] = [];
+          }
+          groupedAssessments[item.Title].push(item);
+        });
+
+        // Convert to our assessment format
+        const assessments = Object.keys(groupedAssessments).map((activity) => {
+          const items = groupedAssessments[activity];
+          const assessment = {
+            activity,
+            humanResources: [],
+            machines: [],
+            materials: [],
+          };
+
+          // Process each item to extract resources
+          items.forEach((item) => {
+            // Add human resources
+            if (item.HumanResourceId) {
+              assessment.humanResources.push({
+                item: {
+                  key: item.HumanResourceId,
+                  text: "Resource " + item.HumanResourceId,
+                },
+                quantity: item.HumanResourceQuantity || 0,
+                pricePerUnit: item.HumanResourcePricePerUnit || 0,
+              });
+            }
+
+            // Add machines
+            if (item.MachineId) {
+              assessment.machines.push({
+                item: {
+                  key: item.MachineId,
+                  text: "Machine " + item.MachineId,
+                },
+                quantity: item.MachineQuantity || 0,
+                pricePerUnit: item.MachinePricePerUnit || 0,
+              });
+            }
+
+            // Add materials
+            if (item.MaterialId) {
+              assessment.materials.push({
+                item: {
+                  key: item.MaterialId,
+                  text: "Material " + item.MaterialId,
+                },
+                quantity: item.MaterialQuantity || 0,
+                pricePerUnit: item.MaterialPricePerUnit || 0,
+              });
+            }
+          });
+
+          return assessment;
+        });
+
+        // Update inventory item text values and then update state
+        this.updateResourceItemTexts(assessments);
+      })
+      .catch((error) => {
+        console.error("Error loading existing assessments:", error);
+      });
+  };
+
+  updateResourceItemTexts = (assessments) => {
+    // Get all resource IDs
+    const resourceIds = [];
+    assessments.forEach((assessment) => {
+      ["humanResources", "machines", "materials"].forEach((resourceType) => {
+        assessment[resourceType].forEach((resource) => {
+          if (resource.item && resource.item.key) {
+            resourceIds.push(resource.item.key);
+          }
+        });
+      });
+    });
+
+    if (resourceIds.length === 0) {
+      this.setState({ assessments });
+      return;
+    }
+
+    // Get inventory items to update the text values
+    sp.web.lists
+      .getByTitle("InventoryItems")
+      .items.filter(`Id in (${resourceIds.join(",")})`)
+      .select("Id,Title")
+      .get()
+      .then((inventoryItems) => {
+        // Create a map of ID to Title
+        const itemMap = {};
+        inventoryItems.forEach((item) => {
+          itemMap[item.Id] = item.Title;
+        });
+
+        // Update the text values in assessments
+        assessments.forEach((assessment) => {
+          ["humanResources", "machines", "materials"].forEach(
+            (resourceType) => {
+              assessment[resourceType].forEach((resource) => {
+                if (
+                  resource.item &&
+                  resource.item.key &&
+                  itemMap[resource.item.key]
+                ) {
+                  resource.item.text = itemMap[resource.item.key];
+                }
+              });
+            }
+          );
+        });
+
+        this.setState({ assessments });
+      })
+      .catch((error) => {
+        console.error("Error updating resource item texts:", error);
+        this.setState({ assessments });
+      });
+  };
+
   render() {
     const { assessments } = this.state;
+    const { isReadOnly } = this.props;
 
     return (
       <div className={styles.assessmentContainer}>
         <h3 className={styles.assessmentHeading}>
           {strings.TechnicalAssessments}
         </h3>
+
         {assessments.map((assessment, index) => (
-          <div key={index}>
+          <div key={index} className={styles.assessmentItem}>
             <TextField
               label={`${strings.Activity} ${index + 1}`}
               value={assessment.activity}
               onChanged={(newValue: string) =>
                 this.handleInputChange(newValue, "activity", index)
               }
+              readOnly={isReadOnly}
+              disabled={isReadOnly}
             />
 
-            {this.renderTable(
-              strings.HumanResource,
-              "humanResources",
-              this.filterInventoryItems([strings.HumanResource]),
-              assessment,
-              index
-            )}
-            {this.renderTable(
-              strings.Machine,
-              "machines",
-              this.filterInventoryItems([strings.Machine]),
-              assessment,
-              index
-            )}
-            {this.renderTable(
-              strings.Material,
-              "materials",
-              this.filterInventoryItems([strings.Material]),
-              assessment,
-              index
-            )}
+            {/* Use the existing ResourceTable component with isReadOnly prop */}
+            <ResourceTable
+              label={strings.HumanResource}
+              field="humanResources"
+              options={this.filterInventoryItems([strings.HumanResource])}
+              resources={assessment.humanResources}
+              index={index}
+              onDropdownChange={this.handleDropdownChange}
+              onInputChange={this.handleInputChange}
+              onAddRow={this.addRow}
+              onRemoveRow={this.removeRow}
+              isReadOnly={isReadOnly}
+            />
 
-            <hr />
+            <ResourceTable
+              label={strings.Machine}
+              field="machines"
+              options={this.filterInventoryItems([strings.Machine])}
+              resources={assessment.machines}
+              index={index}
+              onDropdownChange={this.handleDropdownChange}
+              onInputChange={this.handleInputChange}
+              onAddRow={this.addRow}
+              onRemoveRow={this.removeRow}
+              isReadOnly={isReadOnly}
+            />
+
+            <ResourceTable
+              label={strings.Material}
+              field="materials"
+              options={this.filterInventoryItems([strings.Material])}
+              resources={assessment.materials}
+              index={index}
+              onDropdownChange={this.handleDropdownChange}
+              onInputChange={this.handleInputChange}
+              onAddRow={this.addRow}
+              onRemoveRow={this.removeRow}
+              isReadOnly={isReadOnly}
+            />
+
+            <hr className={styles.assessmentDivider} />
           </div>
         ))}
-        <PrimaryButton
-          className={styles.addAssessmentButton}
-          text={strings.AddAssessment}
-          onClick={this.addAssessment}
-        />
-        <PrimaryButton
-          className={styles.finalSubmitButton}
-          text={strings.FinalSubmit}
-          onClick={this.handleFinalSubmit}
-        />
+
+        {!isReadOnly && (
+          <div className={styles.assessmentButtons}>
+            <PrimaryButton
+              className={styles.addAssessmentButton}
+              text={strings.AddAssessment}
+              onClick={this.addAssessment}
+            />
+            <PrimaryButton
+              className={styles.finalSubmitButton}
+              text={strings.FinalSubmit}
+              onClick={this.handleFinalSubmit}
+            />
+          </div>
+        )}
       </div>
     );
   }

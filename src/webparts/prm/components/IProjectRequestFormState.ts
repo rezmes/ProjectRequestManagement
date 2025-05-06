@@ -1,42 +1,24 @@
-// src\webparts\prm\components\IProjectRequestFormState.ts
-import { IDropdownOption } from 'office-ui-fabric-react';
-import { IAssessment } from './IAssessment';
-
+// src/webparts/prm/components/IProjectRequestFormState.ts
+import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
 export interface IProjectRequestFormState {
-  // Flags
   isProjectCreated: boolean;
   showProjectForm: boolean;
-
-  // Project Request Information
   requestId: number | null;
+  selectedCustomer: string | number | null;
+  selectedCustomerName: string;
   requestTitle: string;
   requestDate: string;
   estimatedDuration: number;
   estimatedCost: number;
   requestNote: string;
   RequestStatus: string;
-
-  // Customer Information
-  selectedCustomer: string | number | null;
-  selectedCustomerName: string;
   customerOptions: IDropdownOption[];
-
-  // PojectCode1 Information
-  ProjectCode1: {id:string; label: string} | null;
+  assessments: any[];
+  formNumber: number | null;
+  documentSetLink: { url: string; text: string } | null;
+  projectCodeTerm: any;
   selectedTerm: { id: string; label: string } | null;
-  projectCodeTerm: { id: string; label: string } | null;
-  terms: { id: string; label: string }[];
-
-  // Assessments
-  assessments: IAssessment[];
-  formNumber: Number | null;
-
-  // Document Set Link
-  documentSetLink?: {
-    url: string;
-    text: string;
-  };
-
-
-
+  terms: any[];
+  ProjectCode1: any;
+  isLoading?: boolean; // New property
 }

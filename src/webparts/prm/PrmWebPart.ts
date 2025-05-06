@@ -1,36 +1,60 @@
-// src\webparts\prm\PrmWebPart.ts
+// src/webparts/prm/PrmWebPart.ts
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import { Version } from '@microsoft/sp-core-library';
-import { IPropertyPaneConfiguration, PropertyPaneTextField, BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
+import {
+  BaseClientSideWebPart,
+  IPropertyPaneConfiguration,
+  PropertyPaneTextField,
+  PropertyPaneDropdown
+} from '@microsoft/sp-webpart-base';
+
 import * as strings from 'PrmWebPartStrings';
 import ProjectRequestForm from './components/ProjectRequestForm';
+import { IProjectRequestFormProps, FormMode } from './components/IProjectRequestFormProps';
 import { sp } from "@pnp/sp";
-import { IProjectRequestFormProps } from './components/IProjectRequestFormProps';
-
 
 export interface IPrmWebPartProps {
   description: string;
+  formMode: string;
+  itemId: string;
 }
 
 export default class PrmWebPart extends BaseClientSideWebPart<IPrmWebPartProps> {
 
-
-  protected onInit(): Promise<void> {
-    sp.setup({
-      spfxContext: this.context
+  public onInit(): Promise<void> {
+    return super.onInit().then(_ => {
+      sp.setup({
+        spfxContext: this.context
+      });
     });
-    return super.onInit();
   }
 
   public render(): void {
-    const element: React.ReactElement<IProjectRequestFormProps> = React.createElement(ProjectRequestForm, {
-      spHttpClient: this.context.spHttpClient,
-      siteUrl: this.context.pageContext.web.absoluteUrl,
+    // Determine the form mode
+    let formMode = FormMode.Create; // Default to Create mode
+    if (this.properties.formMode) {
+      if (this.properties.formMode === "Edit") {
+        formMode = FormMode.Edit;
+      } else if (this.properties.formMode === "View") {
+        formMode = FormMode.View;
+      }
+    }
 
-termSetId: '5863383a-85c5-4fbd-8114-11ef83bf9175',
-      context: this.context,
-    });
+    // Get the item ID if in Edit or View mode
+    let itemId: number | undefined = undefined;
+    if (this.properties.itemId && (formMode === FormMode.Edit || formMode === FormMode.View)) {
+      itemId = parseInt(this.properties.itemId);
+    }
+
+    const element: React.ReactElement<IProjectRequestFormProps> = React.createElement(
+      ProjectRequestForm,
+      {
+        context: this.context,
+        mode: formMode,
+        itemId: itemId
+      }
+    );
 
     ReactDom.render(element, this.domElement);
   }
@@ -39,6 +63,9 @@ termSetId: '5863383a-85c5-4fbd-8114-11ef83bf9175',
     ReactDom.unmountComponentAtNode(this.domElement);
   }
 
+  protected getDataVersion(): Version {
+    return Version.parse('1.0');
+  }
   protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
     return {
       pages: [
@@ -52,6 +79,18 @@ termSetId: '5863383a-85c5-4fbd-8114-11ef83bf9175',
               groupFields: [
                 PropertyPaneTextField('description', {
                   label: strings.DescriptionFieldLabel
+                }),
+                PropertyPaneDropdown('formMode', {
+                  label: strings.FormModeFieldLabel,
+                  options: [
+                    { key: 'Create', text: strings.FormModeCreate },
+                    { key: 'Edit', text: strings.FormModeEdit },
+                    { key: 'View', text: strings.FormModeView }
+                  ]
+                }),
+                PropertyPaneTextField('itemId', {
+                  label: strings.ItemIdFieldLabel,
+                  description: strings.ItemIdFieldDescription
                 })
               ]
             }
@@ -61,4 +100,3 @@ termSetId: '5863383a-85c5-4fbd-8114-11ef83bf9175',
     };
   }
 }
-

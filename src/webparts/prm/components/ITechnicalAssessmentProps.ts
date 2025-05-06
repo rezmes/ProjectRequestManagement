@@ -1,9 +1,7 @@
-// src\webparts\prm\components\ITechnicalAssessmentProps.ts
-import ProjectRequestService from "../services/ProjectRequestService";
-
+// src/webparts/prm/components/ITechnicalAssessmentProps.ts (updated)
 export interface ITechnicalAssessmentProps {
-  projectRequestService: ProjectRequestService;
+  projectRequestService: any;
   requestId: number;
-  resetForm: () => void; // Make this required
-
+  resetForm: () => void;
+  isReadOnly?: boolean;
 }

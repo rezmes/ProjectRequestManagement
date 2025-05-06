@@ -1,9 +1,10 @@
-// src/webparts/prm/components/ResourceTable.tsx (update)
+// src/webparts/prm/components/ResourceTableReadOnly.tsx
 import * as React from "react";
 import { TextField, IDropdownOption, IconButton } from "office-ui-fabric-react";
 import GenericDropdown from "./GenericDropdown";
 import * as strings from "PrmWebPartStrings";
-export interface IResourceTableProps {
+
+export interface IResourceTableReadOnlyProps {
   label: string;
   field: string;
   options: IDropdownOption[];
@@ -27,8 +28,11 @@ export interface IResourceTableProps {
   isReadOnly?: boolean;
 }
 
-export class ResourceTable extends React.Component<IResourceTableProps, {}> {
-  public render(): React.ReactElement<IResourceTableProps> {
+export class ResourceTableReadOnly extends React.Component<
+  IResourceTableReadOnlyProps,
+  {}
+> {
+  public render(): React.ReactElement<IResourceTableReadOnlyProps> {
     const {
       label,
       field,
@@ -60,7 +64,7 @@ export class ResourceTable extends React.Component<IResourceTableProps, {}> {
                   <tr key={partIndex}>
                     <td className="resourceColumn">
                       {isReadOnly ? (
-                        <span>{item.item ? item.item.text : ""}</span>
+                        <div>{item.item ? item.item.text : ""}</div>
                       ) : (
                         <GenericDropdown
                           label={`${label} ${partIndex + 1}`}
@@ -74,46 +78,38 @@ export class ResourceTable extends React.Component<IResourceTableProps, {}> {
                       )}
                     </td>
                     <td>
-                      {isReadOnly ? (
-                        <span>{item.quantity}</span>
-                      ) : (
-                        <TextField
-                          value={item.quantity.toString()}
-                          onChanged={(newValue) =>
-                            onInputChange(
-                              newValue,
-                              "quantity",
-                              index,
-                              partIndex,
-                              field
-                            )
-                          }
-                          type="number"
-                          readOnly={isReadOnly}
-                          disabled={isReadOnly}
-                        />
-                      )}
+                      <TextField
+                        value={item.quantity.toString()}
+                        onChanged={(newValue) =>
+                          onInputChange(
+                            newValue,
+                            "quantity",
+                            index,
+                            partIndex,
+                            field
+                          )
+                        }
+                        type="number"
+                        readOnly={isReadOnly}
+                        disabled={isReadOnly}
+                      />
                     </td>
                     <td>
-                      {isReadOnly ? (
-                        <span>{item.pricePerUnit}</span>
-                      ) : (
-                        <TextField
-                          value={item.pricePerUnit.toString()}
-                          onChanged={(newValue) =>
-                            onInputChange(
-                              newValue,
-                              "pricePerUnit",
-                              index,
-                              partIndex,
-                              field
-                            )
-                          }
-                          type="number"
-                          readOnly={isReadOnly}
-                          disabled={isReadOnly}
-                        />
-                      )}
+                      <TextField
+                        value={item.pricePerUnit.toString()}
+                        onChanged={(newValue) =>
+                          onInputChange(
+                            newValue,
+                            "pricePerUnit",
+                            index,
+                            partIndex,
+                            field
+                          )
+                        }
+                        type="number"
+                        readOnly={isReadOnly}
+                        disabled={isReadOnly}
+                      />
                     </td>
                     <td>{totalCost.toFixed(0)}</td>
                     {!isReadOnly && (
@@ -123,7 +119,6 @@ export class ResourceTable extends React.Component<IResourceTableProps, {}> {
                           title={strings.Remove}
                           ariaLabel={strings.Remove}
                           onClick={() => onRemoveRow(field, index, partIndex)}
-                          disabled={isReadOnly}
                         />
                       </td>
                     )}
@@ -151,3 +146,5 @@ export class ResourceTable extends React.Component<IResourceTableProps, {}> {
     );
   }
 }
+
+export default ResourceTableReadOnly;

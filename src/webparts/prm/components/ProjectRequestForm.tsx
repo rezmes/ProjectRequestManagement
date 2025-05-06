@@ -53,6 +53,9 @@ class ProjectRequestForm extends React.Component<
     this.resetForm = this.resetForm.bind(this);
   }
 
+  // src/webparts/prm/components/ProjectRequestForm.tsx
+  // Add to the componentDidMount method:
+
   componentDidMount() {
     this.loadCustomerOptions();
 
@@ -205,7 +208,6 @@ class ProjectRequestForm extends React.Component<
         const requestDateISO = moment(requestDate, "jYYYY/jM/jD").toISOString();
 
         // Step 2: Prepare the request data
-        // Use a more flexible type with index signature
         const requestData: { [key: string]: any } = {
           Title: requestTitle.trim(),
           CustomerId: selectedCustomer,
@@ -221,46 +223,13 @@ class ProjectRequestForm extends React.Component<
 
         // Step 3: Create or update the project request
         if (this.props.mode === FormMode.Create) {
-          return this.projectRequestService
-            .createProjectRequest(requestData)
-            .then(async (response) => {
-              // If we have a ProjectCode1 value, update it separately using the updateProjectCode method
-              if (
-                ProjectCode1 &&
-                ProjectCode1.id &&
-                ProjectCode1.label &&
-                response.requestId
-              ) {
-                await this.projectRequestService.updateProjectCode(
-                  "ProjectRequests",
-                  response.requestId,
-                  ProjectCode1.label,
-                  ProjectCode1.id
-                );
-              }
-              return response;
-            });
+          return this.projectRequestService.createProjectRequest(requestData);
         } else {
           // For Edit mode, update the existing item
-          return this.projectRequestService
-            .updateProjectRequest(this.state.requestId, requestData)
-            .then(async (response) => {
-              // If we have a ProjectCode1 value, update it separately
-              if (
-                ProjectCode1 &&
-                ProjectCode1.id &&
-                ProjectCode1.label &&
-                this.state.requestId
-              ) {
-                await this.projectRequestService.updateProjectCode(
-                  "ProjectRequests",
-                  this.state.requestId,
-                  ProjectCode1.label,
-                  ProjectCode1.id
-                );
-              }
-              return response;
-            });
+          return this.projectRequestService.updateProjectRequest(
+            this.state.requestId,
+            requestData
+          );
         }
       })
       .then((response) => {
@@ -273,7 +242,7 @@ class ProjectRequestForm extends React.Component<
             requestId
           );
 
-          // Update state to include documentSetLink for rendering
+          // Update state first
           this.setState(
             {
               isProjectCreated: true,
@@ -283,11 +252,49 @@ class ProjectRequestForm extends React.Component<
                 response.documentSetLink || this.state.documentSetLink,
             },
             () => {
-              alert(
-                this.props.mode === FormMode.Create
-                  ? strings.ProjectRequestCreatedSuccessfully
-                  : strings.ProjectRequestUpdatedSuccessfully
-              );
+              // Then try to update the taxonomy field if needed
+              if (ProjectCode1 && ProjectCode1.id && ProjectCode1.label) {
+                // Add a small delay before updating the taxonomy field
+                // src/webparts/prm/components/ProjectRequestForm.tsx
+                // Replace the setTimeout block with this:
+
+                setTimeout(() => {
+                  this.projectRequestService
+                    .updateProjectCode(
+                      "ProjectRequests",
+                      requestId,
+                      ProjectCode1.label,
+                      ProjectCode1.id
+                    )
+                    .then(() => {
+                      console.log("ProjectCode updated successfully");
+                      // Show success message after successful update
+                      alert(
+                        this.props.mode === FormMode.Create
+                          ? strings.ProjectRequestCreatedSuccessfully
+                          : strings.ProjectRequestUpdatedSuccessfully
+                      );
+                    })
+                    .catch((error) => {
+                      console.warn(
+                        "Error updating ProjectCode, but request was created:",
+                        error
+                      );
+                      // Still show success message even if taxonomy update fails
+                      alert(
+                        this.props.mode === FormMode.Create
+                          ? strings.ProjectRequestCreatedSuccessfully
+                          : strings.ProjectRequestUpdatedSuccessfully
+                      );
+                    });
+                }, 1000); // 1 second delay
+              } else {
+                alert(
+                  this.props.mode === FormMode.Create
+                    ? strings.ProjectRequestCreatedSuccessfully
+                    : strings.ProjectRequestUpdatedSuccessfully
+                );
+              }
             }
           );
         } else {

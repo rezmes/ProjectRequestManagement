@@ -30,42 +30,56 @@ export default class PrmWebPart extends BaseClientSideWebPart<IPrmWebPartProps> 
     });
   }
 
-  public render(): void {
-    // Determine the form mode
-    let formMode = FormMode.Create; // Default to Create mode
-    if (this.properties.formMode) {
-      if (this.properties.formMode === "Edit") {
-        formMode = FormMode.Edit;
-      } else if (this.properties.formMode === "View") {
-        formMode = FormMode.View;
-      }
+// In PrmWebPart.ts, modify the render method:
+public render(): void {
+  // Determine the form mode from properties or default to Create
+  let formMode = FormMode.Create;
+  if (this.properties.formMode) {
+    if (this.properties.formMode === "Edit") {
+      formMode = FormMode.Edit;
+    } else if (this.properties.formMode === "View") {
+      formMode = FormMode.View;
     }
-
-    // Get the item ID if in Edit or View mode
-    let itemId: number | undefined = undefined;
-    if (this.properties.itemId && (formMode === FormMode.Edit || formMode === FormMode.View)) {
-      itemId = parseInt(this.properties.itemId);
-    }
-
-    const element: React.ReactElement<IProjectRequestFormProps> = React.createElement(
-      ProjectRequestForm,
-      {
-        context: this.context,
-        mode: formMode,
-        itemId: itemId
-      }
-    );
-
-    ReactDom.render(element, this.domElement);
   }
+
+  // Try to get itemId from properties or URL query string
+  let itemId: number | undefined = undefined;
+
+  // First check properties
+  if (this.properties.itemId) {
+    itemId = parseInt(this.properties.itemId);
+  }
+  // Then check URL query string
+  else {
+    const urlParams = new URLSearchParams(window.location.search);
+    const itemIdParam = urlParams.get('itemId');
+    if (itemIdParam) {
+      itemId = parseInt(itemIdParam);
+    }
+  }
+
+  const element: React.ReactElement<IProjectRequestFormProps> = React.createElement(
+    ProjectRequestForm,
+    {
+      context: this.context,
+      mode: formMode,
+      itemId: itemId
+    }
+  );
+
+  ReactDom.render(element, this.domElement);
+}
+
 
   protected onDispose(): void {
     ReactDom.unmountComponentAtNode(this.domElement);
   }
 
-  protected getDataVersion(): Version {
+  // @ts-ignore: Inherited property with different implementation
+  protected get dataVersion(): Version {
     return Version.parse('1.0');
   }
+
   protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
     return {
       pages: [

@@ -112,46 +112,59 @@ export default class TaxonomyService extends BaseService {
     }
   }
 
-  public async updateProjectCode(listTitle: string, itemId: number, termLabel: string, termGuid: string): Promise<void> {
-    const listEndpoint = `${this.context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('${listTitle}')`;
+// src/webparts/prm/services/TaxonomyService.ts
+public async updateProjectCode(listTitle: string, itemId: number, termLabel: string, termGuid: string): Promise<void> {
+  try {
+    // Get the request digest
+    const digestValue = await this.getFormDigest();
 
-    // Get the list item type name first
-    const listInfo = await this.context.spHttpClient.get(
-      `${listEndpoint}?$select=ListItemEntityTypeFullName`,
-      SPHttpClient.configurations.v1
-    );
+    // Format the term GUID properly - ensure it's a string and has curly braces if needed
+    let formattedGuid = termGuid.toString();
+    if (formattedGuid.indexOf('{') !== 0) { // Using indexOf instead of startsWith
+      formattedGuid = `{${formattedGuid}}`;
+    }
 
-    const listData = await listInfo.json();
-    const entityType = listData.ListItemEntityTypeFullName;
+    // Use the REST API directly with minimal metadata
+    const endpoint = `${this.context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('${listTitle}')/items(${itemId})`;
 
     const body = JSON.stringify({
-      __metadata: { type: entityType },
-      ProjectCode1: {
-        __metadata: { type: 'SP.Taxonomy.TaxonomyFieldValue' },
-        Label: termLabel,
-        TermGuid: termGuid,
-        WssId: '-1'
-      }
+      '__metadata': { 'type': 'SP.Data.ProjectRequestsListItem' },
+      'ProjectCode1': termLabel + '|' + formattedGuid
     });
 
+    console.log("Updating ProjectCode with body:", body);
+
     const response = await this.context.spHttpClient.post(
-      `${listEndpoint}/items(${itemId})`,
+      endpoint,
       SPHttpClient.configurations.v1,
       {
         headers: {
           'Accept': 'application/json;odata=verbose',
           'Content-Type': 'application/json;odata=verbose',
           'X-HTTP-Method': 'MERGE',
-          'IF-MATCH': '*'
+          'IF-MATCH': '*',
+          'X-RequestDigest': digestValue
         },
         body: body
       }
     );
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Error updating ProjectCode:", errorText);
       throw new Error(`Update failed: ${response.statusText}`);
     }
+
+    console.log("ProjectCode updated successfully");
+  } catch (error) {
+    console.error("Error in updateProjectCode:", error);
+    throw error;
   }
+}
+
+
+
+
 }
 
 

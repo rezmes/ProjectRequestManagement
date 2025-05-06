@@ -376,6 +376,13 @@ class ProjectRequestForm extends React.Component<
 
     return (
       <div className={`${containerClass} ${styles.projectRequestForm}`}>
+        <div className={styles.backButtonContainer}>
+          <DefaultButton
+            text={strings.BackToList}
+            onClick={this.props.onBack}
+            iconProps={{ iconName: "ChevronLeft" }}
+          />
+        </div>
         {!isViewMode && (
           <StepIndicator
             currentStep={isProjectCreated ? 2 : 1}

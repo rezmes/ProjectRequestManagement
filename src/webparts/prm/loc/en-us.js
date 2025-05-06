@@ -49,5 +49,8 @@ define([], function () {
     ErrorUpdatingProjectRequest: "Error updating project request",
     ErrorLoadingProjectRequest: "Error loading project request",
     Loading: "Loading...",
+    CurrentViewFieldLabel: "Current View",
+    ListView: "List View",
+    FormView: "Form View",
   };
 });

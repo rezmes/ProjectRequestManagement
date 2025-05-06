@@ -11,4 +11,5 @@ export interface IProjectRequestFormProps {
   context: WebPartContext;
   mode: FormMode;
   itemId?: number; // Optional for Edit and View modes
+  onBack: () => void; // Add this callback
 }

@@ -13,11 +13,15 @@ import * as strings from 'PrmWebPartStrings';
 import ProjectRequestForm from './components/ProjectRequestForm';
 import { IProjectRequestFormProps, FormMode } from './components/IProjectRequestFormProps';
 import { sp } from "@pnp/sp";
+// src/webparts/prm/PrmWebPart.ts
+import ProjectListView, { IProjectListViewProps } from './components/ProjectListView';
+
 
 export interface IPrmWebPartProps {
   description: string;
   formMode: string;
   itemId: string;
+  currentView: string; // 'list' or 'form'
 }
 
 export default class PrmWebPart extends BaseClientSideWebPart<IPrmWebPartProps> {
@@ -30,49 +34,66 @@ export default class PrmWebPart extends BaseClientSideWebPart<IPrmWebPartProps> 
     });
   }
 
-// In PrmWebPart.ts, modify the render method:
-public render(): void {
-  // Determine the form mode from properties or default to Create
-  let formMode = FormMode.Create;
-  if (this.properties.formMode) {
-    if (this.properties.formMode === "Edit") {
-      formMode = FormMode.Edit;
-    } else if (this.properties.formMode === "View") {
-      formMode = FormMode.View;
+  public render(): void {
+    // Determine what to render based on currentView property
+    const currentView = this.properties.currentView || 'list';
+
+    if (currentView === 'list') {
+      // Render the list view
+      const element: React.ReactElement<IProjectListViewProps> = React.createElement(
+        ProjectListView,
+        {
+          context: this.context,
+          onCreateNew: () => {
+            // Switch to form view in Create mode
+            this.properties.currentView = 'form';
+            this.properties.formMode = 'Create';
+            this.properties.itemId = '';
+            this.render();
+          },
+          onSelectItem: (itemId: number, mode: string) => {
+            // Switch to form view in the selected mode
+            this.properties.currentView = 'form';
+            this.properties.formMode = mode;
+            this.properties.itemId = itemId.toString();
+            this.render();
+          }
+        }
+      );
+
+      ReactDom.render(element, this.domElement);
+    } else {
+      // Render the form view (existing code)
+      let formMode = FormMode.Create;
+      if (this.properties.formMode) {
+        if (this.properties.formMode === "Edit") {
+          formMode = FormMode.Edit;
+        } else if (this.properties.formMode === "View") {
+          formMode = FormMode.View;
+        }
+      }
+
+      let itemId: number = undefined;
+      if (this.properties.itemId) {
+        itemId = parseInt(this.properties.itemId);
+      }
+
+      const element: React.ReactElement<IProjectRequestFormProps> = React.createElement(
+        ProjectRequestForm,
+        {
+          context: this.context,
+          mode: formMode,
+          itemId: itemId,
+          onBack: () => {
+            // Switch back to list view
+            this.properties.currentView = 'list';
+            this.render();
+          }
+        }
+      );
+
+      ReactDom.render(element, this.domElement);
     }
-  }
-
-  // Try to get itemId from properties or URL query string
-  let itemId: number | undefined = undefined;
-
-  // First check properties
-  if (this.properties.itemId) {
-    itemId = parseInt(this.properties.itemId);
-  }
-  // Then check URL query string
-  else {
-    const urlParams = new URLSearchParams(window.location.search);
-    const itemIdParam = urlParams.get('itemId');
-    if (itemIdParam) {
-      itemId = parseInt(itemIdParam);
-    }
-  }
-
-  const element: React.ReactElement<IProjectRequestFormProps> = React.createElement(
-    ProjectRequestForm,
-    {
-      context: this.context,
-      mode: formMode,
-      itemId: itemId
-    }
-  );
-
-  ReactDom.render(element, this.domElement);
-}
-
-
-  protected onDispose(): void {
-    ReactDom.unmountComponentAtNode(this.domElement);
   }
 
   // @ts-ignore: Inherited property with different implementation

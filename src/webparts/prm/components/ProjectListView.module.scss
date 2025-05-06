@@ -1,0 +1,23 @@
+// src/webparts/prm/components/ProjectListView.module.scss
+.projectListView {
+  padding: 20px;
+}
+
+.filtersContainer {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  align-items: flex-end;
+}
+
+.actionButtons {
+  display: flex;
+}
+
+.actionButton {
+  margin-right: 8px;
+}
+
+.newButton {
+  margin-bottom: 5px;
+}

@@ -12,6 +12,12 @@
   "typescript.tsdk": ".\\node_modules\\typescript\\lib",
   "bitoAI.codeCompletion.enableAutoCompletion": false,
   "cSpell.words": [
+    "asmx",
+    "DOCSET",
+    "getbyinternalnameortitle",
+    "listdata",
+    "REQUESTDIGEST",
+    "TOURL",
     "آلات",
     "ابزار",
     "انسانی",

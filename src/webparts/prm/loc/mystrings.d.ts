@@ -52,6 +52,7 @@ declare interface IPrmWebPartStrings {
   FormView: string;
 
   // Additional keys
+  Select: string;
   Action: string;
   Status: string;
   Actions: string;

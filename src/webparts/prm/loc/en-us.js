@@ -53,6 +53,7 @@ define([], function () {
     FormView: "Form View",
 
     // Additional keys referenced in your components:
+    Select: "Select",
     Action: "Action",
     Status: "Status",
     Actions: "Actions",

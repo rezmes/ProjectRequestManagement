@@ -282,11 +282,13 @@ class ProjectRequestForm extends React.Component<
                     .then(() => {
                       console.log("ProjectCode updated successfully");
                       // Show success message after successful update
-                      alert(
-                        this.props.mode === FormMode.Create
-                          ? strings.ProjectRequestCreatedSuccessfully
-                          : strings.ProjectRequestUpdatedSuccessfully
-                      );
+                      this.setState({
+                        showSuccessMessage: true,
+                        successMessage:
+                          this.props.mode === FormMode.Create
+                            ? strings.ProjectRequestCreatedSuccessfully
+                            : strings.ProjectRequestUpdatedSuccessfully,
+                      });
                     })
                     .catch((error) => {
                       console.warn(
@@ -333,6 +335,7 @@ class ProjectRequestForm extends React.Component<
       });
   };
 
+  // In ProjectRequestForm.tsx
   resetForm = (): void => {
     if (this.props.mode === FormMode.Create) {
       this.setState({
@@ -351,9 +354,11 @@ class ProjectRequestForm extends React.Component<
         selectedTerm: null,
         ProjectCode1: null,
       });
-    } else if (this.props.mode === FormMode.Edit && this.props.itemId) {
-      // Reload the original item data
-      this.loadExistingItem(this.props.itemId);
+    } else {
+      // For Edit or View mode, navigate back to the list view
+      if (this.props.onBack) {
+        this.props.onBack();
+      }
     }
   };
 

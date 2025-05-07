@@ -54,6 +54,7 @@ define([], function () {
     FormView: "نمایش فرم",
 
     // Additional keys referenced in your components:
+    Select: "انتخاب",
     Action: "اقدام",
     Status: "وضعیت",
     Actions: "اقدامات",

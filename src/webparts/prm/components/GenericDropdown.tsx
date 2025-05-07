@@ -10,8 +10,8 @@ export interface IGenericDropdownProps {
   selectedKey: string | number | null;
   onChanged: (option?: IDropdownOption) => void;
   placeHolder?: string;
-  disabled?: boolean; // Add this line
-  required?: boolean; // Add this line
+  disabled?: boolean;
+  required?: boolean;
 }
 
 export class GenericDropdown extends React.Component<
@@ -28,19 +28,29 @@ export class GenericDropdown extends React.Component<
       disabled,
       required,
     } = this.props;
-    console.log("Dropdown Options:", this.props.options); // Debugging
+
     return (
-      <div>
-        <label className={required ? styles.requiredLabel : undefined}>
-          {label}
-        </label>
+      <div className={styles.dropdownContainer}>
+        {label && (
+          <label className={required ? styles.requiredLabel : undefined}>
+            {label}
+          </label>
+        )}
         <Dropdown
-          label={label}
+          // Remove the label prop here to avoid duplication
           options={options}
           selectedKey={selectedKey}
           onChanged={onChanged}
           placeHolder={placeHolder}
-          disabled={disabled} // Add this prop
+          disabled={disabled}
+          // Add these props to control the dropdown appearance
+          dropdownWidth={300}
+          onRenderTitle={(selectedItems) => {
+            if (Array.isArray(selectedItems) && selectedItems.length > 0) {
+              return <span>{selectedItems[0].text}</span>;
+            }
+            return <span>{placeHolder}</span>;
+          }}
         />
       </div>
     );

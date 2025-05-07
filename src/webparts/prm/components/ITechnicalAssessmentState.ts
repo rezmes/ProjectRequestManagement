@@ -5,4 +5,5 @@ import { IDropdownOptionWithCategory } from "../services/ProjectRequestService";
 export interface ITechnicalAssessmentState {
   assessments: IAssessment[];
   inventoryItems: IDropdownOptionWithCategory[];
+  isSubmitting?: boolean; // Add this line
 }

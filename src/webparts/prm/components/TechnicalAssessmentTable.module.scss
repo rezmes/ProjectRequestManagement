@@ -185,3 +185,164 @@
   margin-bottom: 16px;
   color: #333;
 }
+/* Add to TechnicalAssessmentTable.module.scss */
+.resourceTableContainer {
+  margin-bottom: 20px;
+}
+
+.resourceTableHeading {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.resourceTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 8px;
+  border: 1px solid #e1e1e1;
+}
+
+.resourceTable th,
+.resourceTable td {
+  padding: 8px;
+  border: 1px solid #e1e1e1;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.resourceTable th {
+  background-color: #f3f2f1;
+  font-weight: 600;
+}
+
+.resourceTable tr:nth-child(even) {
+  background-color: #f8f8f8;
+}
+
+.resourceColumn {
+  width: 40%;
+}
+
+.quantityColumn, .priceColumn {
+  width: 15%;
+}
+
+.totalColumn {
+  width: 15%;
+}
+
+.actionColumn {
+  width: 15%;
+  text-align: center;
+}
+
+.emptyMessage {
+  text-align: center;
+  padding: 12px;
+  color: #666;
+  font-style: italic;
+}
+
+.addButton {
+  margin-top: 8px;
+  background: none;
+  border: none;
+  color: #0078d4;
+  cursor: pointer;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
+
+.addButton i {
+  margin-right: 4px;
+  font-size: 12px;
+}
+
+.removeButton {
+  background: none;
+  border: none;
+  color: #d83b01;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* RTL support */
+:global(.rtlContainer) {
+  .addButton i {
+    margin-right: 0;
+    margin-left: 4px;
+  }
+}
+/* Add to TechnicalAssessmentTable.module.scss */
+.resourceTableContainer {
+  margin-bottom: 16px;
+}
+
+.resourceTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 8px;
+}
+
+.resourceTable th,
+.resourceTable td {
+  padding: 8px;
+  border: 1px solid #e1e1e1;
+  text-align: left;
+}
+
+.resourceTable th {
+  background-color: #f3f2f1;
+  font-weight: 600;
+}
+
+.resourceTable tr:nth-child(even) {
+  background-color: #f8f8f8;
+}
+
+.resourceColumn {
+  width: 40%;
+}
+
+.quantityColumn, .priceColumn {
+  width: 15%;
+}
+
+.totalColumn {
+  width: 15%;
+}
+
+.actionColumn {
+  width: 15%;
+  text-align: center;
+}
+
+.addButton {
+  margin-top: 8px;
+  background: none;
+  border: none;
+  color: #0078d4;
+  cursor: pointer;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+}
+
+.addButton i {
+  margin-right: 4px;
+}
+
+.removeButton {
+  background: none;
+  border: none;
+  color: #d83b01;
+  cursor: pointer;
+  padding: 4px;
+}

@@ -121,6 +121,7 @@ export class ProjectRequestFormFields extends React.Component<
                 selectedKey={selectedCustomer}
                 onChanged={onDropdownChange}
                 placeHolder={strings.SelectCustomer}
+                required={true}
               />
             </div>
 

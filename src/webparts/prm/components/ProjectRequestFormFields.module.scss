@@ -1,0 +1,67 @@
+// Add to your CSS
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formField {
+  margin-bottom: 16px;
+}
+.readOnlyForm, .editForm {
+  margin-bottom: 20px;
+}
+
+.formSection {
+  background-color: #f8f8f8;
+  border: 1px solid #e1e1e1;
+  border-radius: 4px;
+  padding: 16px;
+}
+
+.formRow {
+  margin-bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.formLabel {
+  font-weight: 600;
+  margin-bottom: 4px;
+  flex: 0 0 150px;
+}
+
+.formValue {
+  flex: 1;
+}
+
+.formField {
+  margin-bottom: 16px;
+}
+
+.formFieldHalf {
+  flex: 0 0 calc(50% - 8px);
+  margin-right: 16px;
+}
+
+.formFieldHalf:last-child {
+  margin-right: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .formRow {
+    flex-direction: column;
+  }
+
+  .formLabel {
+    flex: 0 0 100%;
+    margin-bottom: 4px;
+  }
+
+  .formFieldHalf {
+    flex: 0 0 100%;
+    margin-right: 0;
+    margin-bottom: 16px;
+  }
+}

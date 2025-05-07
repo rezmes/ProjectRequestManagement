@@ -9,7 +9,7 @@ declare interface IPrmWebPartStrings {
   FormNumber: string;
   Title: string;
   CustomerName: string;
-  ProjectCodeLabel: string,
+  ProjectCodeLabel: string;
   RequestDate: string;
   RequestNote: string;
   RequestTitle: string;
@@ -33,9 +33,50 @@ declare interface IPrmWebPartStrings {
   No: string;
   AddedYet: string;
   Add: string;
+  FormModeFieldLabel: string;
+  FormModeCreate: string;
+  FormModeEdit: string;
+  FormModeView: string;
+  ItemIdFieldLabel: string;
+  ItemIdFieldDescription: string;
+  EditProjectRequest: string;
+  ViewProjectRequest: string;
+  Update: string;
+  Back: string;
+  ProjectRequestUpdatedSuccessfully: string;
+  ErrorUpdatingProjectRequest: string;
+  ErrorLoadingProjectRequest: string;
+  Loading: string;
+  CurrentViewFieldLabel: string;
+  ListView: string;
+  FormView: string;
+
+  // Additional keys
+  Action: string;
+  Status: string;
+  Actions: string;
+  View: string;
+  Edit: string;
+  AllStatuses: string;
+  StatusNew: string;
+  StatusInReview: string;
+  StatusApproved: string;
+  StatusRejected: string;
+  FilterByStatus: string;
+  SelectStatus: string;
+  CreateNewRequest: string;
+  LoadingProjects: string;
+  ProjectRequests: string;
+  RequestTitleRequired: string;
+  CustomerRequired: string;
+  ProjectRequestCreatedSuccessfully: string;
+  ErrorCreatingProjectRequest: string;
+  BackToList: string;
+  Step: string;
+  Of: string;
 }
 
 declare module 'PrmWebPartStrings' {
-  const strings: IMyWebPartStrings;
+  const strings: IPrmWebPartStrings;
   export = strings;
 }

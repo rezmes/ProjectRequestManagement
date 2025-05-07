@@ -5,6 +5,7 @@ import GenericDropdown from "./GenericDropdown";
 import ManagedMetadataPicker from "./ManagedMetadataPicker";
 import * as strings from "PrmWebPartStrings";
 import { WebPartContext } from "@microsoft/sp-webpart-base";
+import styles from "./ProjectRequestFormFields.module.scss";
 
 export interface IProjectRequestFormFieldsProps {
   requestTitle: string;
@@ -53,98 +54,121 @@ export class ProjectRequestFormFields extends React.Component<
     return (
       <div>
         {isReadOnly ? (
-          <div>
-            <p>
-              <strong>{strings.RequestTitle}:</strong> {requestTitle}
-            </p>
-            <p>
-              <strong>{strings.Customer}:</strong> {selectedCustomerText}
-            </p>
-            <p>
-              <strong>{strings.RequestDate}:</strong> {requestDate}
-            </p>
-            <p>
-              <strong>{strings.EstimatedDuration}:</strong> {estimatedDuration}
-            </p>
-            <p>
-              <strong>{strings.EstimatedCost}:</strong> {estimatedCost}
-            </p>
-            <p>
-              <strong>{strings.RequestNote}:</strong> {requestNote}
-            </p>
+          <div className={styles.readOnlyForm}>
+            <div className={styles.formSection}>
+              <div className={styles.formRow}>
+                <div className={styles.formLabel}>{strings.RequestTitle}:</div>
+                <div className={styles.formValue}>{requestTitle}</div>
+              </div>
+
+              <div className={styles.formRow}>
+                <div className={styles.formLabel}>{strings.Customer}:</div>
+                <div className={styles.formValue}>{selectedCustomerText}</div>
+              </div>
+
+              <div className={styles.formRow}>
+                <div className={styles.formLabel}>{strings.RequestDate}:</div>
+                <div className={styles.formValue}>{requestDate}</div>
+              </div>
+
+              <div className={styles.formRow}>
+                <div className={styles.formLabel}>
+                  {strings.EstimatedDuration}:
+                </div>
+                <div className={styles.formValue}>{estimatedDuration}</div>
+              </div>
+
+              <div className={styles.formRow}>
+                <div className={styles.formLabel}>{strings.EstimatedCost}:</div>
+                <div className={styles.formValue}>{estimatedCost}</div>
+              </div>
+
+              <div className={styles.formRow}>
+                <div className={styles.formLabel}>{strings.RequestNote}:</div>
+                <div className={styles.formValue}>
+                  <div dangerouslySetInnerHTML={{ __html: requestNote }} />
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
-          <div>
-            <TextField
-              label={strings.RequestTitle}
-              value={requestTitle}
-              onChanged={(newValue) =>
-                onInputChange(newValue || "", "requestTitle")
-              }
-              readOnly={isReadOnly}
-              disabled={isReadOnly}
-            />
+          // For edit mode
+          <div className={styles.editForm}>
+            <div className={styles.formField}>
+              <TextField
+                label={strings.RequestTitle}
+                value={requestTitle}
+                onChanged={(newValue) =>
+                  onInputChange(newValue || "", "requestTitle")
+                }
+                required={true}
+              />
+            </div>
 
-            <ManagedMetadataPicker
-              label={strings.ProjectCodeLabel}
-              onTermSelected={onTermSelected}
-              context={context}
-              placeHolder="Select Project Code"
-              disabled={isReadOnly}
-            />
+            <div className={styles.formField}>
+              <ManagedMetadataPicker
+                label={strings.ProjectCodeLabel}
+                onTermSelected={onTermSelected}
+                context={context}
+                placeHolder="Select Project Code"
+              />
+            </div>
 
-            <GenericDropdown
-              label={strings.Customer}
-              options={customerOptions}
-              selectedKey={selectedCustomer}
-              onChanged={onDropdownChange}
-              placeHolder={strings.SelectCustomer}
-              disabled={isReadOnly}
-            />
+            <div className={styles.formField}>
+              <GenericDropdown
+                label={strings.Customer}
+                options={customerOptions}
+                selectedKey={selectedCustomer}
+                onChanged={onDropdownChange}
+                placeHolder={strings.SelectCustomer}
+              />
+            </div>
 
-            <TextField
-              label={strings.RequestDate}
-              value={requestDate}
-              onChanged={(newValue) =>
-                onInputChange(newValue || "", "requestDate")
-              }
-              readOnly={isReadOnly}
-              disabled={isReadOnly}
-            />
+            <div className={styles.formField}>
+              <TextField
+                label={strings.RequestDate}
+                value={requestDate}
+                onChanged={(newValue) =>
+                  onInputChange(newValue || "", "requestDate")
+                }
+              />
+            </div>
 
-            <TextField
-              label={strings.EstimatedDuration}
-              value={estimatedDuration.toString()}
-              onChanged={(newValue) =>
-                onInputChange(newValue || "0", "estimatedDuration")
-              }
-              type="number"
-              readOnly={isReadOnly}
-              disabled={isReadOnly}
-            />
+            <div className={styles.formRow}>
+              <div className={styles.formFieldHalf}>
+                <TextField
+                  label={strings.EstimatedDuration}
+                  value={estimatedDuration.toString()}
+                  onChanged={(newValue) =>
+                    onInputChange(newValue || "0", "estimatedDuration")
+                  }
+                  type="number"
+                />
+              </div>
 
-            <TextField
-              label={strings.EstimatedCost}
-              value={estimatedCost.toString()}
-              onChanged={(newValue) =>
-                onInputChange(newValue || "0", "estimatedCost")
-              }
-              type="number"
-              readOnly={isReadOnly}
-              disabled={isReadOnly}
-            />
+              <div className={styles.formFieldHalf}>
+                <TextField
+                  label={strings.EstimatedCost}
+                  value={estimatedCost.toString()}
+                  onChanged={(newValue) =>
+                    onInputChange(newValue || "0", "estimatedCost")
+                  }
+                  type="number"
+                />
+              </div>
+            </div>
 
-            <TextField
-              label={strings.RequestNote}
-              value={requestNote}
-              onChanged={(newValue) =>
-                onInputChange(newValue || "", "requestNote")
-              }
-              multiline
-              rows={4}
-              readOnly={isReadOnly}
-              disabled={isReadOnly}
-            />
+            <div className={styles.formField}>
+              <TextField
+                label={strings.RequestNote}
+                value={requestNote}
+                onChanged={(newValue) =>
+                  onInputChange(newValue || "", "requestNote")
+                }
+                multiline
+                rows={4}
+              />
+            </div>
           </div>
         )}
       </div>

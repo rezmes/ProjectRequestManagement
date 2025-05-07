@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Dropdown, IDropdownOption } from "office-ui-fabric-react";
+import styles from "./ProjectRequestForm.module.scss";
 
 export interface IGenericDropdownProps {
   label: string;
@@ -10,6 +11,7 @@ export interface IGenericDropdownProps {
   onChanged: (option?: IDropdownOption) => void;
   placeHolder?: string;
   disabled?: boolean; // Add this line
+  required?: boolean; // Add this line
 }
 
 export class GenericDropdown extends React.Component<
@@ -17,18 +19,30 @@ export class GenericDropdown extends React.Component<
   {}
 > {
   public render(): React.ReactElement<IGenericDropdownProps> {
-    const { label, options, selectedKey, onChanged, placeHolder, disabled } =
-      this.props;
+    const {
+      label,
+      options,
+      selectedKey,
+      onChanged,
+      placeHolder,
+      disabled,
+      required,
+    } = this.props;
     console.log("Dropdown Options:", this.props.options); // Debugging
     return (
-      <Dropdown
-        label={label}
-        options={options}
-        selectedKey={selectedKey}
-        onChanged={onChanged}
-        placeHolder={placeHolder}
-        disabled={disabled} // Add this prop
-      />
+      <div>
+        <label className={required ? styles.requiredLabel : undefined}>
+          {label}
+        </label>
+        <Dropdown
+          label={label}
+          options={options}
+          selectedKey={selectedKey}
+          onChanged={onChanged}
+          placeHolder={placeHolder}
+          disabled={disabled} // Add this prop
+        />
+      </div>
     );
   }
 }

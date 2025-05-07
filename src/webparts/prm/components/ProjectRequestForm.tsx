@@ -4,6 +4,10 @@ import {
   PrimaryButton,
   DefaultButton,
   IDropdownOption,
+  DocumentCard,
+  DocumentCardTitle,
+  MessageBar,
+  MessageBarType,
 } from "office-ui-fabric-react";
 import { IProjectRequestFormProps, FormMode } from "./IProjectRequestFormProps";
 import { IProjectRequestFormState } from "./IProjectRequestFormState";
@@ -47,6 +51,10 @@ class ProjectRequestForm extends React.Component<
       terms: [],
       ProjectCode1: null,
       isLoading: props.mode !== FormMode.Create,
+      isSubmitting: false,
+      showSuccessMessage: false,
+      showErrorMessage: false,
+      errorMessage: "",
     };
 
     this.handleTermSelected = this.handleTermSelected.bind(this);
@@ -75,7 +83,7 @@ class ProjectRequestForm extends React.Component<
       .select(
         "Id,Title,CustomerId,Customer/Title,RequestDate,EstimatedDuration,EstimatedCost,Description1,RequestStatus,FormNumber,DocumentSetLink,ProjectCode1/Label,ProjectCode1/TermGuid"
       )
-      .expand("Customer,ProjectCode1")
+      .expand("Customer")
       .get()
       .then((item) => {
         console.log("Loaded item:", item);
@@ -250,6 +258,11 @@ class ProjectRequestForm extends React.Component<
               formNumber: response.FormNumber || this.state.formNumber,
               documentSetLink:
                 response.documentSetLink || this.state.documentSetLink,
+              showSuccessMessage: true,
+              successMessage:
+                this.props.mode === FormMode.Create
+                  ? strings.ProjectRequestCreatedSuccessfully
+                  : strings.ProjectRequestUpdatedSuccessfully,
             },
             () => {
               // Then try to update the taxonomy field if needed
@@ -371,11 +384,27 @@ class ProjectRequestForm extends React.Component<
     const containerClass = locale === "fa-IR" ? "rtlContainer" : "ltrContainer";
 
     if (isLoading) {
-      return <div className={styles.loading}>Loading...</div>;
+      return (
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingSpinner}></div>
+          <div className={styles.loadingText}>{strings.Loading}</div>
+        </div>
+      );
     }
 
     return (
       <div className={`${containerClass} ${styles.projectRequestForm}`}>
+        {this.state.showSuccessMessage && (
+          <div className={styles.successMessage}>
+            <span>{this.state.successMessage}</span>
+            <button
+              className={styles.closeButton}
+              onClick={() => this.setState({ showSuccessMessage: false })}
+            >
+              ×
+            </button>
+          </div>
+        )}
         <div className={styles.backButtonContainer}>
           <DefaultButton
             text={strings.BackToList}
@@ -460,16 +489,16 @@ class ProjectRequestForm extends React.Component<
             />
           )}
 
-          {!isViewMode && (
+          {/* {!isViewMode && (
             <DefaultButton text={strings.Cancel} onClick={this.resetForm} />
-          )}
+          )} */}
 
-          {isViewMode && (
+          {/* {isViewMode && (
             <DefaultButton
               text={strings.Back}
               onClick={() => window.history.back()}
             />
-          )}
+          )} */}
         </div>
 
         {(isProjectCreated || isViewMode) && requestId && (

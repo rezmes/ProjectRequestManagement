@@ -126,9 +126,21 @@ public async updateProjectCode(listTitle: string, itemId: number, termLabel: str
 
     // Use the REST API directly with minimal metadata
     const endpoint = `${this.context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('${listTitle}')/items(${itemId})`;
+//     // Added by o4:
+//     const listRes = await this.context.spHttpClient.get(
+//       `${this.context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('${listTitle}')?$select=ListItemEntityTypeFullName`,
+//       SPHttpClient.configurations.v1
+//     );
+//     const listJson = await listRes.json();
+//     const listItemType = listJson.ListItemEntityTypeFullName;
+// // end of o4
 
     const body = JSON.stringify({
+
       '__metadata': { 'type': 'SP.Data.ProjectRequestsListItem' },
+      //  // O4 suggestion:
+      // '__metadata': { 'type': listItemType },
+
       'ProjectCode1': termLabel + '|' + formattedGuid
     });
 

@@ -52,3 +52,181 @@
 .backButtonContainer {
   margin-bottom: 16px;
 }
+.infoCard {
+  margin-bottom: 20px;
+}
+
+.cardContent {
+  padding: 16px;
+}
+
+.infoRow {
+  display: flex;
+  margin-bottom: 8px;
+  align-items: flex-start;
+}
+
+.infoLabel {
+  font-weight: 600;
+  min-width: 120px;
+  margin-right: 8px;
+}
+
+.infoValue {
+  flex: 1;
+}
+.infoCard {
+  margin-bottom: 20px;
+}
+
+.cardContent {
+  padding: 0 16px 16px 16px;
+}
+
+.infoGrid {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -8px;
+}
+
+.infoItem {
+  flex: 0 0 50%;
+  padding: 0 8px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.infoLabel {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.infoValue {
+  word-break: break-word;
+}
+
+.docSetLink {
+  margin-top: 16px;
+  padding: 8px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.docSetLink i {
+  margin-right: 8px;
+}
+
+/* RTL support */
+.rtlContainer {
+  .infoItem {
+    text-align: right;
+  }
+
+  .docSetLink i {
+    margin-right: 0;
+    margin-left: 8px;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .infoItem {
+    flex: 0 0 100%;
+  }
+}
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.loadingSpinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #0078d4;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 2s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.formField {
+  margin-bottom: 16px;
+}
+/* Add to ProjectRequestForm.module.scss */
+.buttonGroup {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: center;
+}
+
+.buttonGroup button {
+  min-width: 100px;
+}
+
+.primaryButton {
+  background-color: #0078d4;
+  color: white;
+}
+
+.primaryButton:hover {
+  background-color: #106ebe;
+}
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.loadingSpinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #0078d4;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 2s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loadingText {
+  font-size: 16px;
+}
+.requiredLabel:after {
+  content: " *";
+  color: #a80000;
+}
+// In ProjectRequestForm.module.scss
+.successMessage {
+  background-color: #dff6dd;
+  color: #107c10;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+  border-radius: 2px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: #107c10;
+}

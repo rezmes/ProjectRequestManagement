@@ -1,9 +1,9 @@
-define([], function() {
+define([], function () {
   return {
-    "PropertyPaneDescription": "Description",
-    "BasicGroupName": "Group Name",
-    "DescriptionFieldLabel": "Description Field",
-    
+    PropertyPaneDescription: "Description", // Translate if needed
+    BasicGroupName: "Group Name", // Translate if needed
+    DescriptionFieldLabel: "Description Field", // Translate if needed
+
     AddAssessments: "افزودن ارزیابی‌ها",
     CreateProjectRequest: "ایجاد درخواست پروژه",
     ProjectInformation: "اطلاعات پروژه",
@@ -34,6 +34,47 @@ define([], function() {
     Remove: "حذف",
     No: "بدون",
     AddedYet: "هنوز اضافه نشده است",
-    Add:"افزودن"
-  }
+    Add: "افزودن",
+    FormModeFieldLabel: "حالت فرم",
+    FormModeCreate: "ایجاد",
+    FormModeEdit: "ویرایش",
+    FormModeView: "مشاهده",
+    ItemIdFieldLabel: "شناسه آیتم",
+    ItemIdFieldDescription: "ضروری برای حالت‌های ویرایش و مشاهده",
+    EditProjectRequest: "ویرایش درخواست پروژه",
+    ViewProjectRequest: "مشاهده درخواست پروژه",
+    Update: "به‌روزرسانی",
+    Back: "بازگشت",
+    ProjectRequestUpdatedSuccessfully: "درخواست پروژه با موفقیت به‌روزرسانی شد",
+    ErrorUpdatingProjectRequest: "خطا در به‌روزرسانی درخواست پروژه",
+    ErrorLoadingProjectRequest: "خطا در بارگذاری درخواست پروژه",
+    Loading: "در حال بارگذاری...",
+    CurrentViewFieldLabel: "نمایش فعلی",
+    ListView: "نمایش لیست",
+    FormView: "نمایش فرم",
+
+    // Additional keys referenced in your components:
+    Action: "اقدام",
+    Status: "وضعیت",
+    Actions: "اقدامات",
+    View: "مشاهده",
+    Edit: "ویرایش",
+    AllStatuses: "تمام وضعیت‌ها",
+    StatusNew: "جدید",
+    StatusInReview: "در حال بررسی",
+    StatusApproved: "تایید شده",
+    StatusRejected: "رد شده",
+    FilterByStatus: "فیلتر بر اساس وضعیت",
+    SelectStatus: "انتخاب وضعیت",
+    CreateNewRequest: "ایجاد درخواست جدید",
+    LoadingProjects: "بارگذاری پروژه‌ها...",
+    ProjectRequests: "درخواست‌های پروژه",
+    RequestTitleRequired: "عنوان درخواست ضروری است",
+    CustomerRequired: "انتخاب مشتری ضروری است",
+    ProjectRequestCreatedSuccessfully: "درخواست پروژه با موفقیت ایجاد شد",
+    ErrorCreatingProjectRequest: "خطا در ایجاد درخواست پروژه",
+    BackToList: "بازگشت به لیست",
+    Step: "مرحله",
+    Of: "از",
+  };
 });

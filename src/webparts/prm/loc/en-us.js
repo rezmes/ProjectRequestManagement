@@ -3,7 +3,6 @@ define([], function () {
     PropertyPaneDescription: "Description",
     BasicGroupName: "Group Name",
     DescriptionFieldLabel: "Description Field",
-
     AddAssessments: "Add Assessments",
     CreateProjectRequest: "Create Project Request",
     ProjectInformation: "Project Information",
@@ -52,5 +51,29 @@ define([], function () {
     CurrentViewFieldLabel: "Current View",
     ListView: "List View",
     FormView: "Form View",
+
+    // Additional keys referenced in your components:
+    Action: "Action",
+    Status: "Status",
+    Actions: "Actions",
+    View: "View",
+    Edit: "Edit",
+    AllStatuses: "All Statuses",
+    StatusNew: "New",
+    StatusInReview: "In Review",
+    StatusApproved: "Approved",
+    StatusRejected: "Rejected",
+    FilterByStatus: "Filter by Status",
+    SelectStatus: "Select a Status",
+    CreateNewRequest: "Create New Request",
+    LoadingProjects: "Loading Projects...",
+    ProjectRequests: "Project Requests",
+    RequestTitleRequired: "Request Title is required",
+    CustomerRequired: "Customer is required",
+    ProjectRequestCreatedSuccessfully: "Project request created successfully",
+    ErrorCreatingProjectRequest: "Error creating project request",
+    BackToList: "Back to List",
+    Step: "Step",
+    Of: "of",
   };
 });

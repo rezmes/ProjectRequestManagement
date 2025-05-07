@@ -3,6 +3,9 @@ import * as React from "react";
 import { TextField, IDropdownOption, IconButton } from "office-ui-fabric-react";
 import GenericDropdown from "./GenericDropdown";
 import * as strings from "PrmWebPartStrings";
+
+import styles from "./ResourceTable.module.scss";
+
 export interface IResourceTableProps {
   label: string;
   field: string;
@@ -17,14 +20,14 @@ export interface IResourceTableProps {
   ) => void;
   onInputChange: (
     newValue: string,
-    nestedField: string,
+    field: string,
     index: number,
     partIndex: number,
-    field: string
+    resourceField: string
   ) => void;
   onAddRow: (field: string, index: number) => void;
   onRemoveRow: (field: string, index: number, partIndex: number) => void;
-  isReadOnly?: boolean;
+  isReadOnly: boolean;
 }
 
 export class ResourceTable extends React.Component<IResourceTableProps, {}> {
@@ -43,111 +46,95 @@ export class ResourceTable extends React.Component<IResourceTableProps, {}> {
     } = this.props;
 
     return (
-      <div>
-        <table className="technicalAssessmentTable">
-          <tbody>
+      <div className={styles.resourceTableContainer}>
+        <h4>{label}</h4>
+        <table className={styles.resourceTable}>
+          <thead>
             <tr>
-              <th className="resourceColumn">{label}</th>
-              <th>{strings.Quantity}</th>
-              <th>{strings.PricePerUnit}</th>
-              <th>{strings.TotalCost}</th>
-              {!isReadOnly && <th>{strings.Action}</th>}
+              <th>{label}</th>
+              <th>Quantity</th>
+              <th>Price Per Unit</th>
+              <th>Total Cost</th>
+              {!isReadOnly && <th>Action</th>}
             </tr>
-            {Array.isArray(resources) && resources.length > 0 ? (
-              resources.map((item, partIndex) => {
-                const totalCost = item.quantity * item.pricePerUnit;
-                return (
-                  <tr key={partIndex}>
-                    <td className="resourceColumn">
-                      {isReadOnly ? (
-                        <span>{item.item ? item.item.text : ""}</span>
-                      ) : (
-                        <GenericDropdown
-                          label={`${label} ${partIndex + 1}`}
-                          options={options}
-                          selectedKey={item.item ? item.item.key : undefined}
-                          onChanged={(option) =>
-                            onDropdownChange(field, option!, index, partIndex)
-                          }
-                          disabled={isReadOnly}
-                        />
-                      )}
-                    </td>
-                    <td>
-                      {isReadOnly ? (
-                        <span>{item.quantity}</span>
-                      ) : (
-                        <TextField
-                          value={item.quantity.toString()}
-                          onChanged={(newValue) =>
-                            onInputChange(
-                              newValue,
-                              "quantity",
-                              index,
-                              partIndex,
-                              field
-                            )
-                          }
-                          type="number"
-                          readOnly={isReadOnly}
-                          disabled={isReadOnly}
-                        />
-                      )}
-                    </td>
-                    <td>
-                      {isReadOnly ? (
-                        <span>{item.pricePerUnit}</span>
-                      ) : (
-                        <TextField
-                          value={item.pricePerUnit.toString()}
-                          onChanged={(newValue) =>
-                            onInputChange(
-                              newValue,
-                              "pricePerUnit",
-                              index,
-                              partIndex,
-                              field
-                            )
-                          }
-                          type="number"
-                          readOnly={isReadOnly}
-                          disabled={isReadOnly}
-                        />
-                      )}
-                    </td>
-                    <td>{totalCost.toFixed(0)}</td>
-                    {!isReadOnly && (
-                      <td>
-                        <IconButton
-                          iconProps={{ iconName: "Delete" }}
-                          title={strings.Remove}
-                          ariaLabel={strings.Remove}
-                          onClick={() => onRemoveRow(field, index, partIndex)}
-                          disabled={isReadOnly}
-                        />
-                      </td>
-                    )}
-                  </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td colSpan={isReadOnly ? 4 : 5}>{`${
-                  strings.No
-                } ${label.toLowerCase()} ${strings.AddedYet}`}</td>
+          </thead>
+          <tbody>
+            {resources.map((resource, partIndex) => (
+              <tr key={partIndex}>
+                <td>
+                  {isReadOnly ? (
+                    <div>{resource.item.text}</div>
+                  ) : (
+                    <GenericDropdown
+                      label=""
+                      options={options}
+                      selectedKey={resource.item.key}
+                      onChanged={(option) =>
+                        onDropdownChange(field, option, index, partIndex)
+                      }
+                      placeHolder={`Select ${label}`}
+                    />
+                  )}
+                </td>
+                <td>
+                  {isReadOnly ? (
+                    <div>{resource.quantity}</div>
+                  ) : (
+                    <TextField
+                      type="number"
+                      value={resource.quantity.toString()}
+                      onChanged={(newValue) =>
+                        onInputChange(
+                          newValue,
+                          "quantity",
+                          index,
+                          partIndex,
+                          field
+                        )
+                      }
+                    />
+                  )}
+                </td>
+                <td>
+                  {isReadOnly ? (
+                    <div>{resource.pricePerUnit}</div>
+                  ) : (
+                    <TextField
+                      type="number"
+                      value={resource.pricePerUnit.toString()}
+                      onChanged={(newValue) =>
+                        onInputChange(
+                          newValue,
+                          "pricePerUnit",
+                          index,
+                          partIndex,
+                          field
+                        )
+                      }
+                    />
+                  )}
+                </td>
+                <td>{resource.quantity * resource.pricePerUnit}</td>
+                {!isReadOnly && (
+                  <td>
+                    <button
+                      onClick={() => onRemoveRow(field, index, partIndex)}
+                    >
+                      Remove
+                    </button>
+                  </td>
+                )}
               </tr>
-            )}
+            ))}
           </tbody>
         </table>
+
         {!isReadOnly && (
-          <IconButton
-            iconProps={{ iconName: "Add" }}
-            title={`${strings.Add} ${label}`}
-            ariaLabel={`${strings.Add} ${label}`}
-            onClick={() => onAddRow(field, index)}
-          />
+          <button onClick={() => onAddRow(field, index)}>Add {label}</button>
         )}
       </div>
     );
   }
 }
+
+export default ResourceTable;

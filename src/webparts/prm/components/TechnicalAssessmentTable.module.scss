@@ -159,3 +159,29 @@
   border: none;
   border-top: 1px solid #e1e1e1;
 }
+// Add to your CSS
+.activityField {
+  margin-bottom: 16px;
+}
+
+.assessmentDivider {
+  height: 1px;
+  background-color: #e1e1e1;
+  margin: 16px 0;
+}
+/* Add to TechnicalAssessmentTable.module.scss */
+.assessmentItem {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border: 1px solid #eaeaea;
+}
+
+.assessmentHeading {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #333;
+}

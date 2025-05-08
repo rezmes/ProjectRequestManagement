@@ -11,6 +11,7 @@ export interface IManagedMetadataPickerProps {
   disabled?: boolean;
   context: WebPartContext;
   placeHolder?: string; // Note: if your ComboBox version doesn't support placeholder, ignore it.
+  commercialGroupName?: string; // Add this optional prop
 }
 
 export interface IManagedMetadataPickerState {
@@ -25,7 +26,10 @@ export default class ManagedMetadataPicker extends React.Component<
 
   constructor(props: IManagedMetadataPickerProps) {
     super(props);
-    this.projectRequestService = new ProjectRequestService(this.props.context);
+    this.projectRequestService = new ProjectRequestService(
+      this.props.context,
+      this.props.commercialGroupName || "Commercial Department"
+    ); // Use from props if available);
     this.state = {
       options: [],
     };

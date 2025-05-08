@@ -47,7 +47,7 @@ class TechnicalAssessmentTable extends React.Component<
     const { requestId, resetForm, isCommercialDept } = this.props;
 
     if (!assessments || assessments.length === 0) {
-      alert("Please add at least one assessment before submitting.");
+      alert("لطفا دست کم یک آیتم ارزیابی وارد نمایید");
       return;
     }
 
@@ -60,7 +60,7 @@ class TechnicalAssessmentTable extends React.Component<
     this.projectRequestService
       .saveAssessments(assessments, requestId)
       .then((assessmentIds) => {
-        console.log("Assessment IDs:", assessmentIds);
+        // console.log("Assessment IDs:", assessmentIds);
 
         // Map assessments to pricing details using the created IDs
         assessments.forEach((assessment, index) => {
@@ -83,13 +83,13 @@ class TechnicalAssessmentTable extends React.Component<
           });
         });
 
-        console.log("Pricing Details to Save:", pricingDetails);
+        // console.log("Pricing Details to Save:", pricingDetails);
 
         // Save pricing details
         return this.projectRequestService.savePricingDetails(pricingDetails);
       })
       .then(() => {
-        console.log("Pricing details saved successfully.");
+        // console.log("Pricing details saved successfully.");
 
         // Only fetch pricing details if user has permission
         if (isCommercialDept) {
@@ -101,7 +101,7 @@ class TechnicalAssessmentTable extends React.Component<
         }
       })
       .then((pricingDetails) => {
-        console.log("Fetched Pricing Details After Save:", pricingDetails);
+        // console.log("Fetched Pricing Details After Save:", pricingDetails);
 
         // Only update estimated cost if user has permission
         if (isCommercialDept && pricingDetails.length > 0) {
@@ -111,7 +111,7 @@ class TechnicalAssessmentTable extends React.Component<
             0
           );
 
-          console.log("Total Estimated Cost:", totalEstimatedCost);
+          // console.log("Total Estimated Cost:", totalEstimatedCost);
 
           // Update the ProjectRequest with the estimated cost
           return this.projectRequestService
@@ -121,7 +121,9 @@ class TechnicalAssessmentTable extends React.Component<
               this.setState({ isSubmitting: false });
 
               // Show success message
-              alert("Assessments and pricing details saved successfully!");
+              console.log(
+                "Assessments and pricing details saved successfully!"
+              );
 
               // Call resetForm to navigate back to the list view
               if (resetForm) {
@@ -133,7 +135,7 @@ class TechnicalAssessmentTable extends React.Component<
           this.setState({ isSubmitting: false });
 
           // Show success message
-          alert("Assessments saved successfully!");
+          console.log("Assessments saved successfully!");
 
           // Call resetForm to navigate back to the list view
           if (resetForm) {
@@ -155,7 +157,7 @@ class TechnicalAssessmentTable extends React.Component<
 
   loadInventoryItems = () => {
     this.projectRequestService.getInventoryItems().then((items) => {
-      console.log("Inventory Items:", items); // Debugging
+      // console.log("Inventory Items:", items); // Debugging
       this.setState({ inventoryItems: items });
     });
   };
@@ -164,8 +166,8 @@ class TechnicalAssessmentTable extends React.Component<
     const { inventoryItems } = this.state;
 
     // Debug: Log categories and inventory items
-    console.log("Filtering for categories:", categories);
-    console.log("All inventory items:", inventoryItems);
+    // console.log("Filtering for categories:", categories);
+    // console.log("All inventory items:", inventoryItems);
 
     // Map English category keys to their Persian equivalents
     const categoryMap: { [key: string]: string[] } = {
@@ -184,7 +186,7 @@ class TechnicalAssessmentTable extends React.Component<
       (item) => validCategories.indexOf(item.itemCategory) > -1
     );
 
-    console.log("Filtered Items:", filteredItems);
+    // console.log("Filtered Items:", filteredItems);
     return filteredItems.map((item) => ({ key: item.key, text: item.text }));
   };
 
@@ -300,7 +302,7 @@ class TechnicalAssessmentTable extends React.Component<
       )
       .get()
       .then((assessmentItems) => {
-        console.log("Loaded assessment items:", assessmentItems);
+        // console.log("Loaded assessment items:", assessmentItems);
 
         if (assessmentItems.length === 0) {
           return;
@@ -436,7 +438,7 @@ class TechnicalAssessmentTable extends React.Component<
       .items.select("Id,Title,ItemCategory")
       .get()
       .then((inventoryItems) => {
-        console.log("Fetched all inventory items:", inventoryItems);
+        // console.log("Fetched all inventory items:", inventoryItems);
 
         // Create a map of ID to Title
         const itemMap = {};

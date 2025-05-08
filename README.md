@@ -260,7 +260,7 @@ export default class TaxonomyService extends BaseService {
     `;
 
     try {
-      console.log('Fetching terms with Term Set ID:', termSetId);
+      // console.log('Fetching terms with Term Set ID:', termSetId);
       const response = await this.context.spHttpClient.post(
         endpoint,
         SPHttpClient.configurations.v1,
@@ -274,7 +274,7 @@ export default class TaxonomyService extends BaseService {
       );
 
       const responseText = await response.text();
-      console.log('Response Text:', responseText);
+      // console.log('Response Text:', responseText);
 
       const parser = new DOMParser();
       const xmlDoc: Document = parser.parseFromString(responseText, 'text/xml');
@@ -297,7 +297,7 @@ export default class TaxonomyService extends BaseService {
         }
       });
 
-      console.log('Fetched Terms:', terms);
+      // console.log('Fetched Terms:', terms);
 
       if (searchText) {
         return terms.filter(term => term.label.indexOf(searchText) >= 0);
@@ -404,7 +404,7 @@ export default class DocumentService extends BaseService {
       const siteUrl = this.context.pageContext.web.absoluteUrl;
       const endpoint = `${siteUrl}/_vti_bin/listdata.svc/${libraryName}`;
 
-      console.log("DEBUG: siteUrl from pageContext:", this.context.pageContext.web.absoluteUrl);
+      // console.log("DEBUG: siteUrl from pageContext:", this.context.pageContext.web.absoluteUrl);
 
       const requestDigest = await this.getFormDigest();
       if (!requestDigest) {
@@ -435,18 +435,18 @@ export default class DocumentService extends BaseService {
       }
 
       const result = await response.json();
-      console.log("[DOCSET CREATION SUCCESS] API Response:", result);
-      console.log("Full response from createDocumentSet:", response);
+      // console.log("[DOCSET CREATION SUCCESS] API Response:", result);
+      // console.log("Full response from createDocumentSet:", response);
 
       if (!result.d || !result.d["شناسهسند"]) {
         throw new Error("Error: Document Set ID (شناسهسند) is missing in the response.");
       }
 
       const docIdFullUrl = result.d["شناسهسند"];
-      console.log("Raw شناسهسند:", docIdFullUrl);
+      // console.log("Raw شناسهسند:", docIdFullUrl);
 
       const docIdUrlPart = docIdFullUrl.split(',')[0];
-      console.log("Extracted Document Set URL:", docIdUrlPart);
+      // console.log("Extracted Document Set URL:", docIdUrlPart);
 
       return {
         url: docIdUrlPart,
@@ -463,7 +463,7 @@ export default class DocumentService extends BaseService {
     requestId: number,
     documentSetLink: { url: string; text: string }
   ): Promise<void> {
-    console.log(`Updating DocumentSetLink for Request ID: ${requestId}`);
+    // console.log(`Updating DocumentSetLink for Request ID: ${requestId}`);
 
     const hyperlinkValue = {
       __metadata: { type: "SP.FieldUrlValue" },
@@ -472,11 +472,11 @@ export default class DocumentService extends BaseService {
     };
 
     try {
-      console.log("[DEBUG - SITE URL BEFORE CONCAT]:", this.context.pageContext.web.absoluteUrl);
+      // console.log("[DEBUG - SITE URL BEFORE CONCAT]:", this.context.pageContext.web.absoluteUrl);
       const updateUrl = sp.web.lists
         .getByTitle('ProjectRequests')
         .items.getById(requestId).toUrl();
-      console.log("[DEBUG - UPDATE URL (TOURL) BEFORE CONCAT]:", updateUrl);
+      // console.log("[DEBUG - UPDATE URL (TOURL) BEFORE CONCAT]:", updateUrl);
 
       let fullUpdateUrl = this.context.pageContext.web.absoluteUrl + updateUrl;
 
@@ -487,7 +487,7 @@ export default class DocumentService extends BaseService {
           DocumentSetLink: hyperlinkValue
         });
 
-      console.log("DocumentSetLink updated successfully.");
+      // console.log("DocumentSetLink updated successfully.");
     } catch (error) {
       console.error("Error updating DocumentSetLink:", error);
       throw error;
@@ -587,7 +587,7 @@ export default class ProjectRequestService extends BaseService {
       .getByTitle("ProjectRequests")
       .items.add(requestData)
       .then(async (result) => {
-        console.log("Raw API Response:", result);
+        // console.log("Raw API Response:", result);
         const requestId = result.data.Id;
         if (!requestId) {
           throw new Error("Error: requestId is undefined!");
@@ -683,19 +683,19 @@ export default class ProjectRequestService extends BaseService {
   }
 
   public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
-    console.log("Fetching Pricing Details for RequestID:", requestId);
+    // console.log("Fetching Pricing Details for RequestID:", requestId);
     return sp.web.lists
       .getByTitle("PricingDetails")
       .items.filter(`RequestIDId eq ${requestId}`)
       .select("Id", "UnitPrice", "Quantity", "AssessmentItemIDId")
       .get()
       .then(items => {
-        console.log("Raw Fetched Items:", items);
+        // console.log("Raw Fetched Items:", items);
         const calculatedItems = items.map(item => ({
           ...item,
           TotalCost: item.UnitPrice * item.Quantity
         }));
-        console.log("Calculated Items (with TotalCost):", calculatedItems);
+        // console.log("Calculated Items (with TotalCost):", calculatedItems);
         return calculatedItems;
       })
       .catch(error => {
@@ -710,7 +710,7 @@ export default class ProjectRequestService extends BaseService {
       .items.getById(requestId)
       .update({ EstimatedCost: estimatedCost })
       .then(() => {
-        console.log("Estimated cost updated successfully.");
+        // console.log("Estimated cost updated successfully.");
       })
       .catch((error) => {
         console.error("Error updating estimated cost:", error);
@@ -730,7 +730,7 @@ export default class ProjectRequestService extends BaseService {
         TotalCost: detail.UnitPrice * detail.Quantity
       };
 
-      console.log("Pricing Detail Data to Add:", data);
+      // console.log("Pricing Detail Data to Add:", data);
 
       sp.web.lists
         .getByTitle("PricingDetails")
@@ -741,7 +741,7 @@ export default class ProjectRequestService extends BaseService {
     return batch
       .execute()
       .then(() => {
-        console.log("Pricing details saved successfully");
+        // console.log("Pricing details saved successfully");
       })
       .catch((error) => {
         console.error("Error saving pricing details", error);
@@ -1096,7 +1096,7 @@ class ProjectRequestForm extends React.Component<
 
   private handleTermSelected(term: { id: string; label: string }): void {
     this.setState({ selectedTerm: term, ProjectCode1: term });
-    console.log("Selected Term:", term);
+    // console.log("Selected Term:", term);
   }
 
   loadCustomerOptions() {
@@ -1156,7 +1156,7 @@ class ProjectRequestForm extends React.Component<
     this.projectRequestService
       .getNextFormNumber()
       .then((formNumber) => {
-        console.log("Next Form Number:", formNumber);
+        // console.log("Next Form Number:", formNumber);
         const requestDateISO = moment(requestDate, "jYYYY/jM/jD").toISOString();
         
         // Step 2: Prepare the request data
@@ -1177,7 +1177,7 @@ class ProjectRequestForm extends React.Component<
       })
       .then((response) => {
         if (response && response.requestId) {
-          console.log("New project created with ID:", response.requestId);
+          // console.log("New project created with ID:", response.requestId);
 
           // Update state to include documentSetLink for rendering
           this.setState(
@@ -1188,7 +1188,7 @@ class ProjectRequestForm extends React.Component<
               documentSetLink: response.documentSetLink,
             },
             () => {
-              alert(strings.ProjectRequestCreatedSuccessfully);
+             console.log(strings.ProjectRequestCreatedSuccessfully);
             }
           );
         } else {
@@ -1379,7 +1379,7 @@ class TechnicalAssessmentTable extends React.Component<
 
   loadInventoryItems = () => {
     this.props.projectRequestService.getInventoryItems().then((items) => {
-      console.log("Inventory Items:", items);
+      // console.log("Inventory Items:", items);
       this.setState({ inventoryItems: items });
     });
   };
@@ -1502,7 +1502,7 @@ class TechnicalAssessmentTable extends React.Component<
     this.props.projectRequestService
       .saveAssessments(assessments, requestId)
       .then((assessmentIds) => {
-        console.log("Assessment IDs:", assessmentIds);
+        // console.log("Assessment IDs:", assessmentIds);
 
         // Map assessments to pricing details using the created IDs
         assessments.forEach((assessment, index) => {
@@ -1520,19 +1520,19 @@ class TechnicalAssessmentTable extends React.Component<
           });
         });
 
-        console.log("Pricing Details to Save:", pricingDetails);
+        // console.log("Pricing Details to Save:", pricingDetails);
 
         // Save pricing details
         return this.props.projectRequestService.savePricingDetails(pricingDetails);
       })
       .then(() => {
-        console.log("Pricing details saved successfully.");
+        // console.log("Pricing details saved successfully.");
         return this.props.projectRequestService.getPricingDetailsByRequestID(
           requestId
         );
       })
       .then((pricingDetails) => {
-        console.log("Fetched Pricing Details After Save:", pricingDetails);
+        // console.log("Fetched Pricing Details After Save:", pricingDetails);
 
         // Calculate the total estimated cost
         const totalEstimatedCost = pricingDetails.reduce(
@@ -1540,13 +1540,13 @@ class TechnicalAssessmentTable extends React.Component<
           0
         );
 
-        console.log("Total Estimated Cost:", totalEstimatedCost);
+        // console.log("Total Estimated Cost:", totalEstimatedCost);
 
         // Update the ProjectRequest with the estimated cost
         return this.props.projectRequestService
           .updateProjectRequestEstimatedCost(requestId, totalEstimatedCost)
           .then(() => {
-            alert(strings.AssessmentsAndPricingDetailsSavedSuccessfully);
+           console.log(strings.AssessmentsAndPricingDetailsSavedSuccessfully);
             resetForm();
           });
       })

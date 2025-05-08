@@ -89,7 +89,7 @@ class ProjectRequestForm extends React.Component<
       .expand("Customer")
       .get()
       .then((item) => {
-        console.log("Loaded item:", item);
+        // console.log("Loaded item:", item);
 
         // Format the date from ISO to Jalali
         const requestDate = item.RequestDate
@@ -140,7 +140,7 @@ class ProjectRequestForm extends React.Component<
 
   private handleTermSelected(term: { id: string; label: string }): void {
     this.setState({ selectedTerm: term, ProjectCode1: term });
-    console.log("Selected Term:", term);
+    // console.log("Selected Term:", term);
   }
 
   loadCustomerOptions() {
@@ -215,7 +215,7 @@ class ProjectRequestForm extends React.Component<
 
     getFormNumberPromise
       .then((formNumber) => {
-        console.log("Form Number:", formNumber);
+        // console.log("Form Number:", formNumber);
         const requestDateISO = moment(requestDate, "jYYYY/jM/jD").toISOString();
 
         // Step 2: Prepare the request data
@@ -230,7 +230,7 @@ class ProjectRequestForm extends React.Component<
           FormNumber: formNumber,
         };
 
-        console.log("Request data being sent:", requestData);
+        // console.log("Request data being sent:", requestData);
 
         // Step 3: Create or update the project request
         if (this.props.mode === FormMode.Create) {
@@ -246,12 +246,7 @@ class ProjectRequestForm extends React.Component<
       .then((response) => {
         if (response && (response.requestId || response.success)) {
           const requestId = response.requestId || this.state.requestId;
-          console.log(
-            "Project " +
-              (this.props.mode === FormMode.Create ? "created" : "updated") +
-              " with ID:",
-            requestId
-          );
+          // console.log("Project " + (this.props.mode === FormMode.Create ? "created" : "updated") + " with ID:",  requestId  );
 
           // Update state first
           this.setState(
@@ -283,7 +278,7 @@ class ProjectRequestForm extends React.Component<
                       ProjectCode1.id
                     )
                     .then(() => {
-                      console.log("ProjectCode updated successfully");
+                      // console.log("ProjectCode updated successfully");
                       // Show success message after successful update
                       this.setState({
                         showSuccessMessage: true,

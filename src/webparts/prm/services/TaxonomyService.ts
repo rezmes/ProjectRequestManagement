@@ -24,7 +24,7 @@ export default class TaxonomyService extends BaseService {
     `;
 
     try {
-      console.log('Fetching terms with Term Set ID:', termSetId);
+      // console.log('Fetching terms with Term Set ID:', termSetId);
       const response = await this.context.spHttpClient.post(
         endpoint,
         SPHttpClient.configurations.v1,
@@ -38,7 +38,7 @@ export default class TaxonomyService extends BaseService {
       );
 
       const responseText = await response.text();
-      console.log('Response Text:', responseText);
+      // console.log('Response Text:', responseText);
 
       const parser = new DOMParser();
       const xmlDoc: Document = parser.parseFromString(responseText, 'text/xml');
@@ -61,7 +61,7 @@ export default class TaxonomyService extends BaseService {
         }
       });
 
-      console.log('Fetched Terms:', terms);
+      // console.log('Fetched Terms:', terms);
 
       if (searchText) {
         return terms.filter(term => term.label.indexOf(searchText) >= 0);
@@ -144,7 +144,7 @@ public async updateProjectCode(listTitle: string, itemId: number, termLabel: str
       'ProjectCode1': termLabel + '|' + formattedGuid
     });
 
-    console.log("Updating ProjectCode with body:", body);
+    // console.log("Updating ProjectCode with body:", body);
 
     const response = await this.context.spHttpClient.post(
       endpoint,
@@ -167,7 +167,7 @@ public async updateProjectCode(listTitle: string, itemId: number, termLabel: str
       throw new Error(`Update failed: ${response.statusText}`);
     }
 
-    console.log("ProjectCode updated successfully");
+    // console.log("ProjectCode updated successfully");
   } catch (error) {
     console.error("Error in updateProjectCode:", error);
     throw error;

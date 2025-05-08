@@ -113,13 +113,13 @@ public createProjectRequest(requestData: any): Promise<any> {
     };
   }
 
-  console.log("Formatted request data:", JSON.stringify(requestData, null, 2));
+  // console.log("Formatted request data:", JSON.stringify(requestData, null, 2));
 
   return sp.web.lists
     .getByTitle("ProjectRequests")
     .items.add(requestData)
     .then(async (result) => {
-      console.log("Raw API Response:", result);
+      // console.log("Raw API Response:", result);
       const requestId = result.data.Id;
       if (!requestId) {
         throw new Error("Error: requestId is undefined!");
@@ -216,19 +216,19 @@ public createProjectRequest(requestData: any): Promise<any> {
   }
 
   public getPricingDetailsByRequestID(requestId: number): Promise<any[]> {
-    console.log("Fetching Pricing Details for RequestID:", requestId);
+    // console.log("Fetching Pricing Details for RequestID:", requestId);
     return sp.web.lists
       .getByTitle("PricingDetails")
       .items.filter(`RequestIDId eq ${requestId}`)
       .select("Id", "UnitPrice", "Quantity", "AssessmentItemIDId")
       .get()
       .then(items => {
-        console.log("Raw Fetched Items:", items);
+        // console.log("Raw Fetched Items:", items);
         const calculatedItems = items.map(item => ({
           ...item,
           TotalCost: item.UnitPrice * item.Quantity
         }));
-        console.log("Calculated Items (with TotalCost):", calculatedItems);
+        // console.log("Calculated Items (with TotalCost):", calculatedItems);
         return calculatedItems;
       })
       .catch(error => {
@@ -256,7 +256,7 @@ public updateProjectRequest(requestId: number, requestData: any): Promise<any> {
     });
 }
 
-private checkUserInCommercialDepartment(): Promise<boolean> {
+private checkUserInCommercialDepartment(commercialGroupName: string = "Commercial Department"): Promise<boolean> {
   const apiUrl = `${this.context.pageContext.web.absoluteUrl}/_api/web/currentUser/groups`;
 
   return this.context.spHttpClient.get(apiUrl, SPHttpClient.configurations.v1, {

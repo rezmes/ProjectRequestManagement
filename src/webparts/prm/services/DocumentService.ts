@@ -12,7 +12,7 @@ export default class DocumentService extends BaseService {
       const siteUrl = this.context.pageContext.web.absoluteUrl;
       const endpoint = `${siteUrl}/_vti_bin/listdata.svc/${libraryName}`;
 
-      console.log("DEBUG: siteUrl from pageContext:", this.context.pageContext.web.absoluteUrl);
+      // console.log("DEBUG: siteUrl from pageContext:", this.context.pageContext.web.absoluteUrl);
 
       const requestDigest = await this.getFormDigest();
       if (!requestDigest) {
@@ -43,18 +43,18 @@ export default class DocumentService extends BaseService {
       }
 
       const result = await response.json();
-      console.log("[DOCSET CREATION SUCCESS] API Response:", result);
-      console.log("Full response from createDocumentSet:", response);
+      // console.log("[DOCSET CREATION SUCCESS] API Response:", result);
+      // console.log("Full response from createDocumentSet:", response);
 
       if (!result.d || !result.d["شناسهسند"]) {
         throw new Error("Error: Document Set ID (شناسهسند) is missing in the response.");
       }
 
       const docIdFullUrl = result.d["شناسهسند"];
-      console.log("Raw شناسهسند:", docIdFullUrl);
+      // console.log("Raw شناسهسند:", docIdFullUrl);
 
       const docIdUrlPart = docIdFullUrl.split(',')[0];
-      console.log("Extracted Document Set URL:", docIdUrlPart);
+      // console.log("Extracted Document Set URL:", docIdUrlPart);
 
       return {
         url: docIdUrlPart,
@@ -71,7 +71,7 @@ export default class DocumentService extends BaseService {
     requestId: number,
     documentSetLink: { url: string; text: string }
   ): Promise<void> {
-    console.log(`Updating DocumentSetLink for Request ID: ${requestId}`);
+    // console.log(`Updating DocumentSetLink for Request ID: ${requestId}`);
 
     const hyperlinkValue = {
       __metadata: { type: "SP.FieldUrlValue" },
@@ -80,11 +80,11 @@ export default class DocumentService extends BaseService {
     };
 
     try {
-      console.log("[DEBUG - SITE URL BEFORE CONCAT]:", this.context.pageContext.web.absoluteUrl);
+      // console.log("[DEBUG - SITE URL BEFORE CONCAT]:", this.context.pageContext.web.absoluteUrl);
       const updateUrl = sp.web.lists
         .getByTitle('ProjectRequests')
         .items.getById(requestId).toUrl();
-      console.log("[DEBUG - UPDATE URL (TOURL) BEFORE CONCAT]:", updateUrl);
+      // console.log("[DEBUG - UPDATE URL (TOURL) BEFORE CONCAT]:", updateUrl);
 
       let fullUpdateUrl = this.context.pageContext.web.absoluteUrl + updateUrl;
 
@@ -95,7 +95,7 @@ export default class DocumentService extends BaseService {
           DocumentSetLink: hyperlinkValue
         });
 
-      console.log("DocumentSetLink updated successfully.");
+      // console.log("DocumentSetLink updated successfully.");
     } catch (error) {
       console.error("Error updating DocumentSetLink:", error);
       throw error;

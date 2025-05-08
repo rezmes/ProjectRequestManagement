@@ -29,7 +29,10 @@ class ProjectRequestForm extends React.Component<
 
   constructor(props: IProjectRequestFormProps) {
     super(props);
-    this.projectRequestService = new ProjectRequestService(this.props.context);
+    this.projectRequestService = new ProjectRequestService(
+      this.props.context,
+      this.props.commercialGroupName
+    ); // Pass the value here);
     this.state = {
       isProjectCreated: props.mode !== FormMode.Create,
       showProjectForm: true,
@@ -296,19 +299,23 @@ class ProjectRequestForm extends React.Component<
                         error
                       );
                       // Still show success message even if taxonomy update fails
-                      alert(
-                        this.props.mode === FormMode.Create
-                          ? strings.ProjectRequestCreatedSuccessfully
-                          : strings.ProjectRequestUpdatedSuccessfully
-                      );
+                      this.setState({
+                        showSuccessMessage: true,
+                        successMessage:
+                          this.props.mode === FormMode.Create
+                            ? strings.ProjectRequestCreatedSuccessfully
+                            : strings.ProjectRequestUpdatedSuccessfully,
+                      });
                     });
                 }, 1000); // 1 second delay
               } else {
-                alert(
-                  this.props.mode === FormMode.Create
-                    ? strings.ProjectRequestCreatedSuccessfully
-                    : strings.ProjectRequestUpdatedSuccessfully
-                );
+                this.setState({
+                  showSuccessMessage: true,
+                  successMessage:
+                    this.props.mode === FormMode.Create
+                      ? strings.ProjectRequestCreatedSuccessfully
+                      : strings.ProjectRequestUpdatedSuccessfully,
+                });
               }
             }
           );
@@ -327,11 +334,13 @@ class ProjectRequestForm extends React.Component<
             " project request:",
           error
         );
-        alert(
-          this.props.mode === FormMode.Create
-            ? strings.ErrorCreatingProjectRequest
-            : strings.ErrorUpdatingProjectRequest
-        );
+        this.setState({
+          showSuccessMessage: true,
+          successMessage:
+            this.props.mode === FormMode.Create
+              ? strings.ProjectRequestCreatedSuccessfully
+              : strings.ProjectRequestUpdatedSuccessfully,
+        });
       });
   };
 
@@ -512,6 +521,7 @@ class ProjectRequestForm extends React.Component<
             requestId={requestId}
             resetForm={this.resetForm}
             isReadOnly={isViewMode}
+            isCommercialDept={this.props.isCommercialDept}
           />
         )}
       </div>

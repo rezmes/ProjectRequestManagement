@@ -4,4 +4,5 @@ export interface ITechnicalAssessmentProps {
   requestId: number;
   resetForm: () => void;
   isReadOnly?: boolean;
+  isCommercialDept?: boolean; // Add this new property
 }

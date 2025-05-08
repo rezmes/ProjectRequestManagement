@@ -8,7 +8,6 @@ import * as strings from "PrmWebPartStrings";
 export interface IResourceTableProps {
   label: string;
   field: string;
-
   options: IDropdownOption[];
   resources: any[];
   index: number;
@@ -28,6 +27,7 @@ export interface IResourceTableProps {
   onAddRow: (field: string, index: number) => void;
   onRemoveRow: (field: string, index: number, partIndex: number) => void;
   isReadOnly: boolean;
+  canViewPricing?: boolean; // Add this new prop as optional
 }
 
 export class ResourceTable extends React.Component<IResourceTableProps, {}> {
@@ -45,29 +45,23 @@ export class ResourceTable extends React.Component<IResourceTableProps, {}> {
       isReadOnly,
     } = this.props;
 
+    // Default to false if not provided
+    const canViewPricing = this.props.canViewPricing === true;
+
     return (
       <div className={styles.resourceTableContainer}>
         <h4 className={styles.resourceTableHeading}>{label}</h4>
-        {/* <table className={styles.resourceTable}>
-          <thead>
-            <tr>
-              <th className={styles.resourceColumn}>{label}</th>
-              <th className={styles.quantityColumn}>{strings.Quantity}</th>
-              <th className={styles.priceColumn}>{strings.PricePerUnit}</th>
-              <th className={styles.totalColumn}>{strings.TotalCost}</th>
-              {!isReadOnly && (
-                <th className={styles.actionColumn}>{strings.Action}</th>
-              )}
-            </tr>
-          </thead>
-          <tbody> */}
         <table className={styles.resourceTable}>
           <thead>
             <tr>
               <th className={styles.resourceColumn}>{label}</th>
               <th className={styles.quantityColumn}>Quantity</th>
-              <th className={styles.priceColumn}>Price Per Unit</th>
-              <th className={styles.totalColumn}>Total Cost</th>
+              {canViewPricing && (
+                <th className={styles.priceColumn}>Price Per Unit</th>
+              )}
+              {canViewPricing && (
+                <th className={styles.totalColumn}>Total Cost</th>
+              )}
               {!isReadOnly && <th className={styles.actionColumn}>Action</th>}
             </tr>
           </thead>
@@ -115,36 +109,41 @@ export class ResourceTable extends React.Component<IResourceTableProps, {}> {
                         />
                       )}
                     </td>
-                    <td className={styles.priceColumn}>
-                      {isReadOnly ? (
-                        <div>{resource.pricePerUnit}</div>
-                      ) : (
-                        <TextField
-                          value={resource.pricePerUnit.toString()}
-                          onChanged={(newValue) =>
-                            onInputChange(
-                              newValue,
-                              "pricePerUnit",
-                              index,
-                              partIndex,
-                              field
-                            )
-                          }
-                          type="number"
-                          disabled={isReadOnly}
-                        />
-                      )}
-                    </td>
-                    <td className={styles.totalColumn}>
-                      {totalCost.toFixed(0)}
-                    </td>
+                    {canViewPricing && (
+                      <td className={styles.priceColumn}>
+                        {isReadOnly ? (
+                          <div>{resource.pricePerUnit}</div>
+                        ) : (
+                          <TextField
+                            value={resource.pricePerUnit.toString()}
+                            onChanged={(newValue) =>
+                              onInputChange(
+                                newValue,
+                                "pricePerUnit",
+                                index,
+                                partIndex,
+                                field
+                              )
+                            }
+                            type="number"
+                            disabled={isReadOnly}
+                            required={false} // Make it not required
+                          />
+                        )}
+                      </td>
+                    )}
+                    {canViewPricing && (
+                      <td className={styles.totalColumn}>
+                        {totalCost.toFixed(0)}
+                      </td>
+                    )}
                     {!isReadOnly && (
                       <td className={styles.actionColumn}>
                         <button
                           className={styles.removeButton}
                           onClick={() => onRemoveRow(field, index, partIndex)}
-                          title={strings.Remove} // Add this line
-                          aria-label={strings.Remove} // Add this line
+                          title={strings.Remove}
+                          aria-label={strings.Remove}
                         >
                           <i
                             className="ms-Icon ms-Icon--Delete"
@@ -159,7 +158,9 @@ export class ResourceTable extends React.Component<IResourceTableProps, {}> {
             ) : (
               <tr>
                 <td
-                  colSpan={isReadOnly ? 4 : 5}
+                  colSpan={
+                    canViewPricing ? (isReadOnly ? 4 : 5) : isReadOnly ? 2 : 3
+                  }
                   className={styles.emptyMessage}
                 >
                   {`${strings.No} ${label.toLowerCase()} ${strings.AddedYet}`}

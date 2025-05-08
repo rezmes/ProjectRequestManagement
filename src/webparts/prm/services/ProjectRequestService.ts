@@ -11,6 +11,10 @@ import TaxonomyService from "./TaxonomyService";
 import DocumentService from "./DocumentService";
 import { IAssessment, IResource } from "../components/IAssessment";
 import { IDropdownOption } from "office-ui-fabric-react";
+// In ProjectRequestService.ts
+import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
+
+// Add this method to check permissions
 
 // Define an interface for inventory items with category
 export interface IDropdownOptionWithCategory {
@@ -30,13 +34,14 @@ export interface IPricingDetails {
 export default class ProjectRequestService extends BaseService {
   private taxonomyService: TaxonomyService;
   private documentService: DocumentService;
+  private commercialGroupName: string;
 
-  constructor(context: any) {
+  constructor(context: any, commercialGroupName: string) {
     super(context);
     this.taxonomyService = new TaxonomyService(context);
     this.documentService = new DocumentService(context);
-  }
-
+  this.commercialGroupName = commercialGroupName;
+}
   // Taxonomy methods - delegated to TaxonomyService
   public getTermsByTermSetId(termSetId: string, searchText: string = ""): Promise<{ id: string; label: string }[]> {
     return this.taxonomyService.getTermsByTermSetId(termSetId, searchText);
@@ -232,50 +237,7 @@ public createProjectRequest(requestData: any): Promise<any> {
       });
   }
 
-  public updateProjectRequestEstimatedCost(requestId: number, estimatedCost: number): Promise<void> {
-    return sp.web.lists
-      .getByTitle("ProjectRequests")
-      .items.getById(requestId)
-      .update({ EstimatedCost: estimatedCost })
-      .then(() => {
-        console.log("Estimated cost updated successfully.");
-      })
-      .catch((error) => {
-        console.error("Error updating estimated cost:", error);
-        throw error;
-      });
-  }
 
-  public savePricingDetails(pricingDetails: IPricingDetails[]): Promise<void> {
-    const batch = sp.web.createBatch();
-
-    pricingDetails.forEach((detail) => {
-      const data = {
-        RequestIDId: detail.RequestID,
-        UnitPrice: parseFloat(detail.UnitPrice.toString()),
-        Quantity: parseInt(detail.Quantity.toString()),
-        AssessmentItemIDId: detail.AssessmentItemID,
-        TotalCost: detail.UnitPrice * detail.Quantity
-      };
-
-      console.log("Pricing Detail Data to Add:", data);
-
-      sp.web.lists
-        .getByTitle("PricingDetails")
-        .items.inBatch(batch)
-        .add(data);
-    });
-
-    return batch
-      .execute()
-      .then(() => {
-        console.log("Pricing details saved successfully");
-      })
-      .catch((error) => {
-        console.error("Error saving pricing details", error);
-        throw error;
-      });
-  }
   // Add to src/webparts/prm/services/ProjectRequestService.ts
 public updateProjectRequest(requestId: number, requestData: any): Promise<any> {
   return sp.web.lists
@@ -293,5 +255,80 @@ public updateProjectRequest(requestId: number, requestData: any): Promise<any> {
       throw error;
     });
 }
+
+private checkUserInCommercialDepartment(): Promise<boolean> {
+  const apiUrl = `${this.context.pageContext.web.absoluteUrl}/_api/web/currentUser/groups`;
+
+  return this.context.spHttpClient.get(apiUrl, SPHttpClient.configurations.v1, {
+    headers: {
+      "Accept": "application/json;odata=verbose",
+      "Content-Type": "application/json;odata=verbose;charset=utf-8"
+    }
+  })
+  .then((response: SPHttpClientResponse) => {
+    if (response.ok) {
+      return response.json();
+    }
+    throw new Error(`HTTP ${response.status}`);
+  })
+  .then((data: any) => {
+    const groups = data.d.results;
+    for (let i = 0; i < groups.length; i++) {
+      if (groups[i].Title === this.commercialGroupName) {
+        return true;
+      }
+
+    }
+    return false;
+  })
+  .catch((error) => {
+    console.error("Group check failed:", error);
+    return false;
+  });
+}
+
+// Update the savePricingDetails method
+public savePricingDetails(pricingDetails: IPricingDetails[]): Promise<any> {
+  // First check if user has permission
+  return this.checkUserInCommercialDepartment().then(isCommercial => {
+    if (!isCommercial) {
+      // For non-commercial users, set all prices to 0 before saving
+      for (let i = 0; i < pricingDetails.length; i++) {
+        pricingDetails[i].UnitPrice = 0;
+      }
+    }
+
+    // Now proceed with saving
+    const batch = sp.createBatch();
+    const pricingList = sp.web.lists.getByTitle("PricingDetails");
+
+    pricingDetails.forEach(detail => {
+      pricingList.items.inBatch(batch).add({
+        RequestIDId: detail.RequestID,
+        UnitPrice: detail.UnitPrice,
+        Quantity: detail.Quantity,
+        AssessmentItemIDId: detail.AssessmentItemID
+      });
+    });
+
+    return batch.execute();
+  });
+}
+
+// Also update the updateProjectRequestEstimatedCost method
+public updateProjectRequestEstimatedCost(requestId: number, totalCost: number): Promise<any> {
+  return this.checkUserInCommercialDepartment().then(isCommercial => {
+    if (!isCommercial) {
+      // Non-commercial users can't update cost
+      return Promise.resolve();
+    }
+
+    // Commercial users can update cost
+    return sp.web.lists.getByTitle("ProjectRequests").items.getById(requestId).update({
+      EstimatedCost: totalCost
+    });
+  });
+}
+
 
 }

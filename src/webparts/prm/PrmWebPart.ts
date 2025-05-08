@@ -15,6 +15,7 @@ import { IProjectRequestFormProps, FormMode } from './components/IProjectRequest
 import { sp } from "@pnp/sp";
 // src/webparts/prm/PrmWebPart.ts
 import ProjectListView, { IProjectListViewProps } from './components/ProjectListView';
+import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
 
 
 export interface IPrmWebPartProps {
@@ -22,15 +23,58 @@ export interface IPrmWebPartProps {
   formMode: string;
   itemId: string;
   currentView: string; // 'list' or 'form'
+  commercialGroupName: string; // Add this property
 }
 
 export default class PrmWebPart extends BaseClientSideWebPart<IPrmWebPartProps> {
+  private isCommercialDept: boolean = false;
 
   public onInit(): Promise<void> {
     return super.onInit().then(_ => {
       sp.setup({
         spfxContext: this.context
       });
+    // Set a default value for commercialGroupName if not provided
+    if (!this.properties.commercialGroupName) {
+      this.properties.commercialGroupName = "Commercial Department";
+    }
+      // Check if user is in Commercial Department
+      return this.checkUserDepartment().then(isCommercial => {
+        this.isCommercialDept = isCommercial;
+      });
+    });
+  }
+
+
+  private checkUserDepartment(): Promise<boolean> {
+    const apiUrl = `${this.context.pageContext.web.absoluteUrl}/_api/web/currentUser/groups`;
+
+    return this.context.spHttpClient.get(apiUrl, SPHttpClient.configurations.v1, {
+      headers: {
+        "Accept": "application/json;odata=verbose",
+        "Content-Type": "application/json;odata=verbose;charset=utf-8"
+      }
+    })
+    .then((response: SPHttpClientResponse) => {
+      if (response.ok) {
+        return response.json();
+      }
+      throw new Error(`HTTP ${response.status}`);
+    })
+    .then((data: any) => {
+       const groups = data.d.results;
+    //   return groups.some((g: { Title: string }) => g.Title === "Commercial Department");
+    // })
+    for (let i = 0; i < groups.length; i++) {
+      if (groups[i].Title === this.properties.commercialGroupName) {
+        return true;
+      }
+    }
+    return false;
+  })
+    .catch((error) => {
+      console.error("Group check failed:", error);
+      return false;
     });
   }
 
@@ -57,7 +101,8 @@ export default class PrmWebPart extends BaseClientSideWebPart<IPrmWebPartProps> 
             this.properties.formMode = mode;
             this.properties.itemId = itemId.toString();
             this.render();
-          }
+          },
+          isCommercialDept: this.isCommercialDept // Pass the department flag
         }
       );
 
@@ -88,7 +133,9 @@ export default class PrmWebPart extends BaseClientSideWebPart<IPrmWebPartProps> 
             // Switch back to list view
             this.properties.currentView = 'list';
             this.render();
-          }
+          },
+          isCommercialDept: this.isCommercialDept, // Pass the department flag
+          commercialGroupName: this.properties.commercialGroupName
         }
       );
 
@@ -115,6 +162,12 @@ export default class PrmWebPart extends BaseClientSideWebPart<IPrmWebPartProps> 
                 PropertyPaneTextField('description', {
                   label: strings.DescriptionFieldLabel
                 }),
+                PropertyPaneTextField('commercialGroupName', {
+                  label: 'Commercial Department Group Name',
+                  description: 'Enter the name of the SharePoint group that has access to pricing information',
+                  value: this.properties.commercialGroupName || 'Commercial Department'
+                }),
+
                 PropertyPaneDropdown('formMode', {
                   label: strings.FormModeFieldLabel,
                   options: [

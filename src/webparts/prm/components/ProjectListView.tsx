@@ -19,6 +19,7 @@ export interface IProjectListViewProps {
   context: any;
   onCreateNew: () => void;
   onSelectItem: (itemId: number, mode: string) => void;
+  isCommercialDept?: boolean; // Add this new property
 }
 
 export interface IProjectListViewState {

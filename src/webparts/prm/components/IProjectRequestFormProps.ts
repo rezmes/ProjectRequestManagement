@@ -12,4 +12,6 @@ export interface IProjectRequestFormProps {
   mode: FormMode;
   itemId?: number; // Optional for Edit and View modes
   onBack: () => void; // Add this callback
+  isCommercialDept?: boolean; // Add this new property as optional to maintain
+  commercialGroupName: string; // Add this property
 }

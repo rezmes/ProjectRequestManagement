@@ -41,9 +41,10 @@ class TechnicalAssessmentTable extends React.Component<
     this.loadExistingAssessments();
   }
 
+  // In TechnicalAssessmentTable.tsx
   handleFinalSubmit = (): void => {
     const { assessments } = this.state;
-    const { requestId, resetForm } = this.props;
+    const { requestId, resetForm, isCommercialDept } = this.props;
 
     if (!assessments || assessments.length === 0) {
       alert("Please add at least one assessment before submitting.");
@@ -66,9 +67,14 @@ class TechnicalAssessmentTable extends React.Component<
           ["humanResources", "machines", "materials"].forEach((field) => {
             if (Array.isArray(assessment[field])) {
               assessment[field].forEach((item: any) => {
+                // Only include pricing if user has permission
+                const unitPrice = isCommercialDept
+                  ? parseFloat(item.pricePerUnit)
+                  : 0;
+
                 pricingDetails.push({
                   RequestID: requestId,
-                  UnitPrice: parseFloat(item.pricePerUnit),
+                  UnitPrice: unitPrice,
                   Quantity: parseInt(item.quantity),
                   AssessmentItemID: assessmentIds[index],
                 });
@@ -84,36 +90,58 @@ class TechnicalAssessmentTable extends React.Component<
       })
       .then(() => {
         console.log("Pricing details saved successfully.");
-        return this.projectRequestService.getPricingDetailsByRequestID(
-          requestId
-        );
+
+        // Only fetch pricing details if user has permission
+        if (isCommercialDept) {
+          return this.projectRequestService.getPricingDetailsByRequestID(
+            requestId
+          );
+        } else {
+          return Promise.resolve([]);
+        }
       })
       .then((pricingDetails) => {
         console.log("Fetched Pricing Details After Save:", pricingDetails);
 
-        // Calculate the total estimated cost
-        const totalEstimatedCost = pricingDetails.reduce(
-          (sum, detail) => sum + detail.TotalCost,
-          0
-        );
+        // Only update estimated cost if user has permission
+        if (isCommercialDept && pricingDetails.length > 0) {
+          // Calculate the total estimated cost
+          const totalEstimatedCost = pricingDetails.reduce(
+            (sum, detail) => sum + detail.TotalCost,
+            0
+          );
 
-        console.log("Total Estimated Cost:", totalEstimatedCost);
+          console.log("Total Estimated Cost:", totalEstimatedCost);
 
-        // Update the ProjectRequest with the estimated cost
-        return this.projectRequestService
-          .updateProjectRequestEstimatedCost(requestId, totalEstimatedCost)
-          .then(() => {
-            // Hide loading state
-            this.setState({ isSubmitting: false });
+          // Update the ProjectRequest with the estimated cost
+          return this.projectRequestService
+            .updateProjectRequestEstimatedCost(requestId, totalEstimatedCost)
+            .then(() => {
+              // Hide loading state
+              this.setState({ isSubmitting: false });
 
-            // Show success message
-            alert("Assessments and pricing details saved successfully!");
+              // Show success message
+              alert("Assessments and pricing details saved successfully!");
 
-            // Call resetForm to navigate back to the list view
-            if (resetForm) {
-              resetForm();
-            }
-          });
+              // Call resetForm to navigate back to the list view
+              if (resetForm) {
+                resetForm();
+              }
+            });
+        } else {
+          // Hide loading state
+          this.setState({ isSubmitting: false });
+
+          // Show success message
+          alert("Assessments saved successfully!");
+
+          // Call resetForm to navigate back to the list view
+          if (resetForm) {
+            resetForm();
+          }
+
+          return Promise.resolve();
+        }
       })
       .catch((error) => {
         console.error("Error saving assessments and pricing details:", error);
@@ -465,6 +493,7 @@ class TechnicalAssessmentTable extends React.Component<
   render() {
     const { assessments } = this.state;
     const { isReadOnly } = this.props;
+    const canViewPricing = this.props.isCommercialDept === true;
 
     return (
       <div className={styles.assessmentContainer}>
@@ -495,6 +524,8 @@ class TechnicalAssessmentTable extends React.Component<
               onAddRow={this.addRow}
               onRemoveRow={this.removeRow}
               isReadOnly={isReadOnly}
+              // canViewPricing={this.props.isCommercialDept}
+              canViewPricing={canViewPricing}
             />
 
             <ResourceTable
@@ -508,6 +539,8 @@ class TechnicalAssessmentTable extends React.Component<
               onAddRow={this.addRow}
               onRemoveRow={this.removeRow}
               isReadOnly={isReadOnly}
+              // canViewPricing={this.props.isCommercialDept}
+              canViewPricing={canViewPricing}
             />
 
             <ResourceTable
@@ -521,6 +554,8 @@ class TechnicalAssessmentTable extends React.Component<
               onAddRow={this.addRow}
               onRemoveRow={this.removeRow}
               isReadOnly={isReadOnly}
+              // canViewPricing={this.props.isCommercialDept}
+              canViewPricing={canViewPricing}
             />
 
             <hr className={styles.assessmentDivider} />

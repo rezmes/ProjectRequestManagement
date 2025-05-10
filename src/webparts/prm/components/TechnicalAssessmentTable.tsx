@@ -12,6 +12,8 @@ import { ITechnicalAssessmentProps } from "./ITechnicalAssessmentProps";
 import PricingDetails from "./PricingDetails";
 import styles from "./TechnicalAssessmentTable.module.scss";
 
+import PermissionService from "../services/PermissionService";
+
 import * as strings from "PrmWebPartStrings";
 import { sp } from "@pnp/sp";
 import ProjectRequestService, {
@@ -24,11 +26,16 @@ class TechnicalAssessmentTable extends React.Component<
   ITechnicalAssessmentState
 > {
   private projectRequestService: ProjectRequestService;
+  permissionService: PermissionService;
 
   constructor(props: ITechnicalAssessmentProps) {
     super(props);
     // this.projectRequestService = new ProjectRequestService(this.context);
     this.projectRequestService = props.projectRequestService; // Use the service
+       // Initialize permission service if context is available
+       if (props.context) {
+        this.permissionService = new PermissionService(props.context);
+      } 
     this.state = {
       assessments: [],
       inventoryItems: [],
@@ -39,8 +46,26 @@ class TechnicalAssessmentTable extends React.Component<
     this.loadInventoryItems();
     // Add this line to load existing assessments when component mounts
     this.loadExistingAssessments();
+    this.checkUserPermissions();
   }
-
+  // Check permissions using the compatible method
+  private checkUserPermissions(): void {
+    if (this.permissionService) {
+      this.permissionService.isUserInCommercialDepartment()
+        .then((isCommercialDept) => {
+          this.setState({ 
+            isCommercialDept,
+            isCheckingPermissions: false
+          });
+        })
+        .catch((error) => {
+          console.error("Error checking permissions:", error);
+          this.setState({ isCheckingPermissions: false });
+        });
+    } else {
+      this.setState({ isCheckingPermissions: false });
+    }
+  }
   // In TechnicalAssessmentTable.tsx
   handleFinalSubmit = (): void => {
     const { assessments } = this.state;
@@ -285,8 +310,7 @@ class TechnicalAssessmentTable extends React.Component<
       handleDropdownChange={this.handleDropdownChange}
       handleInputChange={this.handleInputChange}
       addRow={this.addRow}
-      removeRow={this.removeRow}
-    />
+      removeRow={this.removeRow} showPricing={false}    />
   );
 
   // In TechnicalAssessmentTable.tsx
@@ -495,7 +519,7 @@ class TechnicalAssessmentTable extends React.Component<
   render() {
     const { assessments } = this.state;
     const { isReadOnly } = this.props;
-    const canViewPricing = this.props.isCommercialDept === true;
+    const canViewPricing: boolean = this.props.isCommercialDept === true;
 
     return (
       <div className={styles.assessmentContainer}>
@@ -527,7 +551,7 @@ class TechnicalAssessmentTable extends React.Component<
               onRemoveRow={this.removeRow}
               isReadOnly={isReadOnly}
               // canViewPricing={this.props.isCommercialDept}
-              canViewPricing={canViewPricing}
+              // canViewPricing={canViewPricing}
             />
 
             <ResourceTable
@@ -542,7 +566,7 @@ class TechnicalAssessmentTable extends React.Component<
               onRemoveRow={this.removeRow}
               isReadOnly={isReadOnly}
               // canViewPricing={this.props.isCommercialDept}
-              canViewPricing={canViewPricing}
+              // canViewPricing={canViewPricing}
             />
 
             <ResourceTable
@@ -557,7 +581,7 @@ class TechnicalAssessmentTable extends React.Component<
               onRemoveRow={this.removeRow}
               isReadOnly={isReadOnly}
               // canViewPricing={this.props.isCommercialDept}
-              canViewPricing={canViewPricing}
+              // canViewPricing={canViewPricing}
             />
 
             <hr className={styles.assessmentDivider} />

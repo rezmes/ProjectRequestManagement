@@ -4,6 +4,7 @@ import { TextField, IDropdownOption, IconButton } from "office-ui-fabric-react";
 import GenericDropdown from "./GenericDropdown";
 import * as strings from "PrmWebPartStrings";
 interface IPricingDetailsProps {
+  showPricing: boolean;
   label: string;
   field: string;
   options: IDropdownOption[];
@@ -37,16 +38,21 @@ class PricingDetails extends React.Component<IPricingDetailsProps> {
       handleInputChange,
       removeRow,
       label,
+      showPricing
     } = this.props;
-    // console.log(`Options for ${label}:`, options); // Debugging
+    
     return (
       <table className="technicalAssessmentTable">
         <tbody>
           <tr>
             <th className="resourceColumn">{label}</th>
             <th>{strings.Quantity}</th>
-            <th>{strings.PricePerUnit}</th>
-            <th>{strings.TotalCost}</th>
+            {showPricing && (
+              <>
+                <th>{strings.PricePerUnit}</th>
+                <th>{strings.TotalCost}</th>
+              </>
+            )}
             <th>{strings.Action}</th>
           </tr>
           {Array.isArray(assessment[field]) && assessment[field].length > 0 ? (
@@ -79,22 +85,26 @@ class PricingDetails extends React.Component<IPricingDetailsProps> {
                       type="number"
                     />
                   </td>
-                  <td>
-                    <TextField
-                      value={item.pricePerUnit.toString()}
-                      onChanged={(newValue: string) =>
-                        handleInputChange(
-                          newValue,
-                          "pricePerUnit",
-                          index,
-                          partIndex,
-                          field
-                        )
-                      }
-                      type="number"
-                    />
-                  </td>
-                  <td>{totalCost.toFixed(0)}</td>
+                  {showPricing && (
+                    <>
+                      <td>
+                        <TextField
+                          value={item.pricePerUnit.toString()}
+                          onChanged={(newValue: string) =>
+                            handleInputChange(
+                              newValue,
+                              "pricePerUnit",
+                              index,
+                              partIndex,
+                              field
+                            )
+                          }
+                          type="number"
+                        />
+                      </td>
+                      <td>{totalCost.toFixed(0)}</td>
+                    </>
+                  )}
                   <td>
                     <IconButton
                       iconProps={{ iconName: "Delete" }}
@@ -108,29 +118,13 @@ class PricingDetails extends React.Component<IPricingDetailsProps> {
             })
           ) : (
             <tr>
-              <td colSpan={5}>{`${strings.No} ${label.toLowerCase()} ${
+              <td colSpan={showPricing ? 5 : 3}>{`${strings.No} ${label.toLowerCase()} ${
                 strings.AddedYet
               }`}</td>
             </tr>
           )}
         </tbody>
       </table>
-    );
-  }
-
-  render() {
-    const { label, field, index, addRow } = this.props;
-
-    return (
-      <div>
-        {this.renderTable()}
-        <IconButton
-          iconProps={{ iconName: "Add" }}
-          title={`${strings.Add} ${label}`}
-          ariaLabel={`${strings.Add} ${label}`}
-          onClick={() => addRow(field, index)}
-        />
-      </div>
     );
   }
 }

@@ -46,15 +46,11 @@ export default class PrmWebPart extends BaseClientSideWebPart<IPrmWebPartProps> 
   }
 
 
-  private checkUserDepartment(): Promise<boolean> {
-    const apiUrl = `${this.context.pageContext.web.absoluteUrl}/_api/web/currentUser/groups`;
 
-    return this.context.spHttpClient.get(apiUrl, SPHttpClient.configurations.v1, {
-      headers: {
-        "Accept": "application/json;odata=verbose",
-        "Content-Type": "application/json;odata=verbose;charset=utf-8"
-      }
-    })
+private checkUserDepartment(): Promise<boolean> {
+  const apiUrl = `${this.context.pageContext.web.absoluteUrl}/_api/web/currentUser/groups`;
+
+  return this.context.spHttpClient.get(apiUrl, SPHttpClient.configurations.v1)
     .then((response: SPHttpClientResponse) => {
       if (response.ok) {
         return response.json();
@@ -62,21 +58,53 @@ export default class PrmWebPart extends BaseClientSideWebPart<IPrmWebPartProps> 
       throw new Error(`HTTP ${response.status}`);
     })
     .then((data: any) => {
-       const groups = data.d.results;
-    //   return groups.some((g: { Title: string }) => g.Title === "Commercial Department");
-    // })
-    for (let i = 0; i < groups.length; i++) {
-      if (groups[i].Title === this.properties.commercialGroupName) {
-        return true;
+      // Log the raw response for debugging
+      // console.log("Raw API response:", data);
+
+      let groups: any[];
+      if (data && data.d && data.d.results) {
+        // Handle odata=verbose
+        groups = data.d.results;
+      } else if (data && data.value) {
+        // Handle odata=minimalmetadata
+        groups = data.value;
+      } else if (Array.isArray(data)) {
+        // Handle odata=nometadata (direct array)
+        groups = data;
+      } else {
+        // Handle unexpected or empty response
+        console.error("Unexpected or empty response structure:", data);
+        return false;
       }
-    }
-    return false;
-  })
+
+      // console.log("Retrieved user groups (Web Part):", groups);
+      // console.log("Expected commercial group (Web Part):", this.properties.commercialGroupName);
+
+      for (let i = 0; i < groups.length; i++) {
+        if (!groups[i] || !groups[i].Title) {
+          console.warn("Group at index", i, "is missing or has no Title:", groups[i]);
+          continue;
+        }
+        // console.log(
+        //   `Comparing group title '${groups[i].Title}' with expected '${this.properties.commercialGroupName}'`
+        // );
+        if (groups[i].Title.toLowerCase().trim() === this.properties.commercialGroupName.toLowerCase().trim()) {
+          console.log("Match found (Web Part):", groups[i].Title);
+          return true;
+        }
+      }
+      console.log("No matching group found (Web Part).");
+      return false;
+    })
     .catch((error) => {
-      console.error("Group check failed:", error);
+      console.error("Group check failed (Web Part):", error);
       return false;
     });
-  }
+}
+
+
+
+
 
   public render(): void {
     // Determine what to render based on currentView property

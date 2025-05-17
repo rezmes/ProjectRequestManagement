@@ -14,7 +14,7 @@ import { IDropdownOption } from "office-ui-fabric-react";
 // In ProjectRequestService.ts
 import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
 
-// Add this method to check permissions
+
 
 // Define an interface for inventory items with category
 export interface IDropdownOptionWithCategory {
@@ -256,13 +256,13 @@ public updateProjectRequest(requestId: number, requestData: any): Promise<any> {
     });
 }
 
+
 private checkUserInCommercialDepartment(commercialGroupName: string = "Commercial Department"): Promise<boolean> {
   const apiUrl = `${this.context.pageContext.web.absoluteUrl}/_api/web/currentUser/groups`;
 
   return this.context.spHttpClient.get(apiUrl, SPHttpClient.configurations.v1, {
     headers: {
-      "Accept": "application/json;odata=verbose",
-      "Content-Type": "application/json;odata=verbose;charset=utf-8"
+      "Accept": "application/json;odata=verbose"
     }
   })
   .then((response: SPHttpClientResponse) => {
@@ -273,12 +273,18 @@ private checkUserInCommercialDepartment(commercialGroupName: string = "Commercia
   })
   .then((data: any) => {
     const groups = data.d.results;
+    // console.log("Retrieved user groups:", groups);
+    // console.log("Expected commercial group name:", commercialGroupName);
     for (let i = 0; i < groups.length; i++) {
-      if (groups[i].Title === this.commercialGroupName) {
+      // console.log(
+      //   `Comparing group title '${groups[i].Title}' with expected '${commercialGroupName}'`
+      // );
+      if (groups[i].Title.toLowerCase().trim() === commercialGroupName.toLowerCase().trim()) {
+        console.log("Match found:", groups[i].Title);
         return true;
       }
-
     }
+    console.log("No matching group found.");
     return false;
   })
   .catch((error) => {
@@ -286,6 +292,8 @@ private checkUserInCommercialDepartment(commercialGroupName: string = "Commercia
     return false;
   });
 }
+
+
 
 // Update the savePricingDetails method
 public savePricingDetails(pricingDetails: IPricingDetails[]): Promise<any> {

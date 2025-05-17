@@ -55,14 +55,16 @@ export class ResourceTable extends React.Component<IResourceTableProps, {}> {
           <thead>
             <tr>
               <th className={styles.resourceColumn}>{label}</th>
-              <th className={styles.quantityColumn}>Quantity</th>
+              <th className={styles.quantityColumn}>{strings.Quantity}</th>
               {canViewPricing && (
-                <th className={styles.priceColumn}>Price Per Unit</th>
+                <th className={styles.priceColumn}>{strings.PricePerUnit}</th>
               )}
               {canViewPricing && (
-                <th className={styles.totalColumn}>Total Cost</th>
+                <th className={styles.totalColumn}>{strings.TotalCost}</th>
               )}
-              {!isReadOnly && <th className={styles.actionColumn}>Action</th>}
+              {!isReadOnly && (
+                <th className={styles.actionColumn}>{strings.Action}</th>
+              )}
             </tr>
           </thead>
           <tbody>
